@@ -4,24 +4,24 @@
 
 library(shiny)
 library(DT)
-source('locuscompare.R')
+
 
 
 #----------------------- User Input ---------------------------#
-tmp_dir='tmp/' # temporary directory
+
+
 in_fn1='data/eqtl.txt' # input file 1
 in_fn2='data/gwas.txt' # input file 2
-tabix='/Users/boshliu/Documents/tools/htslib/bin/tabix' # path to tabix
-bgzip='/Users/boshliu/Documents/tools/htslib/bin/bgzip' # path to bgzip 
-plink='/Users/boshliu/Documents/tools/plink_mac//plink' # path to plink 
-title1='Study 1' # Study 1 name
-title2='Study 2' # Study 2 name
+
 
 #--------------------- End of User Input ---------------------#
-
+source('locuscompare.R')
 
 # Variables: 
-panel='data/integrated_call_samples_v3.20130502.ALL.panel' 
+title1='Study 1' # Study 1 name
+title2='Study 2' # Study 2 name
+panel='data/integrated_call_samples_v3.20130502.ALL.panel'
+tmp_dir='tmp/' # temporary directory
 if (!dir.exists(tmp_dir)){dir.create(tmp_dir,recursive=TRUE)}
 
 # Functions:

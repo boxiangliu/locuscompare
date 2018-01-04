@@ -1,3 +1,5 @@
 .Rproj.user
 .Rhistory
-locus compare.Rproj
+locuscompare.Rproj
+tmp/
+README.html
