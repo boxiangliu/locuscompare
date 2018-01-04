@@ -25,7 +25,7 @@ Open `locuscompare.R` and `server.R` in Rstudio, which is available for free [he
 
 In `locuscompare.R`, change the path to `tabix`, `bgzip`, and `plink`. Both `tabix` and `bgzip` are part of `htslib`, which can be download [here](http://www.htslib.org/download/); `plink` can be downloaded [here](https://www.cog-genomics.org/plink2).
 
-In `server.R`, change the path to `in_fn1` and `in_fn2`. These two files should contain summary statistics for two GWAS studies. Each file should have the following four columns:
+In `server.R`, change the path to `in_fn1` and `in_fn2`. These two files should be tab-delimited and contain summary statistics for two GWAS studies. Each file should have the following four columns:
 
 1. rsid
 2. chr
