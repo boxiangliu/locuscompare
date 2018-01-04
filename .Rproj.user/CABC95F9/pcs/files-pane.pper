@@ -1,0 +1,9 @@
+{
+    "path" : "~/Documents/tools/locuscompare-demo",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}
