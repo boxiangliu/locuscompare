@@ -21,7 +21,7 @@ shinyUI(fluidPage(
                       fluidRow(column(4,
                                       h3('Instructions'),
                                       helpText('1. The table in the bottom shows selected variant and its LD proxies. Single click to select a variant to display in table. Change "r2 threshold" to control number of LD proxies.'),
-                                      helpText('2.   One variant is highlighted in purpleh, and other variants are colored according to r2 value with the highlighted variant. Double click to highlight a variant. Select a population upon which the r2 are calculated.'),
+                                      helpText('2. One variant is highlighted in purple, and other variants are colored according to r2 value with the highlighted variant. Double click to highlight a variant. Select a population upon which the r2 are calculated.'),
                                       numericInput("r2_threshold", "r2 threshold:", 0.8, min = 0, max = 1),
                                       selectInput('population','Population:',choices=c('AFR','AMR','EAS','EUR','SAS'),selected='EUR')),
 
