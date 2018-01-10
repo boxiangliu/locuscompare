@@ -6,15 +6,6 @@ library(shiny)
 library(DT)
 library(stringr)
 library(dplyr)
-
-#----------------------- User Input ---------------------------#
-
-
-in_fn1='data/eqtl.txt' # input file 1
-in_fn2='data/gwas.txt' # input file 2
-
-
-#--------------------- End of User Input ---------------------#
 source('locuscompare.R')
 
 # Variables: 
@@ -23,6 +14,14 @@ title2='Study 2' # Study 2 name
 panel='data/integrated_call_samples_v3.20130502.ALL.panel'
 tmp_dir='tmp/' # temporary directory
 if (!dir.exists(tmp_dir)){dir.create(tmp_dir,recursive=TRUE)}
+
+locuscompare_db <- dbPool(
+    RMySQL::MySQL(), 
+    dbname = "locuscompare",
+    host = "rds-mysql-locuscompare.cbhpzvkzr3rc.us-west-1.rds.amazonaws.com",
+    username = "admin",
+    password = "12345678"
+)
 
 # Functions:
 select_snp=function(click,merged){
@@ -49,19 +48,24 @@ parse_coordinate=function(coordinate){
 .anno[,chr:=str_replace(chr,'chr','')]
 gene_name2coordinate=function(gene_name_query){
     tmp=.anno[gene_name==gene_name_query,list(chr,start)]
-    coordinate=paste0(tmp$chr,':',tmp$start-1e6,'-',tmp$start+1e6)
+    coordinate=paste0(tmp$chr,':',tmp$start-1e5,'-',tmp$start+1e5)
     return(coordinate)
 }
 
-query_database=function(conn,table_name,coordinate='',gene_name=''){
-    # validate(need(coordinate!=''|gene_name!=''),'Please enter a coordinate or a gene name')
-    # validate(need(coordinate==''|gene_name==''),'Please enter either one but not both')
-    if (str_detect(table_name,'^eQTL')) {
-        validate(need(gene_name!='','Please enter a gene name for the eQTL dataset'))
+is_coordinate=function(locus){
+    if (str_detect(locus,'^chr|^[0-9]{1}')){
+        return(TRUE)
+    } else {
+        return(FALSE)
     }
-    if (gene_name!=''){
-        # validate(need(coordinate==''),'Please enter either one but not both')
-        coordinate=gene_name2coordinate(gene_name)
+}
+
+query_database=function(conn,table_name,locus){
+    if (str_detect(table_name,'^eQTL')) {
+        shiny::validate(need(is_coordinate(locus)==FALSE,'Since an eQTL dataset is selected, you must enter a gene name'))
+    }
+    if (!is_coordinate(locus)){
+        coordinate=gene_name2coordinate(locus)
     }
     parsed_coordinate=parse_coordinate(coordinate)
     table=tbl(conn,table_name)
@@ -70,97 +74,88 @@ query_database=function(conn,table_name,coordinate='',gene_name=''){
 }
 
 shinyServer(function(input, output, session) {    
-    print(isolate(input$study1))
-    output$debugger=renderText({(input$gene_name=='')})
     
-    merged=reactive({
-        input$visualize
-        d1=isolate(
-            query_database(
-                conn = locuscompare_db,
-                table_name = input$study1,
-                coordinate = input$coordinate,
-                gene_name = input$gene_name))
-        d1=isolate(
-            query_database(
-                conn = locuscompare_db,
-                table_name = input$study2,
-                coordinate = input$coordinate,
-                gene_name = input$gene_name))
+    merged=eventReactive(input$visualize,{
+        req(input$study1,input$study2,input$locus)
+        d1=query_database(
+            conn = locuscompare_db,
+            table_name = input$study1,
+            locus = input$locus)
+        d2=query_database(
+            conn = locuscompare_db,
+            table_name = input$study2,
+            locus = input$locus)
         merged=merge(d1,d2,by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
+        setDT(merged)
         merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
-        # retrieve_vcf(merged,tmp_dir)
         return(merged)
-        # chr=unique(merged$chr)
-        # snp_init=merged[which.min(pval1+pval2),rsid]
-        # ld_init=NULL
+    })
+    
+    observeEvent(input$visualize,{
+        retrieve_vcf(merged(),tmp_dir)
     })
     
     chr=reactive({unique(merged()$chr)})
-    snp_init=reactive({merged()[which.min(pval1+pval2),rsid]})
-    id_init=NULL
-    
-
-
-    values=reactiveValues(snp_plot=snp_init(),
-                          snp_table=snp_init(),
-                          color=assign_color(merged$rsid,snp_init(),ld_init),
-                          shape=assign_shape(merged,snp_init()),
-                          size=assign_size(merged,snp_init()),
-                          ld=ld_init)
-
-    
-    observeEvent(input$plot_dblclick,{
-        values$snp_plot=select_snp(input$plot_dblclick,merged())
-        values$color=assign_color(merged()$rsid,values$snp_plot,values$ld)
-        values$shape=assign_shape(merged,values$snp_plot)
-        values$size=assign_size(merged,values$snp_plot)
+    ld=reactive({calc_LD(merged()$rsid,chr(),input$population,tmp_dir,paste0(tmp_dir,'/1000genomes.vcf.gz'),panel)})
+    snp=eventReactive(input$update,{
+        if (is.null(input$plot_click)){
+            return(merged()[which.min(pval1+pval2),rsid])
+        } else {
+            return(select_snp(input$plot_click,merged()))
+        }
+        
     })
-    
-    observeEvent(input$population,{
-        # values$ld=calc_LD(merged$rsid,chr,input$population,tmp_dir,paste0(tmp_dir,'/1000genomes.vcf.gz'),panel)
-        values$ld=NULL
-        # values$snp_plot=snp_init
-        # values$color=assign_color(merged$rsid,snp_init,values$ld)
-        # values$shape=assign_shape(merged,snp_init)
-        # values$size=assign_size(merged,snp_init)
-        values$snp_plot=NULL
-        values$color=NULL
-        values$shape=NULL
-        values$size=NULL
+    color=reactive({assign_color(merged()$rsid,snp(),ld())})
+    shape=reactive({assign_shape(merged(),snp())})
+    size=reactive({assign_size(merged(),snp())})
+    plot_data=reactive({
+        plot_data=merged()
+        plot_data[,label:=ifelse(rsid==snp(),rsid,'')]
+        return(plot_data)
     })
-    
-    observeEvent(input$plot_click,{
-        values$snp_table=select_snp(input$plot_click,merged)
-    })
-    
 
     output$locuscompare = renderPlot({
-        merged[,label:=ifelse(rsid==values$snp_plot,rsid,'')]
-        p1=make_locuscatter(merged,title1,title2,values$ld,values$color,values$shape,values$size,legend=FALSE)
-        p1
+        make_locuscatter(merged = plot_data(),
+                        title1 = input$study1,
+                        title2 = input$study2,
+                        ld = ld(),
+                        color = color(),
+                        shape = shape(),
+                        size = size(),
+                        legend=FALSE)
     },height=function(){
         session$clientData$output_locuscompare_width
     })
     
     output$locuszoom1 = renderPlot({
-      p2=make_locuszoom(merged[,list(rsid,logp1,label)],title1,values$ld,values$color,values$shape,values$size,y_string='logp1')
-      p2
+      make_locuszoom(
+          metal = plot_data()[,list(rsid,logp1,label)],
+          title = input$study1,
+          ld = ld(),
+          color = color(),
+          shape = shape(),
+          size = size(),
+          y_string='logp1')
     })
     
     output$locuszoom2 = renderPlot({
-      p3=make_locuszoom(merged[,list(rsid,logp2,label)],title2,values$ld,values$color,values$shape,values$size,y_string='logp2')
-      p3
+      make_locuszoom(
+          metal = plot_data()[,list(rsid,logp2,label)],
+          title = input$study2,
+          ld = ld(),
+          color = color(),
+          shape = shape(),
+          size = size(),
+          y_string='logp2')
     })
     
     
-    output$info = DT::renderDataTable({
-      snp_table=values$snp_table
-      ld_snps=values$ld[SNP_A==snp_table,][R2>=input$r2_threshold,list(rsid=SNP_B,r2=R2)]
-      ld_snps=rbind(data.table(rsid=snp_table,r2=1),ld_snps)
-      infoTable=merged[rsid%in%ld_snps$rsid,list(rsid,chr,pos,pval1,pval2)]
-      infoTable=merge(infoTable,ld_snps,by='rsid')
-      DT::datatable(infoTable)
+    output$snp_info = DT::renderDataTable({
+      ld_snps=ld()[SNP_A==snp(),][R2>=input$r2_threshold,list(rsid=SNP_B,r2=R2)]
+      ld_snps=rbind(data.table(rsid=snp(),r2=1),ld_snps)
+      tmp=merged()[rsid%in%ld_snps$rsid,list(rsid,chr,pos,pval1,pval2)]
+      snp_info=merge(tmp,ld_snps,by='rsid')
+      DT::datatable(snp_info)
     })
 
   

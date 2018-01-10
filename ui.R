@@ -17,8 +17,6 @@ locuscompare_db <- dbPool(
     password = "12345678"
 )
 
-
-
 get_study_list=function(locuscompare_db){
     table_names=dbListTables(locuscompare_db)
     study_category=str_split_fixed(table_names,'_',2)[,1]
@@ -49,16 +47,13 @@ shinyUI(fluidPage(
              
              tabPanel('Browse',
                       fluidRow(h3('Select Studies')),
-                      fluidRow(column(6,selectInput(inputId='study1',label='Study 1',choices=study_list,selected='GWAS_coronaryArteryDisease_nelson_2017'))),
-                      fluidRow(column(6,selectInput(inputId='study2',label='Study 2',choices=study_list,selected='eQTL_AdiposeSubcutaneous_GTEx_2017'))),
+                      fluidRow(column(6,selectInput(inputId='study1',label='Study 1',choices=c('Choose:'='',study_list)))),
+                      fluidRow(column(6,selectInput(inputId='study2',label='Study 2',choices=c('Choose:'='',study_list)))),
                       hr(),
                       fluidRow(h3('Select Genomic Region')),
-                      fluidRow(column(6,textInput(inputId='gene_name',label='Gene name')),
-                               column(6,helpText(br(),'Example:',br(),'PHACTR1'))),
-                      fluidRow(column(6,textInput(inputId='coordinate',label='Genomic coordinate')),
-                               column(6,helpText(br(),'Example:',br(),'chr6:11716606-13716606'))),
-                      fluidRow(column(6,actionButton(inputId='visualize',label='Visualize'))),
-                      fluidRow(textOutput(outputId='debugger')),
+                      fluidRow(column(6,textInput(inputId='locus',label='Locus')),
+                               column(6,helpText(br(),'Example:',br(),'PHACTR1 or chr6:11716606-13716606'))),
+                      fluidRow(column(6,actionButton(inputId='visualize',label='Plot!'))),
                       hr(),
                       fluidRow(h3('Batch Input')),
                       fluidRow(column(6,textAreaInput(inputId='batch_input',label='Batch input',resize='both',height='200px')),
@@ -76,13 +71,11 @@ shinyUI(fluidPage(
                                       helpText('1. The table in the bottom shows selected variant and its LD proxies. Single click to select a variant to display in table. Change "r2 threshold" to control number of LD proxies.'),
                                       helpText('2. One variant is highlighted in purple, and other variants are colored according to r2 value with the highlighted variant. Double click to highlight a variant. Select a population upon which the r2 are calculated.'),
                                       numericInput("r2_threshold", "r2 threshold:", 0.8, min = 0, max = 1),
-                                      selectInput('population','Population:',choices=c('AFR','AMR','EAS','EUR','SAS'),selected='EUR')),
+                                      selectInput('population','Population:',choices=c('AFR','AMR','EAS','EUR','SAS'),selected='EUR'),
+                                      actionButton('update','Update')),
                                column(8,plotOutput('locuscompare',height='auto',click='plot_click',dblclick = "plot_dblclick"))),
-                      
-                      fluidRow(column(12,plotOutput('locuszoom1',click='plot_click',
-                                                    dblclick = "plot_dblclick",height='200px'))),
-                      fluidRow(column(12,plotOutput('locuszoom2',click='plot_click',
-                                                    dblclick = "plot_dblclick",height='200px'))),
-                      fluidRow(div(style = 'overflow-x: scroll', DT::dataTableOutput('info')))))
+                      fluidRow(column(12,plotOutput('locuszoom1',click='plot_click',height='200px'))),
+                      fluidRow(column(12,plotOutput('locuszoom2',click='plot_click',height='200px'))),
+                      fluidRow(div(style = 'overflow-x: scroll', DT::dataTableOutput('snp_info')))))
 
 ))
