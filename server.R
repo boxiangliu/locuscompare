@@ -4,8 +4,8 @@
 
 library(shiny)
 library(DT)
-
-
+library(stringr)
+library(dplyr)
 
 #----------------------- User Input ---------------------------#
 
@@ -34,27 +34,88 @@ select_snp=function(click,merged){
     return(snp)
 }
 
+parse_coordinate=function(coordinate){
+    split_coordinate=str_split_fixed(coordinate,':',2)
+    chr=split_coordinate[,1]
+    chr=str_replace(chr,'chr','')
+    pos=split_coordinate[,2]
+    split_pos=str_split_fixed(pos,'-',2)
+    start=as.integer(split_pos[,1])
+    end=as.integer(split_pos[,2])
+    return(list(chr=chr,start=start,end=end))
+}
+
+.anno=fread('data/gencode.v19.genes.v6p.hg19.bed',select=c(1:3,5,6),col.names=c('chr','start','end','gene_id','gene_name'))
+.anno[,chr:=str_replace(chr,'chr','')]
+gene_name2coordinate=function(gene_name_query){
+    tmp=.anno[gene_name==gene_name_query,list(chr,start)]
+    coordinate=paste0(tmp$chr,':',tmp$start-1e6,'-',tmp$start+1e6)
+    return(coordinate)
+}
+
+query_database=function(conn,table_name,coordinate='',gene_name=''){
+    # validate(need(coordinate!=''|gene_name!=''),'Please enter a coordinate or a gene name')
+    # validate(need(coordinate==''|gene_name==''),'Please enter either one but not both')
+    if (str_detect(table_name,'^eQTL')) {
+        validate(need(gene_name!='','Please enter a gene name for the eQTL dataset'))
+    }
+    if (gene_name!=''){
+        # validate(need(coordinate==''),'Please enter either one but not both')
+        coordinate=gene_name2coordinate(gene_name)
+    }
+    parsed_coordinate=parse_coordinate(coordinate)
+    table=tbl(conn,table_name)
+    res=table%>%dplyr::filter(chr==parsed_coordinate$chr,pos>=parsed_coordinate$start,pos<=parsed_coordinate$end)%>%collect()
+    return(res)
+}
 
 shinyServer(function(input, output, session) {    
-
-    d1=fread(in_fn1)
-    d2=fread(in_fn2)
-    merged=merge(d1,d2,by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
-    merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
-    retrieve_vcf(merged,tmp_dir)
-
-    chr=unique(merged$chr)
+    print(isolate(input$study1))
+    output$debugger=renderText({(input$gene_name=='')})
     
-    snp_init=merged[which.min(pval1+pval2),rsid]
-    ld_init=NULL
+    reactive({
+        input$visualize
+        # d1=fread(in_fn1)
+        # d2=fread(in_fn2)
+        d1=isolate(
+            query_database(
+                conn = locuscompare_db,
+                table_name = input$study1,
+                coordinate = input$coordinate,
+                gene_name = input$gene_name))
+        print(isolate(d1))
+        d1=isolate(
+            query_database(
+                conn = locuscompare_db,
+                table_name = input$study2,
+                coordinate = input$coordinate,
+                gene_name = input$gene_name))
+        merged=merge(d1,d2,by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
+        merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
+        # retrieve_vcf(merged,tmp_dir)
+        chr=unique(merged$chr)
+        snp_init=merged[which.min(pval1+pval2),rsid]
+        ld_init=NULL
+    })
 
-    values=reactiveValues(snp_plot=snp_init,
-                          snp_table=snp_init,
-                          color=assign_color(merged$rsid,snp_init,ld_init),
-                          shape=assign_shape(merged,snp_init),
-                          size=assign_size(merged,snp_init),
-                          ld=ld_init)
+    
+    
 
+
+    # values=reactiveValues(snp_plot=snp_init,
+    #                       snp_table=snp_init,
+    #                       color=assign_color(merged$rsid,snp_init,ld_init),
+    #                       shape=assign_shape(merged,snp_init),
+    #                       size=assign_size(merged,snp_init),
+    #                       ld=ld_init)
+
+    values=reactiveValues(snp_plot=NULL,
+                          snp_table=NULL,
+                          color=NULL,
+                          shape=NULL,
+                          size=NULL,
+                          ld=NULL)
+    
     observeEvent(input$plot_dblclick,{
         values$snp_plot=select_snp(input$plot_dblclick,merged)
         values$color=assign_color(merged$rsid,values$snp_plot,values$ld)
@@ -63,11 +124,16 @@ shinyServer(function(input, output, session) {
     })
     
     observeEvent(input$population,{
-        values$ld=calc_LD(merged$rsid,chr,input$population,tmp_dir,paste0(tmp_dir,'/1000genomes.vcf.gz'),panel)
-        values$snp_plot=snp_init
-        values$color=assign_color(merged$rsid,snp_init,values$ld)
-        values$shape=assign_shape(merged,snp_init)
-        values$size=assign_size(merged,snp_init)
+        # values$ld=calc_LD(merged$rsid,chr,input$population,tmp_dir,paste0(tmp_dir,'/1000genomes.vcf.gz'),panel)
+        values$ld=NULL
+        # values$snp_plot=snp_init
+        # values$color=assign_color(merged$rsid,snp_init,values$ld)
+        # values$shape=assign_shape(merged,snp_init)
+        # values$size=assign_size(merged,snp_init)
+        values$snp_plot=NULL
+        values$color=NULL
+        values$shape=NULL
+        values$size=NULL
     })
     
     observeEvent(input$plot_click,{
