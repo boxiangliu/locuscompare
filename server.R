@@ -73,17 +73,14 @@ shinyServer(function(input, output, session) {
     print(isolate(input$study1))
     output$debugger=renderText({(input$gene_name=='')})
     
-    reactive({
+    merged=reactive({
         input$visualize
-        # d1=fread(in_fn1)
-        # d2=fread(in_fn2)
         d1=isolate(
             query_database(
                 conn = locuscompare_db,
                 table_name = input$study1,
                 coordinate = input$coordinate,
                 gene_name = input$gene_name))
-        print(isolate(d1))
         d1=isolate(
             query_database(
                 conn = locuscompare_db,
@@ -93,32 +90,29 @@ shinyServer(function(input, output, session) {
         merged=merge(d1,d2,by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
         merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
         # retrieve_vcf(merged,tmp_dir)
-        chr=unique(merged$chr)
-        snp_init=merged[which.min(pval1+pval2),rsid]
-        ld_init=NULL
+        return(merged)
+        # chr=unique(merged$chr)
+        # snp_init=merged[which.min(pval1+pval2),rsid]
+        # ld_init=NULL
     })
-
     
+    chr=reactive({unique(merged()$chr)})
+    snp_init=reactive({merged()[which.min(pval1+pval2),rsid]})
+    id_init=NULL
     
 
 
-    # values=reactiveValues(snp_plot=snp_init,
-    #                       snp_table=snp_init,
-    #                       color=assign_color(merged$rsid,snp_init,ld_init),
-    #                       shape=assign_shape(merged,snp_init),
-    #                       size=assign_size(merged,snp_init),
-    #                       ld=ld_init)
+    values=reactiveValues(snp_plot=snp_init(),
+                          snp_table=snp_init(),
+                          color=assign_color(merged$rsid,snp_init(),ld_init),
+                          shape=assign_shape(merged,snp_init()),
+                          size=assign_size(merged,snp_init()),
+                          ld=ld_init)
 
-    values=reactiveValues(snp_plot=NULL,
-                          snp_table=NULL,
-                          color=NULL,
-                          shape=NULL,
-                          size=NULL,
-                          ld=NULL)
     
     observeEvent(input$plot_dblclick,{
-        values$snp_plot=select_snp(input$plot_dblclick,merged)
-        values$color=assign_color(merged$rsid,values$snp_plot,values$ld)
+        values$snp_plot=select_snp(input$plot_dblclick,merged())
+        values$color=assign_color(merged()$rsid,values$snp_plot,values$ld)
         values$shape=assign_shape(merged,values$snp_plot)
         values$size=assign_size(merged,values$snp_plot)
     })
