@@ -7,9 +7,10 @@ library(cowplot)
 library(ggrepel)
 library(stringr)
 
-tabix='/Users/boshliu/Documents/tools/htslib/bin/tabix' # path to tabix
-bgzip='/Users/boshliu/Documents/tools/htslib/bin/bgzip' # path to bgzip 
-plink='/Users/boshliu/Documents/tools/plink_mac//plink' # path to plink 
+
+tabix='/software/htslib-1.6/bin/tabix' # path to tabix
+bgzip='/software/htslib-1.6/bin/bgzip' # path to bgzip 
+plink='/software/plink_linux_x86_64/plink' # path to plink 
 
 read_metal=function(in_fn,marker_col='rsid',pval_col='pval'){
     if (is.character(in_fn)){

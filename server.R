@@ -7,12 +7,15 @@ library(DT)
 library(stringr)
 library(dplyr)
 source('locuscompare.R')
+library(RMySQL)
+home_dir='/srv/persistent/bliu2/locuscompare/'
+
 
 # Variables: 
 title1='Study 1' # Study 1 name
 title2='Study 2' # Study 2 name
-panel='data/integrated_call_samples_v3.20130502.ALL.panel'
-tmp_dir='tmp/' # temporary directory
+panel=paste0(home_dir,'data/integrated_call_samples_v3.20130502.ALL.panel')
+tmp_dir=paste0(home_dir,'tmp/') # temporary directory
 if (!dir.exists(tmp_dir)){dir.create(tmp_dir,recursive=TRUE)}
 
 locuscompare_db <- dbPool(
@@ -44,7 +47,7 @@ parse_coordinate=function(coordinate){
     return(list(chr=chr,start=start,end=end))
 }
 
-.anno=fread('data/gencode.v19.genes.v6p.hg19.bed',select=c(1:3,5,6),col.names=c('chr','start','end','gene_id','gene_name'))
+.anno=fread(paste0(home_dir,'data/gencode.v19.genes.v6p.hg19.bed'),select=c(1:3,5,6),col.names=c('chr','start','end','gene_id','gene_name'))
 .anno[,chr:=str_replace(chr,'chr','')]
 gene_name2coordinate=function(gene_name_query){
     tmp=.anno[gene_name==gene_name_query,list(chr,start)]

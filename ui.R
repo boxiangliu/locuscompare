@@ -8,6 +8,7 @@ library(pool)
 library(DBI)
 library(stringr)
 library(foreach)
+library(RMySQL)
 
 locuscompare_db <- dbPool(
     RMySQL::MySQL(), 
