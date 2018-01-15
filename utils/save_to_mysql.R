@@ -21,6 +21,13 @@ locuscompare_db <- dbPool(
     password = "12345678"
 )
 
+locuscompare_db <- dbPool(
+  RMySQL::MySQL(), 
+  dbname = "locuscompare",
+  host = "localhost",
+  username = "root",
+  password = "admin"
+)
 
 
 dbWriteTable(conn = locuscompare_db,
