@@ -11,6 +11,8 @@ library(stringr)
 tabix='/software/htslib-1.6/bin/tabix' # path to tabix
 bgzip='/software/htslib-1.6/bin/bgzip' # path to bgzip 
 plink='/software/plink_linux_x86_64/plink' # path to plink 
+data_dir='/srv/persistent/bliu2/locuscompare/data/' # path to data directory
+tkg_dir='/mnt/data/shared/1KG/' # path to 1000 genomes directory
 
 read_metal=function(in_fn,marker_col='rsid',pval_col='pval'){
     if (is.character(in_fn)){
@@ -36,18 +38,31 @@ get_chr=function(eqtl_fn){
 
 retrieve_vcf=function(merged,tmp_dir){
     chr=unique(merged$chr)
+    browser()
+    print(merged)
     chr=gsub('chr','',chr)
     if (length(chr)!=1) {
         stop('SNPs must be on a single chromosome!')
     }
     pos_max=max(merged$pos)
     pos_min=min(merged$pos)
-    command=sprintf('%s -h ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr%s.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz %s:%s-%s | %s > %s/1000genomes.vcf.gz',tabix,chr,chr,pos_min,pos_max,bgzip,tmp_dir)
+    vcf_fn=sprintf('%s/1000genomes_chr%s_%s_%s.vcf.gz',tmp_dir,chr,pos_min,pos_max)
+    if (chr %in% as.character(1:22)){
+      command=sprintf('%s -h %s/ALL.chr%s.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz %s:%s-%s | %s > %s',tabix,tkg_dir,chr,chr,pos_min,pos_max,bgzip,vcf_fn)
+    } else if (chr == 'X'){
+      command=sprintf('%s -h %s/ALL.chrX.phase3_shapeit2_mvncall_integrated_v1b.20130502.genotypes.vcf.gz %s:%s-%s | %s > %s',tabix,tkg_dir,chr,pos_min,pos_max,bgzip,vcf_fn)
+    } else if (chr == 'Y'){
+      command=sprintf('%s -h %s/ALL.chrY.phase3_integrated_v2a.20130502.genotypes.vcf.gz %s:%s-%s | %s > %s',tabix,tkg_dir,chr,pos_min,pos_max,bgzip,vcf_fn)
+    } else {
+      stop('Chromosome must be 1-22, X or Y')
+    }
     print(command)
     system(command)
     
-    unlink(sprintf('ALL.chr%s.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz.tbi',chr)) # remove index file downloaded by tabix
-    
+    if (file.exists(sprintf('ALL.chr%s.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz.tbi',chr))){
+      unlink(sprintf('ALL.chr%s.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz.tbi',chr)) # remove index file downloaded by tabix
+    }
+    return(vcf_fn)
 }
 
 
@@ -58,11 +73,11 @@ extract_population=function(population,out_file,panel){
 }
 
 
-subset_vcf=function(vcf_in,rsid,population,vcf_out,out_dir,panel){
-    pop_fn=sprintf('%s/%s.txt',out_dir,population)
+subset_vcf=function(vcf_in,rsid,population,vcf_out,out_dir,pop_fn){
     rsid_fn=sprintf('%s/rsid.txt',out_dir)
+    rsid_fn=tempfile(pattern = "rsid-", tmpdir = out_dir, fileext = ".txt")
+    on.exit(unlink(rsid_fn))
     
-    extract_population(population,pop_fn,panel)
     write.table(rsid,rsid_fn,sep='\t',col.names=FALSE,row.names=FALSE,quote=FALSE)
     
     command=sprintf('%s --vcf %s --keep-allele-order --keep %s --extract %s --recode vcf-iid --out %s',plink,vcf_in,pop_fn,rsid_fn,vcf_out)
@@ -70,13 +85,13 @@ subset_vcf=function(vcf_in,rsid,population,vcf_out,out_dir,panel){
     system(command)
 }
 
-calc_LD=function(rsid,chr,pop,out_dir,vcf_fn,panel){
-    pop_fn=sprintf('%s/%s.txt',out_dir,pop)
+calc_LD=function(rsid,chr,pop,out_dir,vcf_fn,panel=NULL){
+    pop_fn=sprintf('%s/population/%s.txt',data_dir,pop)
     rsid_fn=sprintf('%s/rsid.txt',out_dir)
 
     subset_vcf_prefix=sprintf('%s/%s',out_dir,pop)
     subset_vcf_fn=sprintf('%s/%s.vcf',out_dir,pop)
-    subset_vcf(vcf_fn,rsid,pop,subset_vcf_prefix,out_dir,panel)
+    subset_vcf(vcf_fn,rsid,pop,subset_vcf_prefix,out_dir,pop_fn)
     
     command=sprintf('%s --vcf %s --keep-allele-order --r2 --ld-window 9999999 --ld-window-kb 9999999 --out %s/%s',plink,subset_vcf_fn,out_dir,pop)
     print(command)
@@ -174,7 +189,8 @@ make_locuscatter=function(merged,title1,title2,ld,color,shape,size,legend=TRUE){
 }
 
 make_locuszoom=function(metal,title,ld,color,shape,size,y_string='logp'){
-    data=merge(metal,unique(ld[,list(chr=CHR_A,pos=BP_A,rsid=SNP_A)]),by='rsid')
+    # data=merge(metal,unique(ld[,list(chr=CHR_A,pos=BP_A,rsid=SNP_A)]),by='rsid')
+    data=metal
     chr=unique(data$chr)
     ggplot(data,aes_string(x='pos',y=y_string))+
         geom_point(aes(fill=rsid,size=rsid,shape=rsid),alpha=0.8)+
