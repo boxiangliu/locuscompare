@@ -2,24 +2,10 @@
 # Boxiang Liu
 # 2018-01-01
 
-library(shiny)
-library(DT)
-library(pool)
-library(DBI)
-library(stringr)
-library(foreach)
-library(RMySQL)
-
-locuscompare_db <- dbPool(
-    RMySQL::MySQL(), 
-    dbname = "locuscompare",
-    host = "rds-mysql-locuscompare.cbhpzvkzr3rc.us-west-1.rds.amazonaws.com",
-    username = "admin",
-    password = "12345678"
-)
-
 get_study_list=function(locuscompare_db){
     table_names=dbListTables(locuscompare_db)
+    idx=which(!str_detect(table_names,'_traits'))
+    table_names=table_names[idx]
     study_category=str_split_fixed(table_names,'_',2)[,1]
     study_list=foreach(i=unique(study_category),.combine=c)%do%{
         tmp=list(table_names[study_category==i])
@@ -46,33 +32,27 @@ shinyUI(fluidPage(
                               hr(),
                               helpText('On the bottom is a table that shows selected SNP as well as SNPs passing a given LD threshold. Single-clicking a SNP on any plot will update the table. LD threshold can be set using the "r2 threshold" input.')))),
              
-             tabPanel('Browse',
+             tabPanel('Interactive - Input',
                       fluidRow(h3('Select Studies')),
-                      fluidRow(column(6,selectInput(inputId='study1',label='Study 1',choices=c('Choose'='',study_list)),
+                      fluidRow(column(6,
+                                      selectInput(inputId='study1',label='Study 1',choices=c('Choose'='',study_list)),
+                                      selectizeInput(inputId='study1_trait',label='Trait',choices=c('Choose'='')),
                                helpText('or'),
                                fileInput(inputId='upload_study1',label=NULL)),
                                column(6,helpText('Select a study from the dropdown menu or upload your own study. The file should have tab-delimited with four columns and must include the same header. Example'),
                                       tableOutput('exampleInput'))),
-                      fluidRow(column(6,selectInput(inputId='study2',label='Study 2',choices=c('Choose'='',study_list)),
+                      fluidRow(column(6,
+                                      selectInput(inputId='study2',label='Study 2',choices=c('Choose'='',study_list)),
+                                      selectizeInput(inputId='study2_trait',label='Trait',choices=c('Choose'='')),
                                helpText('or'),
                                fileInput(inputId='upload_study2',label=NULL))),
                       hr(),
-                      fluidRow(h3('Select Genomic Region')),
+                      fluidRow(h3('Interactive Mode')),
                       fluidRow(column(6,textInput(inputId='locus',label='Locus')),
                                column(6,helpText(br(),'Example:',br(),'PHACTR1 or chr6:11716606-13716606'))),
-                      fluidRow(column(6,actionButton(inputId='visualize',label='Plot!'))),
-                      hr(),
-                      fluidRow(h3('Batch Input')),
-                      fluidRow(column(6,textAreaInput(inputId='batch_input',label='Batch input',resize='both',height='200px')),
-                               column(6,helpText(br(),'Each line is a gene name or genomic coordinate. Example: ',br(),br(),'PHACTR1',br(),'chr15:66063763-68063763',br(),'SORT1'))),
-                      fluidRow(column(6,actionButton(inputId='submit',label='submit')))),
-             
-             tabPanel('Upload',
-                      fluidRow(h3('Upload Studies')),
-                      fluidRow(fileInput(inputId='upload_study1',label='Study 1')),
-                      fluidRow(fileInput(inputId='upload_study2',label='Study 2'))),
-             
-             tabPanel('Visualize',
+                      fluidRow(column(6,actionButton(inputId='visualize',label='Plot!')))
+                      ),
+             tabPanel('Interactive - Results',
                       fluidRow(column(4,
                                       h3('Instructions'),
                                       helpText('1. The table in the bottom shows selected variant and its LD proxies. Single click to select a variant to display in table. Change "r2 threshold" to control number of LD proxies.'),
@@ -81,8 +61,30 @@ shinyUI(fluidPage(
                                       selectInput('population','Population:',choices=c('AFR','AMR','EAS','EUR','SAS'),selected='EUR'),
                                       downloadButton('download','Download')),
                                column(8,plotOutput('locuscompare',height='auto',click='plot_click'))),
-                      fluidRow(column(12,plotOutput('locuszoom1',click='plot_click',height='200px'))),
-                      fluidRow(column(12,plotOutput('locuszoom2',click='plot_click',height='200px'))),
-                      fluidRow(div(style = 'overflow-x: scroll', DT::dataTableOutput('snp_info')))))
+                      fluidRow(column(12,plotOutput('locuszoom1',click='plot_click',dblclick='plot_dblclick',brush=brushOpts(id='plot_brush',direction='x'),height='200px'))),
+                      fluidRow(column(12,plotOutput('locuszoom2',click='plot_click',dblclick='plot_dblclick',brush=brushOpts(id='plot_brush',direction='x'),height='200px'))),
+                      fluidRow(div(style = 'overflow-x: scroll', DT::dataTableOutput('snp_info')))
+                      ),
+
+             tabPanel('Batch Mode',
+                      fluidRow(h3('Select Studies')),
+                      fluidRow(column(6,
+                                      selectInput(inputId='study1',label='Study 1',choices=c('Choose'='',study_list)),
+                               helpText('or'),
+                               fileInput(inputId='upload_study1',label=NULL)),
+                               column(6,helpText('Select a study from the dropdown menu or upload your own study. The file should have tab-delimited with four columns and must include the same header. Example'),
+                                      tableOutput('exampleInput'))),
+                      fluidRow(column(6,
+                                      selectInput(inputId='study2',label='Study 2',choices=c('Choose'='',study_list)),
+                               helpText('or'),
+                               fileInput(inputId='upload_study2',label=NULL))),
+                      fluidRow(column(6,selectInput('population','Population:',choices=c('AFR','AMR','EAS','EUR','SAS'),selected='EUR'))),
+                      fluidRow(column(6,textAreaInput(inputId='batch_coordinate_input',label='Genomic Coordinates',resize='both',height='200px')),
+                               column(6,helpText(br(),'Each line is a genomic coordinate. Example: ',br(),'chr15:66063763-68063763'))),
+                      fluidRow(column(3,
+                                      actionButton(inputId='submit_batch_coordinate',label='Submit'),
+                                      downloadButton(outputId='batch_download',label='Download')))
+                      )
+            )
 
 ))

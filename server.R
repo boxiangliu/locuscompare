@@ -2,36 +2,10 @@
 # Boxiang Liu
 # 2018-01-01
 
-library(shiny)
-library(DT)
-library(stringr)
-library(dplyr)
-source('locuscompare.R')
-library(RMySQL)
-home_dir='/srv/persistent/bliu2/locuscompare/'
-
-
-# Variables: 
-title1='Study 1' # Study 1 name
-title2='Study 2' # Study 2 name
-panel=paste0(home_dir,'data/integrated_call_samples_v3.20130502.ALL.panel')
-tmp_dir=paste0(home_dir,'tmp/') # temporary directory
-if (!dir.exists(tmp_dir)){dir.create(tmp_dir,recursive=TRUE)}
-
-locuscompare_db <- dbPool(
-    RMySQL::MySQL(), 
-    dbname = "locuscompare",
-    host = "rds-mysql-locuscompare.cbhpzvkzr3rc.us-west-1.rds.amazonaws.com",
-    username = "admin",
-    password = "12345678"
-)
 
 # Functions:
 select_snp=function(click,merged){
-    merged_subset=nearPoints(merged,click)
-    if (nrow(merged_subset)>1) {
-        merged_subset=merged_subset[1,]
-    }
+    merged_subset=nearPoints(merged,click,maxpoints=1)
     snp=merged_subset[,rsid]
     return(snp)
 }
@@ -63,16 +37,66 @@ is_coordinate=function(locus){
     }
 }
 
-query_database=function(conn,table_name,locus){
-    if (str_detect(table_name,'^eQTL')) {
-        shiny::validate(need(is_coordinate(locus)==FALSE,'Since an eQTL dataset is selected, you must enter a gene name'))
-    }
+get_traits=function(conn,table_name){
+
+  return(res)
+}
+
+get_trait=function(study){
+  
+  if (study==''){
+    trait=''
+    
+  } else if (str_detect(study,'^GWAS_')){
+      x = paste0(study,'_traits')
+      table=tbl(locuscompare_db,x)
+      res=table%>%dplyr::select(trait)%>%collect()%>%unlist()%>%unname()
+      trait=sort(res)
+    
+  } else if (str_detect(study,'^eQTL_')){
+    x = paste0(study,'_traits')
+    table=tbl(locuscompare_db,x)
+    res=table%>%dplyr::select(gene_id)%>%collect()%>%unlist()%>%unname()
+    trait=sort(res)
+  }
+  return(trait)
+}
+
+query_database=function(conn,table_name,locus,trait){
     if (!is_coordinate(locus)){
-        coordinate=gene_name2coordinate(locus)
+        locus=gene_name2coordinate(locus)
     }
-    parsed_coordinate=parse_coordinate(coordinate)
+    locus=str_replace_all(locus,',','')
+    parsed_coordinate=parse_coordinate(locus)
     table=tbl(conn,table_name)
-    res=table%>%dplyr::filter(chr==parsed_coordinate$chr,pos>=parsed_coordinate$start,pos<=parsed_coordinate$end)%>%collect()
+    
+    if (trait=='batch'){ # for batch mode
+        res=table%>%
+            dplyr::filter(chr==parsed_coordinate$chr,
+                          pos>=parsed_coordinate$start,
+                          pos<=parsed_coordinate$end)%>%collect()
+        setDT(res)
+        if ('gene_name' %in% colnames(res)){
+            setnames(res,'gene_name','trait')
+        }
+        stopifnot('trait' %in% colnames(res))
+    } else {
+        if (str_detect(table_name,'^eQTL_')) {
+            print(table_name)
+            res=table%>%
+                dplyr::filter(gene_id==trait,
+                              chr==parsed_coordinate$chr,
+                              pos>=parsed_coordinate$start,
+                              pos<=parsed_coordinate$end)%>%collect()
+            print('finished reading table')
+        } else if (str_detect(table_name,'^GWAS_')){
+            res=table%>%
+                dplyr::filter(chr==parsed_coordinate$chr,
+                              pos>=parsed_coordinate$start,
+                              pos<=parsed_coordinate$end)%>%collect()
+        }
+    }
+
     return(res)
 }
 
@@ -85,16 +109,26 @@ shinyServer(function(input, output, session) {
                    pval=c(0.346735,0.644105,0.797991))
     })
     
+    observe({
+      study1_trait=get_trait(input$study1)
+      updateSelectizeInput(session, "study1_trait", choices = study1_trait, server = TRUE)
+    })
+    
+    observe({
+      study2_trait=get_trait(input$study2)
+      updateSelectizeInput(session, "study2_trait", choices = study2_trait, server = TRUE)
+    })
+    
     merged=eventReactive(input$visualize,{
         shiny::validate(need(input$study1!='' | !is.null(input$upload_study1),'Please upload or select study 1'))
         shiny::validate(need(input$study2!='' | !is.null(input$upload_study2),'Please upload or select study 2'))
         shiny::req(input$locus)
-        
         if (input$study1!=''){
             d1=query_database(
                 conn = locuscompare_db,
                 table_name = input$study1,
-                locus = input$locus)
+                locus = input$locus,
+                trait = input$study1_trait)
         } else {
             d1=fread(input$upload_study1$datapath)
         }
@@ -103,42 +137,69 @@ shinyServer(function(input, output, session) {
             d2=query_database(
                 conn = locuscompare_db,
                 table_name = input$study2,
-                locus = input$locus)
+                locus = input$locus,
+                trait = input$study2_trait)
         } else {
             d2=fread(input$upload_study2$datapath)
         }
 
         merged=merge(d1,d2,by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
+        shiny::validate(need(nrow(merged)>0,'No overlapping SNPs between two studies'))
         setDT(merged)
         merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
         return(merged)
     })
     
+    
+    
+    vcf_fn=reactive({retrieve_vcf(merged(),tmp_dir)})
+    
     snp=reactiveVal(value=NULL,label='snp')
     
     observeEvent(input$visualize,{
-        retrieve_vcf(merged(),tmp_dir)
-        snp(merged()[which.min(pval1+pval2),rsid])
+        snp(merged()[which.min(pval1*pval2),rsid])
     })
 
     chr=reactive({unique(merged()$chr)})
-    ld=reactive({calc_LD(merged()$rsid,chr(),input$population,tmp_dir,paste0(tmp_dir,'/1000genomes.vcf.gz'),panel)})
+    ld=reactive({calc_LD(merged()$rsid,chr(),input$population,tmp_dir,vcf_fn())})
     
     observeEvent(input$plot_click,{
-        snp(select_snp(input$plot_click,merged()))
+        selected_snp=select_snp(input$plot_click,merged())
+        if (!identical(selected_snp,character(0))){
+            snp(selected_snp)    
+        }
     })
 
     color=reactive({assign_color(merged()$rsid,snp(),ld())})
     shape=reactive({assign_shape(merged(),snp())})
     size=reactive({assign_size(merged(),snp())})
     
+    range=reactiveValues(xmin=NULL,xmax=NULL)
+    observeEvent(input$plot_dblclick,{
+        brush = input$plot_brush
+        if (!is.null(brush)){
+            range$xmin=brush$xmin
+            range$xmax=brush$xmax
+        } else {
+            range$xmin=NULL
+            range$xmax=NULL
+        }
+    })
+    
     plot_data=reactive({
-        plot_data=merged()
+
+        if (is.null(range$xmin)){
+            plot_data=merged()
+        } else {
+            plot_data=merged()[pos<=range$xmax & pos>=range$xmin]
+        }
+        
         plot_data[,label:=ifelse(rsid==snp(),rsid,'')]
         return(plot_data)
     })
 
-    locuscompare=reactive({
+    
+    output$locuscompare = renderPlot({
         make_locuscatter(merged = plot_data(),
                          title1 = input$study1,
                          title2 = input$study2,
@@ -147,11 +208,13 @@ shinyServer(function(input, output, session) {
                          shape = shape(),
                          size = size(),
                          legend=FALSE)
+    },height=function(){
+        session$clientData$output_locuscompare_width
     })
     
-    locuszoom1=reactive({
+    output$locuszoom1 = renderPlot({
         make_locuszoom(
-            metal = plot_data()[,list(rsid,logp1,label)],
+            metal = plot_data()[,list(rsid,chr,pos,logp1,label)],
             title = input$study1,
             ld = ld(),
             color = color(),
@@ -159,30 +222,16 @@ shinyServer(function(input, output, session) {
             size = size(),
             y_string='logp1')
     })
-
-    locuszoom2=reactive({
+    
+    output$locuszoom2 = renderPlot({
         make_locuszoom(
-            metal = plot_data()[,list(rsid,logp2,label)],
+            metal = plot_data()[,list(rsid,chr,pos,logp2,label)],
             title = input$study2,
             ld = ld(),
             color = color(),
             shape = shape(),
             size = size(),
             y_string='logp2')
-    })
-    
-    output$locuscompare = renderPlot({
-        locuscompare()
-    },height=function(){
-        session$clientData$output_locuscompare_width
-    })
-    
-    output$locuszoom1 = renderPlot({
-        locuszoom1()
-    })
-    
-    output$locuszoom2 = renderPlot({
-        locuszoom2()
     })
     
     
@@ -209,8 +258,132 @@ shinyServer(function(input, output, session) {
             ggsave('locuszoom_study1.pdf',locuszoom1())
             ggsave('locuszoom_study2.pdf',locuszoom2())
             
-            zip(file,c('data.tsv','ld.txt','locuscompare.pdf','locuszoom_study1.pdf','locuszoom_study2.pdf'))
+            zip(file,c('data.tsv','ld.tsv','locuscompare.pdf','locuszoom_study1.pdf','locuszoom_study2.pdf'))
         }
         
     )
+
+
+    observeEvent(input$submit_batch_coordinate,{
+        print(input$batch_coordinate_input)
+        warning(trimws(input$batch_coordinate_input))
+        split_coordinate_input=str_split(trimws(input$batch_coordinate_input),'\n')[[1]]
+        
+        # Create a Progress object
+        progress = shiny::Progress$new()
+        on.exit(progress$close())
+        progress$set(message = "Making plot", value = 0)
+        n = length(split_coordinate_input)
+        warning(n)
+        for (coordinate in split_coordinate_input){
+            warning(tmp_dir)
+            warning(coordinate)
+            dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
+            parsed_coordinate=parse_coordinate(coordinate)
+            
+            # Increment the progress bar, and update the detail text.
+            progress$inc(1/n, detail = paste("coordinate: ", coordinate))
+
+
+            d1=query_database(
+                conn = locuscompare_db,
+                table_name = input$study1,
+                locus = coordinate,
+                trait = 'batch')
+            d2=query_database(
+                conn = locuscompare_db,
+                table_name = input$study2,
+                locus = coordinate,
+                trait = 'batch')
+            
+            trait1_list=unique(d1$trait)
+            trait2_list=unique(d2$trait)
+            
+            for (trait1 in trait1_list){
+                for (trait2 in trait2_list){
+                    print(paste0('trait1: ',trait1,'; trait2: ',trait2))
+                    merged=merge(d1[trait==trait1],d2[trait==trait2,],by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
+                    if (nrow(merged)==0) next # skip if no overlap
+                    setDT(merged)
+                    merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
+                    
+                    vcf_fn=retrieve_vcf(merged,tmp_dir)
+                    snp=merged[which.min(pval1*pval2),rsid]
+                    chr=parsed_coordinate$chr
+                    ld=calc_LD(merged$rsid,chr,input$population,tmp_dir,vcf_fn)
+                    color=assign_color(merged$rsid,snp,ld)
+                    shape=assign_shape(merged,snp)
+                    size=assign_size(merged,snp)
+                    
+                    plot_data=merged
+                    plot_data[,label:=ifelse(rsid==snp,rsid,'')]
+                    
+                    p1=make_locuscatter(
+                        merged = plot_data,
+                        title1 = input$study1,
+                        title2 = input$study2,
+                        ld = ld,
+                        color = color,
+                        shape = shape,
+                        size = size,
+                        legend=FALSE)
+                    
+                    p2=make_locuszoom(
+                        metal = plot_data[,list(rsid,chr,pos,logp1,label)],
+                        title = input$study1,
+                        ld = ld,
+                        color = color,
+                        shape = shape,
+                        size = size,
+                        y_string='logp1')
+                    
+                    
+                    p3=make_locuszoom(
+                        metal = plot_data[,list(rsid,chr,pos,logp2,label)],
+                        title = input$study2,
+                        ld = ld,
+                        color = color,
+                        shape = shape,
+                        size = size,
+                        y_string='logp2')
+                    
+                    cowplot::save_plot(
+                        filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuscompare.pdf'),
+                        plot = p1)
+                    
+                    cowplot::save_plot(
+                        filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuszoom1.pdf'),
+                        plot = p2)
+                    
+                    cowplot::save_plot(
+                        filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuszoom2.pdf'),
+                        plot = p3)
+                    
+                    data.table::fwrite(
+                        x = merged,
+                        file = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-data.tsv'),
+                        sep = '\t')
+                    
+                    data.table::fwrite(
+                        x = ld,
+                        file = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-ld.tsv'),
+                        sep ='\t')
+                }
+                
+            }
+        }
+
+    })
+    
+    output$batch_download = downloadHandler(
+        filename=function(){return('batch_results.zip')},
+        content=function(file){
+            owd=setwd(tmp_dir)
+            on.exit({setwd(owd)})
+            split_coordinate_input=str_split(input$batch_coordinate_input,'\n')[[1]]
+            zip::zip(file,split_coordinate_input)
+        }
+    )
+    
+
 })

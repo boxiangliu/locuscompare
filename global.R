@@ -6,6 +6,7 @@ library(RMySQL)
 library(pool)
 library(DBI)
 library(foreach)
+library(zip)
 source('locuscompare.R')
 
 home_dir='/srv/persistent/bliu2/locuscompare/'

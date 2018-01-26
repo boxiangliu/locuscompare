@@ -38,7 +38,6 @@ get_chr=function(eqtl_fn){
 
 retrieve_vcf=function(merged,tmp_dir){
     chr=unique(merged$chr)
-    browser()
     print(merged)
     chr=gsub('chr','',chr)
     if (length(chr)!=1) {
