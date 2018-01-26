@@ -2,32 +2,16 @@ library(RMySQL)
 library(pool)
 library(data.table)
 library(stringr)
+source('utils/shared_functions.R')
 
 # Functions:
-connect_database=function(dbname){
-  locuscompare_db <- dbPool(
-    RMySQL::MySQL(), 
-    dbname = dbname,
-    host = "localhost",
-    username = "root",
-    password = "admin"
-  )
-}
-
-read_1kg=function(){
-  vcf=fread('zcat /mnt/data/shared/1KG/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz',
-            select=1:3,
-            col.names=c('chr','pos','rsid'),
-            skip = 253)
-  return(vcf)
-}
-
 read_gene_anno=function(){
   anno=fread('/mnt/data/shared/datasets/gtex/GTEx_Analysis_2015-01-12/extra/gencode.v19.genes.v6p.hg19.bed',
              select = 5:7,
              col.names = c('gene_id','gene_name','type'))
   return(anno)
 }
+
 
 read_gtex=function(tissue_id){
   gtex_dir='/mnt/data/shared/datasets/gtex/GTEx_Analysis_2015-01-12/eqtl_updated_annotation/v6p_fastQTL_allpairs_FOR_QC_ONLY/'
