@@ -110,8 +110,12 @@ assign_color=function(rsid,snp,ld){
         color_dt=ld[SNP_A==snp,list(rsid=SNP_B,color=cut(R2,breaks=c(0,0.2,0.4,0.6,0.8,1),
                                                          labels=c('blue4','skyblue','darkgreen','orange','red'),
                                                          include.lowest=TRUE))]
-        color_dt=rbind(color_dt,data.table(rsid=all_snps[!all_snps%in%color_dt$rsid],color='blue4'))
-        color_dt=rbind(color_dt,data.table(rsid=rsid[!rsid%in%all_snps],color='grey'))
+        if (!all(all_snps%in%color_dt$rsid)){
+            color_dt=rbind(color_dt,data.table(rsid=all_snps[!all_snps%in%color_dt$rsid],color='blue4'))
+        }
+        if (!all(rsid%in%all_snps)){
+            color_dt=rbind(color_dt,data.table(rsid=rsid[!rsid%in%all_snps],color='grey'))
+        }
         color_dt[rsid==snp,color:='purple']
         color=as.character(color_dt$color)
         names(color)=color_dt$rsid
