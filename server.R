@@ -2,6 +2,7 @@
 # Boxiang Liu
 # 2018-01-01
 
+options(shiny.maxRequestSize=100*1024^2) 
 
 # Functions:
 select_snp=function(click,merged){
@@ -10,31 +11,76 @@ select_snp=function(click,merged){
 	return(snp)
 }
 
-parse_coordinate=function(coordinate){
-	split_coordinate=str_split_fixed(coordinate,':',2)
-	chr=split_coordinate[,1]
-	chr=str_replace(chr,'chr','')
-	pos=split_coordinate[,2]
-	split_pos=str_split_fixed(pos,'-',2)
-	start=as.integer(split_pos[,1])
-	end=as.integer(split_pos[,2])
-	return(list(chr=chr,start=start,end=end))
-}
+convert_unit=function(x){
+	x = tolower(x)
+	shiny::validate(need(str_detect(x,'[0-9]+(kb|mb)*'),sprintf('%s is not recognized. Try e.g. 100kb.',x)))
 
-.anno=fread(paste0(home_dir,'data/gencode/gencode.v19.genes.v6p.hg19.bed'),select=c(1:3,5,6),col.names=c('chr','start','end','gene_id','gene_name'))
-.anno[,chr:=str_replace(chr,'chr','')]
-gene_name2coordinate=function(gene_name_query){
-	tmp=.anno[gene_name==gene_name_query,list(chr,start)]
-	coordinate=paste0(tmp$chr,':',tmp$start-1e5,'-',tmp$start+1e5)
-	return(coordinate)
-}
-
-is_coordinate=function(locus){
-	if (str_detect(locus,'^chr|^[0-9]{1}')){
-		return(TRUE)
+	if (str_detect(x,'kb')){
+		y = as.integer(str_replace(x,'kb',''))*1e3
+	} else if (str_detect(x,'mb')){
+		y = as.integer(str_replace(x,'mb',''))*1e6
 	} else {
-		return(FALSE)
+		y= as.integer(x)
 	}
+	return(y)
+}
+
+parse_coordinate=function(coordinate){
+	coordinate=trimws(coordinate)
+	stopifnot(length(coordinate)==1)
+
+	if (str_detect(coordinate,'^rs|^ss')){ # SNP:window format
+		split_coordinate = str_split_fixed(coordinate,':',2)
+		reference_snp = split_coordinate[,1]
+		snp_window = convert_unit(split_coordinate[,2])
+
+		chr_pos=dbGetQuery(
+			conn = reference_db,
+			statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s";',reference_snp)
+			)
+		shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',reference_snp)))
+		shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',reference_snp)))
+
+		res=list(
+			chr = chr_pos$chr,
+			start = chr_pos$pos - snp_window,
+			end = chr_pos$pos + snp_window
+			)
+	} else if (str_detect(coordinate,'^chr')){ # chr:start-end format
+		split_coordinate = str_split_fixed(coordinate,':',2)
+
+		chr=str_replace(split_coordinate[,1],'chr','')
+		pos=split_coordinate[,2]
+
+		split_pos=str_split_fixed(pos,'-',2)
+		start=as.integer(split_pos[,1])
+		end=as.integer(split_pos[,2])
+
+		res=list(
+			chr = chr,
+			start = start,
+			end = end
+			)
+	} else {# gene:window format
+		split_coordinate = str_split_fixed(coordinate,':',2)
+		reference_gene = split_coordinate[,1]
+		gene_window = convert_unit(split_coordinate[,2])
+
+		chr_start_end=dbGetQuery(
+			conn = reference_db,
+			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s";',reference_gene)
+			)
+
+		shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',reference_gene)))
+		shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',reference_gene)))
+
+		res=list(
+			chr = chr_start_end$chr,
+			start = chr_start_end$start - gene_window,
+			end = chr_start_end$end + gene_window
+			)
+	}
+	return(res)
 }
 
 get_trait=function(study){
@@ -56,43 +102,6 @@ get_trait=function(study){
 	return(trait)
 }
 
-query_database=function(conn,table_name,locus,trait){
-	if (!is_coordinate(locus)){
-		locus=gene_name2coordinate(locus)
-	}
-	locus=str_replace_all(locus,',','')
-	parsed_coordinate=parse_coordinate(locus)
-	table=tbl(conn,table_name)
-	
-	if (trait=='batch'){ # for batch mode
-		res=table%>%
-			dplyr::filter(chr==parsed_coordinate$chr,
-						  pos>=parsed_coordinate$start,
-						  pos<=parsed_coordinate$end)%>%collect()
-		setDT(res)
-		if ('gene_name' %in% colnames(res)){
-			setnames(res,'gene_name','trait')
-		}
-		stopifnot('trait' %in% colnames(res))
-	} else {
-		if (str_detect(table_name,'^eQTL_')) {
-			print(table_name)
-			res=table%>%
-				dplyr::filter(gene_id==trait,
-							  chr==parsed_coordinate$chr,
-							  pos>=parsed_coordinate$start,
-							  pos<=parsed_coordinate$end)%>%collect()
-			print('finished reading table')
-		} else if (str_detect(table_name,'^GWAS_')){
-			res=table%>%
-				dplyr::filter(chr==parsed_coordinate$chr,
-							  pos>=parsed_coordinate$start,
-							  pos<=parsed_coordinate$end)%>%collect()
-		}
-	}
-
-	return(res)
-}
 
 get_study = function(valid_study,study,trait,datapath,coordinate){
 	if (valid_study){
@@ -117,6 +126,33 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 		res=fread(datapath,header=TRUE,colClasses=c(rsid='character',chr='character',pos='integer',pval='numeric'))
 		shiny::validate(need(all(c('rsid','chr','pos','pval')%in%colnames(res)),'Input file must have columns rsid, chr, pos, pval!'))
 	}
+	setDT(res)
+	return(res)
+}
+
+get_batch_study = function(valid_study,study,datapath,coordinate){
+	if (valid_study){
+		if (str_detect(study,'^eQTL')){
+			column='gene_name'
+		} else {
+			column='trait'
+		}
+		res=dbGetQuery(
+			conn = locuscompare_db,
+			statement = sprintf(
+				'select %s,rsid,chr,pos,pval from %s where chr = "%s" and pos >= %s and pos <= %s;',
+				column,
+				study,
+				coordinate$chr,
+				coordinate$start,
+				coordinate$end
+				)
+			)
+	} else {
+		res=fread(datapath,header=TRUE,colClasses=c(trait='character',rsid='character',chr='character',pos='integer',pval='numeric'))
+		shiny::validate(need(all(c('trait','rsid','chr','pos','pval')%in%colnames(res)),'Input file must have columns trait,rsid, chr, pos, pval!'))
+	}
+	setDT(res)
 	return(res)
 }
 
@@ -179,6 +215,9 @@ shinyServer(function(input, output, session) {
 				conn = reference_db,
 				statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s";',input$reference_snp)
 				)
+			shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',input$reference_snp)))
+			shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',input$reference_snp)))
+
 			res=list(
 				chr = chr_pos$chr,
 				start = chr_pos$pos - input$snp_window*1e3,
@@ -190,6 +229,9 @@ shinyServer(function(input, output, session) {
 				conn = reference_db,
 				statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s";',input$reference_gene)
 				)
+			shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',input$reference_gene)))
+			shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',input$reference_gene)))
+
 			res=list(
 				chr = chr_start_end$chr,
 				start = chr_start_end$start - input$gene_window*1e3,
@@ -440,64 +482,94 @@ shinyServer(function(input, output, session) {
 
 		shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
 		shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
+
+		return('All inputs are given. Ready to submit!')
 	})
 
 	observeEvent(input$submit,{
-		split_coordinate_input=str_split(trimws(input$batch_coordinate_input),'\n')[[1]]
+		shiny::validate(need(valid_batch_study1() | valid_batch_file1(),'Please provide study 1!'))
+		shiny::validate(need(!(valid_batch_study1() & valid_batch_file1()),'Please select or upload study 1, but not both!'))
 		
-		# Create a Progress object
+		shiny::validate(need(valid_batch_study2() | valid_batch_file2(),'Please provide study 2!'))
+		shiny::validate(need(!(valid_batch_study2() & valid_batch_file2()),'Please select or upload study 2, but not both!'))
+
+		shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
+		shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
+
+		owd=setwd(tmp_dir)
+		on.exit({setwd(owd)})
+
+		if (valid_batch_input()){
+			coordinate_list = str_split(trimws(input$batch_input),'\n')[[1]]
+		} else {
+			coordinate_list = unlist(fread(input$batch_region$datapath,header=FALSE,sep='\t'))
+		}
+		
 		progress = shiny::Progress$new()
 		on.exit(progress$close())
 		progress$set(message = "Making plot", value = 0)
-		n = length(split_coordinate_input)
-		warning(n)
-		for (coordinate in split_coordinate_input){
-			warning(tmp_dir)
-			warning(coordinate)
-			dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
+		n = length(coordinate_list)
+
+		for (coordinate in coordinate_list){
+			if (!dir.exists(paste0(tmp_dir,'/',coordinate))){
+				dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
+			}
+			
 			parsed_coordinate=parse_coordinate(coordinate)
-			
-			# Increment the progress bar, and update the detail text.
-			progress$inc(1/n, detail = paste("coordinate: ", coordinate))
 
 
-			d1=query_database(
-				conn = locuscompare_db,
-				table_name = input$study1,
-				locus = coordinate,
-				trait = 'batch')
-			d2=query_database(
-				conn = locuscompare_db,
-				table_name = input$study2,
-				locus = coordinate,
-				trait = 'batch')
-			
+			d1 = get_batch_study(
+				valid_study = valid_batch_study1(),
+				study = input$batch_study1,
+				datapath = input$batch_file1$datapath,
+				coordinate = parsed_coordinate
+				)
+
+			d2 = get_batch_study(
+				valid_study = valid_batch_study2(),
+				study = input$batch_study2,
+				datapath = input$batch_file2$datapath,
+				coordinate = parsed_coordinate
+				)
+
 			trait1_list=unique(d1$trait)
 			trait2_list=unique(d2$trait)
-			
+			n1_trait=length(trait1_list)
+			n2_trait=length(trait2_list)
+
 			for (trait1 in trait1_list){
 				for (trait2 in trait2_list){
-					print(paste0('trait1: ',trait1,'; trait2: ',trait2))
-					merged=merge(d1[trait==trait1],d2[trait==trait2,],by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
-					if (nrow(merged)==0) next # skip if no overlap
+					d1_trait = d1[trait==trait1,list(rsid,chr,pos,pval)]
+					d2_trait = d2[trait==trait2,list(rsid,chr,pos,pval)]
+
+					progress$inc(1/n/n1_trait/n2_trait, detail = paste("coordinate: ", coordinate))
+
+					merged=merge(d1_trait,d2_trait,by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
+					if (nrow(merged)==0) {
+						warning(sprintf('%s and %s do not overlap!',trait1, trait2))
+						next
+					}
 					setDT(merged)
 					merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
 					
 					vcf_fn=retrieve_vcf(merged,tmp_dir)
 					snp=merged[which.min(pval1*pval2),rsid]
-					chr=parsed_coordinate$chr
-					ld=calc_LD(merged$rsid,chr,input$population,tmp_dir,vcf_fn)
+					chr=unique(parsed_coordinate$chr)
+					if (length(chr)!=1){
+						warning(sprintf('%s is not a legal chromosome!',chr))
+					}
+					ld=calc_LD(merged$rsid,chr,input$batch_population,tmp_dir,vcf_fn)
 					color=assign_color(merged$rsid,snp,ld)
 					shape=assign_shape(merged,snp)
 					size=assign_size(merged,snp)
 					
-					plot_data=merged
+					plot_data=copy(merged)
 					plot_data[,label:=ifelse(rsid==snp,rsid,'')]
 					
 					p1=make_locuscatter(
 						merged = plot_data,
-						title1 = input$trait1,
-						title2 = input$trait2,
+						title1 = trait1,
+						title2 = trait2,
 						ld = ld,
 						color = color,
 						shape = shape,
@@ -506,7 +578,7 @@ shinyServer(function(input, output, session) {
 					
 					p2=make_locuszoom(
 						metal = plot_data[,list(rsid,chr,pos,logp1,label)],
-						title = input$trait1,
+						title = trait1,
 						ld = ld,
 						color = color,
 						shape = shape,
@@ -516,7 +588,7 @@ shinyServer(function(input, output, session) {
 					
 					p3=make_locuszoom(
 						metal = plot_data[,list(rsid,chr,pos,logp2,label)],
-						title = input$trait2,
+						title = trait2,
 						ld = ld,
 						color = color,
 						shape = shape,
@@ -545,21 +617,21 @@ shinyServer(function(input, output, session) {
 						file = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-ld.tsv'),
 						sep ='\t')
 				}
-				
 			}
 		}
-
 	})
-	
+
 	output$batch_download = downloadHandler(
 		filename=function(){return('batch_results.zip')},
 		content=function(file){
+			if (valid_batch_input()){
+				coordinate_list = str_split(trimws(input$batch_input),'\n')[[1]]
+			} else {
+				coordinate_list = unlist(fread(input$batch_region$datapath,header=FALSE,sep='\t'))
+			}
 			owd=setwd(tmp_dir)
 			on.exit({setwd(owd)})
-			split_coordinate_input=str_split(input$batch_coordinate_input,'\n')[[1]]
-			zip::zip(file,split_coordinate_input)
+			tar(file,coordinate_list,compression='gzip')
 		}
 	)
-	
-
 })

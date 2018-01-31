@@ -73,9 +73,3 @@ for (tissue_id in c("Adipose_Subcutaneous","Adipose_Visceral_Omentum","Adrenal_G
                row.names=FALSE)
   
 }
-
-
-
-             
-
-
