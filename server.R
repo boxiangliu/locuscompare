@@ -321,11 +321,27 @@ shinyServer(function(input, output, session) {
 		return(plot_data)
 	})
 	
+	title1=reactive({
+		if (isTruthy(input$trait1)){
+			return(input$trait1)
+		} else {
+			return(input$file1_trait)
+		}
+	})
+
+	title2=reactive({
+		if (isTruthy(input$trait2)){
+			return(input$trait2)
+		} else {
+			return(input$file2_trait)
+		}
+	})
+
 	output$locuscompare = renderPlot({
 		make_locuscatter(
 			merged = plot_data(),
-			title1 = input$trait1,
-			title2 = input$trait2,
+			title1 = title1(),
+			title2 = title2(),
 			ld = ld(),
 			color = color(),
 			shape = shape(),
@@ -339,7 +355,7 @@ shinyServer(function(input, output, session) {
 	output$locuszoom1 = renderPlot({
 		make_locuszoom(
 			metal = plot_data()[,list(rsid,chr,pos,logp1,label)],
-			title = input$trait1,
+			title = title1(),
 			ld = ld(),
 			color = color(),
 			shape = shape(),
@@ -350,7 +366,7 @@ shinyServer(function(input, output, session) {
 	output$locuszoom2 = renderPlot({
 		make_locuszoom(
 			metal = plot_data()[,list(rsid,chr,pos,logp2,label)],
-			title = input$trait2,
+			title = title2(),
 			ld = ld(),
 			color = color(),
 			shape = shape(),
@@ -408,8 +424,8 @@ shinyServer(function(input, output, session) {
 
 			locuscompare = make_locuscatter(
 				merged = plot_data(),
-				title1 = input$trait1,
-				title2 = input$trait2,
+				title1 = title1(),
+				title2 = title2(),
 				ld = ld(),
 				color = color(),
 				shape = shape(),
@@ -419,7 +435,7 @@ shinyServer(function(input, output, session) {
 
 			locuszoom1 = make_locuszoom(
 				metal = plot_data()[,list(rsid,chr,pos,logp1,label)],
-				title = input$trait1,
+				title = title1(),
 				ld = ld(),
 				color = color(),
 				shape = shape(),
@@ -429,7 +445,7 @@ shinyServer(function(input, output, session) {
 
 			locuszoom2 = make_locuszoom(
 				metal = plot_data()[,list(rsid,chr,pos,logp2,label)],
-				title = input$trait2,
+				title = title2(),
 				ld = ld(),
 				color = color(),
 				shape = shape(),

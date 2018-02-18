@@ -87,7 +87,7 @@ shinyUI(fluidPage(
 				),
 				column(5,
 					textInput(
-						inputId = 'trait1', 
+						inputId = 'file1_trait', 
 						label = 'Trait name', 
 						width = "100%"
 					)
@@ -130,7 +130,7 @@ shinyUI(fluidPage(
 				),
 				column(5,
 					textInput(
-						inputId = 'trait2', 
+						inputId = 'file2_trait', 
 						label = 'Trait name', 
 						width = "100%"
 					)

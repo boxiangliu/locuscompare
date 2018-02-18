@@ -13,12 +13,12 @@ read_gene_anno=function(select=5:7,col.names=c('gene_id','gene_name','type')){
   return(anno)
 }
 
-connect_database=function(dbname){
+connect_database=function(dbname,host='localhost',username='root',password='admin'){
   locuscompare_db <- dbPool(
     RMySQL::MySQL(), 
     dbname = dbname,
-    host = "localhost",
-    username = "root",
-    password = "admin"
+    host = host,
+    username = username,
+    password = password
   )
 }

@@ -1,3 +1,10 @@
+tmp*
+config/
+figure/
+data/
+data/gtex/
+data/ld/
+data/ld2/
 .DS_Store
 data/1KG/
 ._*
