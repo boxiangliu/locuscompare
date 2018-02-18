@@ -6,8 +6,6 @@ library(data.table)
 library(RMySQL)
 library(pool)
 library(foreach)
-library(doMC)
-registerDoMC(20)
 source('utils/shared_functions.R')
 source('config/config.R')
 
@@ -20,24 +18,13 @@ locuscompare_pool = dbPool(
 	)
 
 
-tkg=foreach(i=c(1:22,'X','Y'),.combine='rbind')%dopar%{
-	fread(
-		input = sprintf('%s/1KG/chr%s.txt',data_dir,i),
-		skip = 1,
-		col.names = c('chr','pos','rsid','ref','alt','AF','EAS_AF','AMR_AF','AFR_AF','EUR_AF','SAS_AF')
-	)
-}
-
-tkg = tkg[rsid!='.']
-
-
 dbExecute(
 	conn = locuscompare_pool, 
 	statement = "create table tkg_p3v5a
 	(tkg_p3v5a_id int auto_increment primary key,
-	rsid varchar(100),
 	chr varchar(4),
 	pos int,
+	rsid varchar(100),
 	ref varchar(130),
 	alt varchar(662),
 	AF double,
@@ -47,16 +34,21 @@ dbExecute(
 	EUR_AF double,
 	SAS_AF double);")
 
-dbWriteTable(
-	conn = locuscompare_pool,
-	name = 'tkg_p3v5a',
-	value = tkg,
-	row.names=FALSE,
-	append = TRUE
-	)
+for (i in c(1:22,'X','Y')){
+	dbExecute(
+		conn = locuscompare_pool,
+		statement = sprintf("load data local infile '%s/1KG/chr%s.txt' 
+		into table tkg_p3v5a
+		fields terminated by '\t'
+		lines terminated by '\n'
+		ignore 1 lines
+		(chr, pos, rsid, ref, alt, AF, EAS_AF, AMR_AF, AFR_AF, EUR_AF, SAS_AF);",data_dir,i)
+		)
+}
+
 
 dbExecute(
-	conn = locuscompare_db,
+	conn = locuscompare_pool,
 	statement = 'alter table locuscompare.tkg_p3v5a 
 		add index rsid (rsid), 
 		add index chr (chr), 
