@@ -35,7 +35,7 @@ parse_coordinate=function(coordinate){
 		snp_window = convert_unit(split_coordinate[,2])
 
 		chr_pos=dbGetQuery(
-			conn = reference_db,
+			conn = locuscompare_pool,
 			statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s";',reference_snp)
 			)
 		shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',reference_snp)))
@@ -67,7 +67,7 @@ parse_coordinate=function(coordinate){
 		gene_window = convert_unit(split_coordinate[,2])
 
 		chr_start_end=dbGetQuery(
-			conn = reference_db,
+			conn = locuscompare_pool,
 			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s";',reference_gene)
 			)
 
@@ -83,39 +83,64 @@ parse_coordinate=function(coordinate){
 	return(res)
 }
 
-get_trait=function(study){
+get_trait=function(study, conn = locuscompare_pool){
 	if (study==''){
-		trait=''
+		trait = ''
 	} else if (str_detect(study,'^GWAS_')){
-		x = paste0(study,'_traits')
-		table=tbl(locuscompare_db,x)
-		res=table%>%dplyr::select(trait)%>%collect()%>%unlist()%>%unname()
-		trait=sort(res)
+		trait = dbGetQuery(
+			conn = conn,
+			statement = sprintf(
+				"select distinct trait 
+				from %s;",study)
+			)
 	} else if (str_detect(study,'^eQTL_')){
-		x = paste0(study,'_traits')
-		table=tbl(locuscompare_db,x)
-		res=table%>%dplyr::select(gene_name)%>%collect()%>%unlist()%>%unname()
-		trait=sort(res)
+		# trait = dbGetQuery(
+		# 	conn = conn,
+		# 	statement = sprintf(
+		# 		"select distinct gene_name 
+		# 		from %s join gencode_v19_gtex_v6p 
+		# 		on %s.trait = gencode_v19_gtex_v6p.gene_id;",study,study)
+		# 	)
+		trait = dbGetQuery(
+			conn = conn,
+			statement = sprintf(
+				"select gene_name 
+				from %s_trait;",study)
+			)
 	} else {
-		NULL
+		trait = ''
 	}
+	trait = unname(unlist(trait))
 	return(trait)
 }
 
-
 get_study = function(valid_study,study,trait,datapath,coordinate){
-	if (valid_study){
-		if (str_detect(study,'^eQTL')){
-			column='gene_name'
-		} else {
-			column='trait'
-		}
-		res=dbGetQuery(
-			conn = locuscompare_db,
+	if (str_detect(study,'^eQTL')){
+		res = dbGetQuery(
+			conn = locuscompare_pool,
 			statement = sprintf(
-				'select rsid,chr,pos,pval from %s where %s = "%s" and chr = "%s" and pos >= %s and pos <= %s;',
+				"select gene_id 
+				from gencode_v19_gtex_v6p
+				where gene_name = '%s'",
+				trait
+				)
+			)
+		trait = res$gene_id[1]
+	}
+
+	if (valid_study){
+		res=dbGetQuery(
+			conn = locuscompare_pool,
+			statement = sprintf(
+				"select t1.rsid, t1.pval 
+				from %s as t1 
+				join tkg_p3v5a as t2 
+				on t1.rsid = t2.rsid 
+				where t1.trait = '%s' 
+				and t2.chr = '%s' 
+				and t2.pos >= %s 
+				and t2.pos <= %s;",
 				study,
-				column,
 				trait,
 				coordinate$chr,
 				coordinate$start,
@@ -123,10 +148,37 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 				)
 			)
 	} else {
-		res=fread(datapath,header=TRUE,colClasses=c(rsid='character',chr='character',pos='integer',pval='numeric'))
-		shiny::validate(need(all(c('rsid','chr','pos','pval')%in%colnames(res)),'Input file must have columns rsid, chr, pos, pval!'))
+		res=fread(datapath,header=TRUE,colClasses=c(rsid='character',pval='numeric'))
+		shiny::validate(need(all(c('rsid','pval')%in%colnames(res)),'Input file must have columns rsid, pval!'))
 	}
 	setDT(res)
+	return(res)
+}
+
+retrieve_LD = function(snp,population){
+	res1 = dbGetQuery(
+		conn = locuscompare_pool,
+		statement = sprintf(
+			"select SNP_A, SNP_B, R2
+			from tkg_p3v5a_ld_%s
+			where SNP_A = '%s')",
+			population,
+			snp
+			)
+		)
+
+	res2 = dbGetQuery(
+		conn = locuscompare_pool,
+		statement = sprintf(
+			"select SNP_B as SNP_A, SNP_A as SNP_B, R2
+			from tkg_p3v5a_ld_%s
+			where SNP_B = '%s'",
+			population,
+			snp
+			)
+		)
+
+	res = cbind(res1,res2)
 	return(res)
 }
 
@@ -138,7 +190,7 @@ get_batch_study = function(valid_study,study,datapath,coordinate){
 			column='trait'
 		}
 		res=dbGetQuery(
-			conn = locuscompare_db,
+			conn = locuscompare_pool,
 			statement = sprintf(
 				'select %s,rsid,chr,pos,pval from %s where chr = "%s" and pos >= %s and pos <= %s;',
 				column,
@@ -212,7 +264,7 @@ shinyServer(function(input, output, session) {
 
 		if (valid_snp_region()){
 			chr_pos=dbGetQuery(
-				conn = reference_db,
+				conn = locuscompare_pool,
 				statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s";',input$reference_snp)
 				)
 			shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',input$reference_snp)))
@@ -226,7 +278,7 @@ shinyServer(function(input, output, session) {
 		}
 		if (valid_gene_region()){
 			chr_start_end=dbGetQuery(
-				conn = reference_db,
+				conn = locuscompare_pool,
 				statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s";',input$reference_gene)
 				)
 			shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',input$reference_gene)))
@@ -261,7 +313,7 @@ shinyServer(function(input, output, session) {
 	})
 
 	merged=reactive({
-		merged=merge(d1(),d2(),by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
+		merged=merge(d1(),d2(),by='rsid',suffixes=c('1','2'),all=FALSE)
 		shiny::validate(need(nrow(merged)>0,'No overlapping SNPs between two studies'))
 		setDT(merged)
 		merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
@@ -275,7 +327,7 @@ shinyServer(function(input, output, session) {
 	})
 
 	chr=reactive({
-		chr=unique(merged()$chr)
+		chr=unique(coordinate()$chr)
 		validate(need(length(chr)==1,'Studies must only have one chromosome!'))
 	})
 
@@ -284,7 +336,8 @@ shinyServer(function(input, output, session) {
 	})
 
 	ld=reactive({
-		calc_LD(merged()$rsid,chr(),input$population,tmp_dir,vcf_fn())
+		# calc_LD(merged()$rsid,chr(),input$population,tmp_dir,vcf_fn())
+		retrieve_LD(snp(),input$population)
 	})
 
 	color=reactive({assign_color(merged()$rsid,snp(),ld())})
@@ -376,7 +429,7 @@ shinyServer(function(input, output, session) {
 	
 	output$snp_info = renderText({
 		res=dbGetQuery(
-			conn = reference_db,
+			conn = locuscompare_pool,
 			statement = sprintf('select * from tkg_p3v5a where rsid = "%s";',snp())
 			)
 		sprintf(
@@ -574,7 +627,8 @@ shinyServer(function(input, output, session) {
 					if (length(chr)!=1){
 						warning(sprintf('%s is not a legal chromosome!',chr))
 					}
-					ld=calc_LD(merged$rsid,chr,input$batch_population,tmp_dir,vcf_fn)
+					# ld=calc_LD(merged$rsid,chr,input$batch_population,tmp_dir,vcf_fn)
+					ld=retrieve_LD(snp,input$batch_population)
 					color=assign_color(merged$rsid,snp,ld)
 					shape=assign_shape(merged,snp)
 					size=assign_size(merged,snp)

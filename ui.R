@@ -3,9 +3,9 @@
 # 2018-01-01
 
 
-get_study_list = function(locuscompare_db) {
-	table_names = dbListTables(locuscompare_db)
-	idx = which(!str_detect(table_names, '_traits'))
+get_study_list = function(locuscompare_pool) {
+	table_names = dbListTables(locuscompare_pool)
+	idx = which(str_detect(table_names, 'eQTL|GWAS'))
 	table_names = table_names[idx]
 	study_category = str_split_fixed(table_names, '_', 2)[, 1]
 	study_list = foreach(i = unique(study_category), .combine = c) %do% {
@@ -16,36 +16,14 @@ get_study_list = function(locuscompare_db) {
 	return(study_list)
 }
 
-study_list=get_study_list(locuscompare_db)
+study_list=get_study_list(locuscompare_pool)
 
 shinyUI(fluidPage(
 	useShinyjs(),
-	extendShinyjs(script = '/srv/persistent/bliu2/locuscompare/init.js'),
+	extendShinyjs(script = sprintf('%s/init.js',home_dir)),
 	navbarPage(
 		title = 'LocusCompare',
 		id = 'navbarPage',
-		# tabPanel('Instructions',
-				 # fluidRow(
-					#  column(
-					# 	 12,
-					# 	 helpText(
-					# 		 'LocusCompare is an interactive visualization tool for comparing two genome-wide association datasets. For instance, it can be used to visualize the colocalization between a GWAS dataset to an eQTL dataset, which is particularly useful for fine-mapping studies. The "Visualization" tab has an example dataset to illustrate its usage.'
-					# 	 ),
-					# 	 hr(),
-					# 	 helpText(
-					# 		 'On the topright corner is the locuscompare plot. Each axis represent the -log10(P-value) from a dataset. Double-clicking on a point will highlight the selected SNP, and will update the color of other SNPs according to their r2 with the selected SNP. The LD information is calculated using 1000 Genomes phase 3 version 5a. One can update the population-specific LD using the dropdown menu to the left.'
-					# 	 ),
-					# 	 hr(),
-					# 	 helpText(
-					# 		 'The two plots below are manhattan plots showing the -log10(P-value) of two datasets. Notice that the highlighted SNPs are synchronized between locuscompare and manhattan plots. Therefore, double-clicking on any plot will update all three.'
-					# 	 ),
-					# 	 hr(),
-					# 	 helpText(
-					# 		 'On the bottom is a table that shows selected SNP as well as SNPs passing a given LD threshold. Single-clicking a SNP on any plot will update the table. LD threshold can be set using the "r2 threshold" input.'
-					# 	 )
-					#  )
-				 # )),
-		
 		# Interactive input panel:
 		tabPanel(
 			'Interactive Plot',
@@ -496,5 +474,4 @@ shinyUI(fluidPage(
 			)
 		)
 	)
-	
 ))

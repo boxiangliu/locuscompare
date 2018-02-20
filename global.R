@@ -9,27 +9,19 @@ library(foreach)
 library(zip)
 library(shinyjs)
 source('locuscompare.R')
+source('config/config.R')
 
-home_dir='/srv/persistent/bliu2/locuscompare/'
 
 
 # Variables:
 tmp_dir=tempdir()
 Sys.chmod(tmp_dir, mode="0777")
 
-locuscompare_db = dbPool(
+locuscompare_pool = dbPool(
 	RMySQL::MySQL(), 
 	dbname = "locuscompare",
-	host = "localhost",
-	username = "root",
-	password = "admin"
-)
-
-reference_db = dbPool(
-	RMySQL::MySQL(),
-	dbname = 'reference',
-	host = "localhost",
-	username = "root",
-	password = "admin"
+	host = aws_host,
+	username = aws_username,
+	password = aws_password
 )
 
