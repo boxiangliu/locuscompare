@@ -30,6 +30,50 @@ get_chr=function(eqtl_fn){
 	as.integer(str_replace(unique(fread(eqtl_fn)$chr),'chr',''))
 }
 
+get_position=function(x){
+    stopifnot('rsid' %in% colnames(x))
+    res = dbGetQuery(
+        conn = locuscompare_pool,
+        statement = sprintf(
+        "select rsid, chr, pos 
+		from tkg_p3v5a 
+		where rsid in ('%s')",paste0(x$rsid,collapse="','")
+        )
+    )
+    y=merge(x,res,by='rsid')
+    return(y)
+}
+
+retrieve_LD = function(chr,snp,population){
+    res1 = dbGetQuery(
+        conn = locuscompare_pool,
+        statement = sprintf(
+            "select SNP_A, SNP_B, R2
+			from tkg_p3v5a_ld_chr%s_%s
+			where SNP_A = '%s';",
+            chr,
+            population,
+            snp
+        )
+    )
+    
+    res2 = dbGetQuery(
+        conn = locuscompare_pool,
+        statement = sprintf(
+            "select SNP_B as SNP_A, SNP_A as SNP_B, R2
+			from tkg_p3v5a_ld_chr%s_%s
+			where SNP_B = '%s';",
+            chr,
+            population,
+            snp
+        )
+    )
+    
+    res = rbind(res1,res2)
+    setDT(res)
+    return(res)
+}
+
 retrieve_vcf=function(merged,tmp_dir){
 	chr=unique(merged$chr)
 	print(merged)
@@ -98,26 +142,20 @@ calc_LD=function(rsid,chr,pop,out_dir,vcf_fn,panel=NULL){
 
 
 assign_color=function(rsid,snp,ld){
-	if (!is.null(ld)){
-		all_snps=unique(ld$SNP_A)
-		
-		color_dt=ld[SNP_A==snp,list(rsid=SNP_B,color=cut(R2,breaks=c(0,0.2,0.4,0.6,0.8,1),
-														 labels=c('blue4','skyblue','darkgreen','orange','red'),
-														 include.lowest=TRUE))]
-		if (!all(all_snps%in%color_dt$rsid)){
-			color_dt=rbind(color_dt,data.table(rsid=all_snps[!all_snps%in%color_dt$rsid],color='blue4'))
-		}
-		if (!all(rsid%in%all_snps)){
-			color_dt=rbind(color_dt,data.table(rsid=rsid[!rsid%in%all_snps],color='grey'))
-		}
-		color_dt[rsid==snp,color:='purple']
-		color=as.character(color_dt$color)
-		names(color)=color_dt$rsid
-	} else {
-		color=rep('blue4',times=length(rsid))
-		names(color)=rsid
-	}
+    if (is.null(ld)){
+        color=rep('blue4',times=length(rsid))
+        names(color)=rsid
+        return(color)
+    }
 
+	color_dt=ld[SNP_A==snp,list(rsid=SNP_B,color=cut(R2,breaks=c(0,0.2,0.4,0.6,0.8,1),
+													 labels=c('blue4','skyblue','darkgreen','orange','red'),
+													 include.lowest=TRUE))]
+	snps_not_in_ld = rsid[!(rsid %in% ld$SNP_B)]
+	color_dt=rbind(color_dt,data.table(rsid=snps_not_in_ld,color='blue4'))
+	color_dt[rsid==snp,color:='purple']
+	color=as.character(color_dt$color)
+	names(color)=color_dt$rsid
 	return(color)
 }
 

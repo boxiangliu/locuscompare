@@ -155,37 +155,6 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 	return(res)
 }
 
-retrieve_LD = function(chr,snp,population){
-	warning('SNP: ',snp)
-	warning('CHR: ',chr)
-	warning('population: ',population)
-	res1 = dbGetQuery(
-		conn = locuscompare_pool,
-		statement = sprintf(
-			"select SNP_A, SNP_B, R2
-			from tkg_p3v5a_ld_chr%s_%s
-			where SNP_A = '%s')",
-			chr,
-			population,
-			snp
-			)
-		)
-
-	res2 = dbGetQuery(
-		conn = locuscompare_pool,
-		statement = sprintf(
-			"select SNP_B as SNP_A, SNP_A as SNP_B, R2
-			from tkg_p3v5a_ld_chr%s_%s
-			where SNP_B = '%s'",
-			chr,
-			population,
-			snp
-			)
-		)
-
-	res = cbind(res1,res2)
-	return(res)
-}
 
 get_batch_study = function(valid_study,study,datapath,coordinate){
 	if (valid_study){
@@ -305,6 +274,7 @@ shinyServer(function(input, output, session) {
 		return(res)
 	})
 
+    
 	d1 = eventReactive(input$visualize,{
 		shiny::validate(need(valid_study1() | valid_file1(),'Please provide study 1!'))
 		shiny::validate(need(!(valid_study1() & valid_file1()),'Please select or upload study 1, but not both!'))
@@ -319,6 +289,7 @@ shinyServer(function(input, output, session) {
 
 	merged=reactive({
 		merged=merge(d1(),d2(),by='rsid',suffixes=c('1','2'),all=FALSE)
+		merged=get_position(merged)
 		shiny::validate(need(nrow(merged)>0,'No overlapping SNPs between two studies'))
 		setDT(merged)
 		merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
@@ -333,20 +304,11 @@ shinyServer(function(input, output, session) {
 
 	chr=reactive({
 		chr=unique(coordinate()$chr)
-		validate(need(length(chr)==1,'Studies must only have one chromosome!'))
+		shiny::validate(need(length(chr)==1,'Studies must only have one chromosome!'))
+		return(chr)
 	})
 
-	# vcf_fn=reactive({
-	# 	retrieve_vcf(merged(),tmp_dir)
-	# })
-	cat(file=stderr(),'this is a test error message!')
-
 	ld=reactive({
-		# calc_LD(merged()$rsid,chr(),input$population,tmp_dir,vcf_fn())
-		cat(file=stderr(),'this is a test error message!')
-		cat(file=stderr(),chr())
-		cat(file=stderr(),snp())
-		cat(file=stderr(),input$population)
 		retrieve_LD(chr(),snp(),input$population)
 	})
 
@@ -624,6 +586,7 @@ shinyServer(function(input, output, session) {
 					progress$inc(1/n/n1_trait/n2_trait, detail = paste("coordinate: ", coordinate))
 
 					merged=merge(d1_trait,d2_trait,by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
+					merged=get_position(merged)
 					if (nrow(merged)==0) {
 						warning(sprintf('%s and %s do not overlap!',trait1, trait2))
 						next
