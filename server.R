@@ -155,13 +155,17 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 	return(res)
 }
 
-retrieve_LD = function(snp,population){
+retrieve_LD = function(chr,snp,population){
+	warning('SNP: ',snp)
+	warning('CHR: ',chr)
+	warning('population: ',population)
 	res1 = dbGetQuery(
 		conn = locuscompare_pool,
 		statement = sprintf(
 			"select SNP_A, SNP_B, R2
-			from tkg_p3v5a_ld_%s
+			from tkg_p3v5a_ld_chr%s_%s
 			where SNP_A = '%s')",
+			chr,
 			population,
 			snp
 			)
@@ -171,8 +175,9 @@ retrieve_LD = function(snp,population){
 		conn = locuscompare_pool,
 		statement = sprintf(
 			"select SNP_B as SNP_A, SNP_A as SNP_B, R2
-			from tkg_p3v5a_ld_%s
+			from tkg_p3v5a_ld_chr%s_%s
 			where SNP_B = '%s'",
+			chr,
 			population,
 			snp
 			)
@@ -331,13 +336,18 @@ shinyServer(function(input, output, session) {
 		validate(need(length(chr)==1,'Studies must only have one chromosome!'))
 	})
 
-	vcf_fn=reactive({
-		retrieve_vcf(merged(),tmp_dir)
-	})
+	# vcf_fn=reactive({
+	# 	retrieve_vcf(merged(),tmp_dir)
+	# })
+	cat(file=stderr(),'this is a test error message!')
 
 	ld=reactive({
 		# calc_LD(merged()$rsid,chr(),input$population,tmp_dir,vcf_fn())
-		retrieve_LD(snp(),input$population)
+		cat(file=stderr(),'this is a test error message!')
+		cat(file=stderr(),chr())
+		cat(file=stderr(),snp())
+		cat(file=stderr(),input$population)
+		retrieve_LD(chr(),snp(),input$population)
 	})
 
 	color=reactive({assign_color(merged()$rsid,snp(),ld())})

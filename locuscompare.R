@@ -6,13 +6,7 @@ library(data.table)
 library(cowplot)
 library(ggrepel)
 library(stringr)
-
-
-tabix='/software/htslib-1.6/bin/tabix' # path to tabix
-bgzip='/software/htslib-1.6/bin/bgzip' # path to bgzip 
-plink='/software/plink_linux_x86_64/plink' # path to plink 
-data_dir='/srv/persistent/bliu2/locuscompare/data/' # path to data directory
-tkg_dir='/mnt/data/shared/1KG/' # path to 1000 genomes directory
+source('config/config.R')
 
 read_metal=function(in_fn,marker_col='rsid',pval_col='pval'){
 	if (is.character(in_fn)){
