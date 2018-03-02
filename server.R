@@ -142,6 +142,8 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 			)
 	} else {
 		res=fread(datapath,header=TRUE,colClasses=c(rsid='character',pval='numeric'))
+		shiny::validate(need(all(c('rsid','pval')%in%colnames(res)),'Input file must have columns rsid, pval!'))
+
 		rsid_list=dbGetQuery(
 			conn = locuscompare_pool,
 			statement = sprintf(
@@ -155,8 +157,7 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 				coordinate$end
 				)
 			)
-		res=res[rsid%in%rsid_list,]
-		shiny::validate(need(all(c('rsid','pval')%in%colnames(res)),'Input file must have columns rsid, pval!'))
+		res=res[rsid%in%rsid_list$rsid,]
 	}
 	setDT(res)
 	return(res)
