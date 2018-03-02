@@ -622,14 +622,14 @@ shinyServer(function(input, output, session) {
 					setDT(merged)
 					merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
 					
-					vcf_fn=retrieve_vcf(merged,tmp_dir)
 					snp=merged[which.min(pval1*pval2),rsid]
 					chr=unique(parsed_coordinate$chr)
 					if (length(chr)!=1){
 						warning(sprintf('%s is not a legal chromosome!',chr))
 					}
 
-					ld=retrieve_LD(snp,input$batch_population)
+					ld=retrieve_LD(chr,snp,input$batch_population)
+
 					color=assign_color(merged$rsid,snp,ld)
 					shape=assign_shape(merged,snp)
 					size=assign_size(merged,snp)
