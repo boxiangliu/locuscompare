@@ -182,7 +182,7 @@ get_batch_study = function(valid_study,study,datapath,coordinate){
 				)
 			)
 	} else {
-		res=fread(datapath,header=TRUE,colClasses=c(trait='character',rsid='character',chr='character',pos='integer',pval='numeric'))
+		res=fread(datapath,header=TRUE,colClasses=c(trait='character',rsid='character',pval='numeric'))
 		shiny::validate(need(all(c('trait','rsid','pval')%in%colnames(res)),'Input file must have columns trait, rsid, pval!'))
 
 		rsid_list=dbGetQuery(
