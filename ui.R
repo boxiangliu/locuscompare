@@ -5,7 +5,7 @@
 
 get_study_list = function(locuscompare_pool) {
 	table_names = dbListTables(locuscompare_pool)
-	idx = which(str_detect(table_names, 'eQTL|GWAS'))
+	idx = which(str_detect(table_names, 'eQTL|GWAS') & !str_detect(table_names,'_trait'))
 	table_names = table_names[idx]
 	study_category = str_split_fixed(table_names, '_', 2)[, 1]
 	study_list = foreach(i = unique(study_category), .combine = c) %do% {

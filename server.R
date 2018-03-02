@@ -94,13 +94,6 @@ get_trait=function(study, conn = locuscompare_pool){
 				from %s;",study)
 			)
 	} else if (str_detect(study,'^eQTL_')){
-		# trait = dbGetQuery(
-		# 	conn = conn,
-		# 	statement = sprintf(
-		# 		"select distinct gene_name 
-		# 		from %s join gencode_v19_gtex_v6p 
-		# 		on %s.trait = gencode_v19_gtex_v6p.gene_id;",study,study)
-		# 	)
 		trait = dbGetQuery(
 			conn = conn,
 			statement = sprintf(
