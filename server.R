@@ -142,6 +142,20 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 			)
 	} else {
 		res=fread(datapath,header=TRUE,colClasses=c(rsid='character',pval='numeric'))
+		rsid_list=dbGetQuery(
+			conn = locuscompare_pool,
+			statement = sprintf(
+				"select rsid 
+				from tkg_p3v5a 
+				where chr = '%s' 
+				and pos >= %s 
+				and pos <= %s;",
+				coordinate$chr,
+				coordinate$start,
+				coordinate$end
+				)
+			)
+		res=res[rsid%in%rsid_list,]
 		shiny::validate(need(all(c('rsid','pval')%in%colnames(res)),'Input file must have columns rsid, pval!'))
 	}
 	setDT(res)
@@ -189,10 +203,10 @@ shinyServer(function(input, output, session) {
 
 	valid_study1 = eventReactive(input$visualize,{isTruthy(input$study1) & isTruthy(input$trait1)})
 	valid_study2 = eventReactive(input$visualize,{isTruthy(input$study2) & isTruthy(input$trait2)})
-	
+
 	valid_file1 = eventReactive(input$visualize,{isTruthy(input$file1)})
 	valid_file2 = eventReactive(input$visualize,{isTruthy(input$file2)})
-	
+
 	valid_snp_region = eventReactive(input$visualize,{isTruthy(input$reference_snp) & isTruthy(input$snp_window)})
 	valid_gene_region = eventReactive(input$visualize,{isTruthy(input$reference_gene) & isTruthy(input$gene_window)})
 	valid_coordinate = eventReactive(input$visualize,{isTruthy(input$chr) & isTruthy(input$start) & isTruthy(input$end)})
@@ -420,7 +434,7 @@ shinyServer(function(input, output, session) {
 		snp_info=merge(tmp,ld_snps,by='rsid')
 		DT::datatable(snp_info)
 	})
-	
+
 	output$file1_example = downloadHandler(
 		filename = function(){return('PHACTR1_Artery_Coronary.tsv')},
 		content = function(file){file.copy('data/example/PHACTR1_Artery_Coronary.tsv',file)},
