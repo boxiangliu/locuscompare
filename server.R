@@ -515,14 +515,14 @@ shinyServer(function(input, output, session) {
 	# 	Batch mode   #
 	#----------------#
 	output$batch_file1_example = downloadHandler(
-		filename = function(){return('GWAS_Asthma_Moffatt_2010_chr2_chr9_chr22.tsv')},
-		content = function(file){file.copy('data/example/GWAS_Asthma_Moffatt_2010_chr2_chr9_chr22.tsv',file)},
+		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv')},
+		content = function(file){file.copy('data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv',file)},
 		contentType = 'text/txt'
 		)
 
 	output$batch_file2_example = downloadHandler(
-		filename = function(){return('eQTL_Lung_GTEx_2017_IL18R1_IL33_IL2RB.tsv')},
-		content = function(file){file.copy('data/example/eQTL_Lung_GTEx_2017_IL18R1_IL33_IL2RB.tsv',file)},
+		filename = function(){return('PHACTR1_all_tissues.tsv')},
+		content = function(file){file.copy('data/example/PHACTR1_all_tissues.tsv',file)},
 		contentType = 'text/txt'
 		)
 
