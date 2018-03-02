@@ -28,6 +28,7 @@ for (tissue_id in c(
 	"Small_Intestine_Terminal_Ileum","Spleen","Stomach","Testis","Thyroid","Uterus",
 	"Vagina","Whole_Blood")){
 
+
 	table_name = paste0('eQTL_',str_replace(tissue_id,'-','_'),'_GTEx_v6p')
 
 	dbExecute(

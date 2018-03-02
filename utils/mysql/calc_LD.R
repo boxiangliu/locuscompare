@@ -11,6 +11,7 @@ calc_LD=function(chr,pop,out_dir,vcf_fn,panel=NULL){
 	system(command)
 }
 
+
 for (pop in c('EUR','EAS','SAS','AFR','AMR')){
 	for (i in 1:22){
 		chrom = paste0('chr',i)
