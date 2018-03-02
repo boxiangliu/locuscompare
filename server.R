@@ -454,12 +454,12 @@ shinyServer(function(input, output, session) {
 
 	output$file1_example = downloadHandler(
 		filename = function(){return('PHACTR1_Artery_Coronary.tsv')},
-		content = function(file){file.copy('data/example/PHACTR1_Artery_Coronary.tsv',file)},
+		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_Artery_Coronary.tsv',home_dir),file)},
 		contentType = 'text/txt')
 
 	output$file2_example = downloadHandler(
 		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv')},
-		content = function(file){file.copy('data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv',file)},
+		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv',home_dir),file)},
 		contentType = 'text/txt')
 
 	output$single_download = downloadHandler(
@@ -516,19 +516,19 @@ shinyServer(function(input, output, session) {
 	#----------------#
 	output$batch_file1_example = downloadHandler(
 		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv')},
-		content = function(file){file.copy('data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv',file)},
+		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv',home_dir),file)},
 		contentType = 'text/txt'
 		)
 
 	output$batch_file2_example = downloadHandler(
 		filename = function(){return('PHACTR1_all_tissues.tsv')},
-		content = function(file){file.copy('data/example/PHACTR1_all_tissues.tsv',file)},
+		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_all_tissues.tsv',home_dir),file)},
 		contentType = 'text/txt'
 		)
 
 	output$batch_region_example = downloadHandler(
 		filename = function(){return('batch_region.txt')},
-		content = function(file){file.copy('data/example/batch_region.txt',file)},
+		content = function(file){file.copy(sprintf('%s/data/example/batch_region.txt',home_dir),file)},
 		contentType = 'text/txt'
 		)
 
