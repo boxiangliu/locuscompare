@@ -515,8 +515,8 @@ shinyServer(function(input, output, session) {
 	# 	Batch mode   #
 	#----------------#
 	output$batch_file1_example = downloadHandler(
-		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv')},
-		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv',home_dir),file)},
+		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015_batch.tsv')},
+		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015_batch.tsv',home_dir),file)},
 		contentType = 'text/txt'
 		)
 
