@@ -163,19 +163,18 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 	return(res)
 }
 
-
 get_batch_study = function(valid_study,study,datapath,coordinate){
 	if (valid_study){
-		if (str_detect(study,'^eQTL')){
-			column='gene_name'
-		} else {
-			column='trait'
-		}
 		res=dbGetQuery(
 			conn = locuscompare_pool,
 			statement = sprintf(
-				'select %s,rsid,chr,pos,pval from %s where chr = "%s" and pos >= %s and pos <= %s;',
-				column,
+				"select t1.trait, t1.rsid, t1.pval 
+				from %s as t1 
+				join tkg_p3v5a as t2 
+				on t1.rsid = t2.rsid  
+				and t2.chr = '%s' 
+				and t2.pos >= %s 
+				and t2.pos <= %s;",
 				study,
 				coordinate$chr,
 				coordinate$start,
@@ -184,14 +183,31 @@ get_batch_study = function(valid_study,study,datapath,coordinate){
 			)
 	} else {
 		res=fread(datapath,header=TRUE,colClasses=c(trait='character',rsid='character',chr='character',pos='integer',pval='numeric'))
-		shiny::validate(need(all(c('trait','rsid','chr','pos','pval')%in%colnames(res)),'Input file must have columns trait,rsid, chr, pos, pval!'))
+		shiny::validate(need(all(c('trait','rsid','pval')%in%colnames(res)),'Input file must have columns trait, rsid, pval!'))
+
+		rsid_list=dbGetQuery(
+			conn = locuscompare_pool,
+			statement = sprintf(
+				"select rsid 
+				from tkg_p3v5a 
+				where chr = '%s' 
+				and pos >= %s 
+				and pos <= %s;",
+				coordinate$chr,
+				coordinate$start,
+				coordinate$end
+				)
+			)
+		res=res[rsid%in%rsid_list$rsid,]
 	}
 	setDT(res)
 	return(res)
 }
 
 shinyServer(function(input, output, session) {
-	# Update trait field according to selected study:
+	#---------------------#
+	#   Interactive mode  #
+	#---------------------#
 	observeEvent(input$study1,{
 		trait1=get_trait(input$study1)
 		updateSelectizeInput(session, "trait1", choices = trait1, server = TRUE)
@@ -495,6 +511,9 @@ shinyServer(function(input, output, session) {
 		
 	)
 
+	#----------------# 
+	# 	Batch mode   #
+	#----------------#
 	output$batch_file1_example = downloadHandler(
 		filename = function(){return('GWAS_Asthma_Moffatt_2010_chr2_chr9_chr22.tsv')},
 		content = function(file){file.copy('data/example/GWAS_Asthma_Moffatt_2010_chr2_chr9_chr22.tsv',file)},
@@ -588,13 +607,14 @@ shinyServer(function(input, output, session) {
 
 			for (trait1 in trait1_list){
 				for (trait2 in trait2_list){
-					d1_trait = d1[trait==trait1,list(rsid,chr,pos,pval)]
-					d2_trait = d2[trait==trait2,list(rsid,chr,pos,pval)]
+					d1_trait = d1[trait==trait1,list(rsid,pval)]
+					d2_trait = d2[trait==trait2,list(rsid,pval)]
 
 					progress$inc(1/n/n1_trait/n2_trait, detail = paste("coordinate: ", coordinate))
 
-					merged=merge(d1_trait,d2_trait,by=c('rsid','chr','pos'),suffixes=c('1','2'),all=FALSE)
+					merged=merge(d1_trait,d2_trait,by='rsid',suffixes=c('1','2'),all=FALSE)
 					merged=get_position(merged)
+
 					if (nrow(merged)==0) {
 						warning(sprintf('%s and %s do not overlap!',trait1, trait2))
 						next
@@ -608,7 +628,7 @@ shinyServer(function(input, output, session) {
 					if (length(chr)!=1){
 						warning(sprintf('%s is not a legal chromosome!',chr))
 					}
-					# ld=calc_LD(merged$rsid,chr,input$batch_population,tmp_dir,vcf_fn)
+
 					ld=retrieve_LD(snp,input$batch_population)
 					color=assign_color(merged$rsid,snp,ld)
 					shape=assign_shape(merged,snp)
