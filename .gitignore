@@ -2,7 +2,11 @@
 *tmp*
 config/
 figure/
-data/
+data/1KG
+data/gencode
+data/gtex
+data/ld
+data/population
 .DS_Store
 ._*
 .Rproj.user

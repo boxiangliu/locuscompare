@@ -422,13 +422,13 @@ shinyServer(function(input, output, session) {
 	})
 	
 	output$file1_example = downloadHandler(
-		filename = function(){return('eQTL_Lung_GTEx_2017_IL18R1.tsv')},
-		content = function(file){file.copy('data/example/eQTL_Lung_GTEx_2017_IL18R1.tsv',file)},
+		filename = function(){return('PHACTR1_Artery_Coronary.tsv')},
+		content = function(file){file.copy('data/example/PHACTR1_Artery_Coronary.tsv',file)},
 		contentType = 'text/txt')
 
 	output$file2_example = downloadHandler(
-		filename = function(){return('GWAS_Asthma_Moffatt_2010_chr2_101973286_103971063.tsv')},
-		content = function(file){file.copy('data/example/GWAS_Asthma_Moffatt_2010_chr2_101973286_103971063.tsv',file)},
+		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv')},
+		content = function(file){file.copy('data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015.tsv',file)},
 		contentType = 'text/txt')
 
 	output$single_download = downloadHandler(
