@@ -221,6 +221,22 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(
+					6,
+					h3('LD calculation')
+					),
+				column(
+					6,
+					selectInput(
+						'population',
+						'Population:',
+						choices = c('AFR', 'AMR', 'EAS', 'EUR', 'SAS'),
+						selected = 'EUR',
+						width = '100%'
+						)
+					)
+				),
+			fluidRow(
+				column(
 					4,
 					h3('LD calculation'),
 					selectInput(
