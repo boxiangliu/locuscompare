@@ -238,14 +238,6 @@ shinyUI(fluidPage(
 			fluidRow(
 				column(
 					4,
-					h3('LD calculation'),
-					selectInput(
-						'population',
-						'Population:',
-						choices = c('AFR', 'AMR', 'EAS', 'EUR', 'SAS'),
-						selected = 'EUR',
-						width = '100%'
-					),
 					h3('SNP information'),
 					verbatimTextOutput('snp_info'),
 					h3('Download options'),
