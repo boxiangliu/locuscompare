@@ -236,6 +236,35 @@ shinyUI(fluidPage(
 					)
 				),
 			fluidRow(
+				column(6,
+					plotOutput('locuscompare', height = '400px', click = 'plot_click')
+					),
+				column(6,
+					fluidRow(
+						column(12,
+							plotOutput(
+								outputId = 'locuszoom1',
+								click = 'plot_click',
+								dblclick = 'plot_dblclick',
+								brush = brushOpts(id = 'plot_brush', direction = 'x'),
+								height = '200px'
+								)
+							)
+						),
+					fluidRow(
+						column(12,
+							plotOutput(
+								outputId = 'locuszoom2',
+								click = 'plot_click',
+								dblclick = 'plot_dblclick',
+								brush = brushOpts(id = 'plot_brush', direction = 'x'),
+								height = '200px'
+								)
+							)
+						)
+					)
+				),
+			fluidRow(
 				column(
 					4,
 					h3('SNP information'),
