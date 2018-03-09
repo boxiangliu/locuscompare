@@ -33,7 +33,7 @@ shinyUI(fluidPage(
 			fluidRow(h3('Study 1')),
 			fluidRow(
 				column(2,
-					tags$i(h3('Published'))
+					tags$i(h3('Select Published'))
 				),
 				column(5,
 					selectInput(
@@ -54,7 +54,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(2,
-					tags$i(h3('Upload'))
+					tags$i(h3('Or Upload'))
 				),
 				column(5,
 					fileInput(
@@ -66,7 +66,7 @@ shinyUI(fluidPage(
 				column(5,
 					textInput(
 						inputId = 'file1_trait', 
-						label = 'Trait name', 
+						label = 'Trait Name', 
 						width = "100%"
 					)
 				)
@@ -76,7 +76,7 @@ shinyUI(fluidPage(
 			fluidRow(h3('Study 2')),
 			fluidRow(
 				column(2,
-					tags$i(h3('Published'))
+					tags$i(h3('Select Published'))
 				),
 				column(5,
 					selectInput(
@@ -97,7 +97,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(2,
-					tags$i(h3('Upload'))
+					tags$i(h3('Or Upload'))
 				),
 				column(5,
 					fileInput(
@@ -109,7 +109,7 @@ shinyUI(fluidPage(
 				column(5,
 					textInput(
 						inputId = 'file2_trait', 
-						label = 'Trait name', 
+						label = 'Trait Name', 
 						width = "100%"
 					)
 				)
@@ -131,7 +131,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(
-					3,tags$i(h3('Gene'))
+					3,tags$i(h3('Or Gene'))
 				),
 				column(
 					3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. BRCA1')
@@ -142,7 +142,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(
-					3, tags$i(h3('Coordinate'))
+					3, tags$i(h3('Or Coordinate'))
 				),
 				column(
 					3, 
@@ -167,7 +167,7 @@ shinyUI(fluidPage(
 						inputId = 'visualize', 
 						label = 'Plot!', 
 						width = '100%',
-						style = 'font-weight: bold'
+						style = 'font-weight: bold; background-color:#ADD8E6'
 					)
 				)
 			),
@@ -215,7 +215,7 @@ shinyUI(fluidPage(
 				column(4,
 					actionButton(
 						inputId = 'back',
-						label = '< Back',
+						label = '< Back'
 					)
 				)
 			),
@@ -236,34 +236,36 @@ shinyUI(fluidPage(
 					)
 				),
 			fluidRow(
-				column(6,
-					plotOutput('locuscompare', height = '400px', click = 'plot_click')
-					),
-				column(6,
-					fluidRow(
-						column(12,
-							plotOutput(
-								outputId = 'locuszoom1',
-								click = 'plot_click',
-								dblclick = 'plot_dblclick',
-								brush = brushOpts(id = 'plot_brush', direction = 'x'),
-								height = '200px'
-								)
-							)
-						),
-					fluidRow(
-						column(12,
-							plotOutput(
-								outputId = 'locuszoom2',
-								click = 'plot_click',
-								dblclick = 'plot_dblclick',
-								brush = brushOpts(id = 'plot_brush', direction = 'x'),
-								height = '200px'
-								)
-							)
-						)
-					)
-				),
+			    column(6,
+			           plotOutput('locuscompare', height = '500px', click = 'plot_click')
+			    ),
+			    column(6,
+			           fluidRow(
+			               column(12,
+			                      plotOutput(
+			                          outputId = 'locuszoom1',
+			                          click = 'plot_click',
+			                          dblclick = 'plot_dblclick',
+			                          brush = brushOpts(id = 'plot_brush', direction = 'x'),
+			                          height = '250px'
+			                      )
+			               )
+			           ),
+			           fluidRow(
+			               column(12,
+			                      plotOutput(
+			                          outputId = 'locuszoom2',
+			                          click = 'plot_click',
+			                          dblclick = 'plot_dblclick',
+			                          brush = brushOpts(id = 'plot_brush', direction = 'x'),
+			                          height = '250px'
+			                      )
+			               )
+			           )
+			    )
+			),
+			br(),
+			br(),
 			fluidRow(
 				column(
 					4,
@@ -298,52 +300,28 @@ shinyUI(fluidPage(
 				),
 				column(
 					8,
-					plotOutput('locuscompare', height = 'auto', click = 'plot_click')
-				)
-			),
-			fluidRow(
-				column(
-					12,
-					plotOutput(
-						outputId = 'locuszoom1',
-						click = 'plot_click',
-						dblclick = 'plot_dblclick',
-						brush = brushOpts(id = 'plot_brush', direction = 'x'),
-						height = '200px'
+					fluidRow(
+					    column(6,
+					           h3('LD SNPs')
+					    ),
+					    column(6,
+					           numericInput(
+					               inputId = "r2_threshold",
+					               label = "LD threshold (r2)",
+					               value = 0.8,
+					               min = 0.2,
+					               max = 1,
+					               step = 0.1,
+					               width = '100%'
+					           )
+					    )
+					),
+					fluidRow(
+					    div(
+					        style = 'overflow-x: scroll', 
+					        DT::dataTableOutput('ld_snps')
+					    ) 
 					)
-				)
-			),
-			fluidRow(
-				column(
-					12,
-					plotOutput(
-						outputId = 'locuszoom2',
-						click = 'plot_click',
-						dblclick = 'plot_dblclick',
-						brush = brushOpts(id = 'plot_brush', direction = 'x'),
-						height = '200px'
-					)
-				)
-			),
-			fluidRow(h3('LD SNPs')),
-			fluidRow(
-				column(
-					6,
-					numericInput(
-						inputId = "r2_threshold",
-						label = "LD threshold (r2)",
-						value = 0.8,
-						min = 0.2,
-						max = 1,
-						step = 0.1,
-						width = '100%'
-					)
-				)
-			),
-			fluidRow(
-				div(
-					style = 'overflow-x: scroll', 
-					DT::dataTableOutput('ld_snps')
 				)
 			)
 		),
@@ -357,7 +335,7 @@ shinyUI(fluidPage(
 			fluidRow(h3('Study 1')),
 			fluidRow(
 				column(2,
-					tags$i(h3('Published'))
+					tags$i(h3('Select Published'))
 				),
 				column(10,
 					selectInput(
@@ -370,7 +348,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(2,
-					tags$i(h3('Upload'))
+					tags$i(h3('Or Upload'))
 				),
 				column(10,
 					fileInput(
@@ -398,7 +376,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(2,
-					tags$i(h3('Upload'))
+					tags$i(h3('OR Upload'))
 				),
 				column(10,
 					fileInput(
@@ -439,7 +417,7 @@ shinyUI(fluidPage(
 				)
 			),
 			fluidRow(
-				column(2,tags$i(h3('Upload'))),
+				column(2,tags$i(h3('Or Upload'))),
 				column(10,
 					fileInput(
 						inputId = 'batch_region', 
@@ -454,10 +432,10 @@ shinyUI(fluidPage(
 						inputId = 'submit', 
 						label = 'Submit',
 						width = '100%',
-						style = 'font-weight:bold'
+						style = 'font-weight:bold; background-color:#ADD8E6;'
 					)
 				),
-				tags$head(tags$style(".butt{width:100%;font-weight:bold;}")), # background color and font color
+				tags$head(tags$style(".butt{width:100%;font-weight:bold;background-color:#ADD8E6}")), # background color and font color
 				column(6,
 					downloadButton(
 						outputId = 'batch_download', 

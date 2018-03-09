@@ -254,6 +254,9 @@ shinyServer(function(input, output, session) {
 
 	observeEvent(input$back,{
 		hideTab(inputId = "navbarPage", target = "Plots")
+	    range$xmin=NULL
+	    range$xmax=NULL
+	    snp(merged()[which.min(pval1*pval2),rsid])
 	})
 
 	coordinate = eventReactive(input$visualize,{
@@ -397,9 +400,10 @@ shinyServer(function(input, output, session) {
 			size = size(),
 			legend=FALSE
 			)
-	},height=function(){
-		session$clientData$output_locuscompare_width
-	})
+	}#,height=function(){
+	#	session$clientData$output_locuscompare_width
+	#}
+	)
 	
 	output$locuszoom1 = renderPlot({
 		make_locuszoom(
