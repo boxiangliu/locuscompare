@@ -21,7 +21,9 @@ for (gwas_fn in c("GWAS_Asthma_Moffatt_2010.txt","GWAS_BMI-Europeans_Locke_2015.
 	"GWAS_Rheumatoid-Arthritis-European_Okada_2014.txt",
 	"GWAS_Rheumatoid-Arthritis-Mixed_Okada_2014.txt","GWAS_Type-2-Diabetes_Scott_2017.txt",
 	"GWAS_Waist-Hip-Ratio-Europeans_Shungin_2015.txt",
-	"GWAS_Waist-Hip-Ratio-Mixed_Shungin_2015.txt")){
+	"GWAS_Waist-Hip-Ratio-Mixed_Shungin_2015.txt","GWAS_Coronary-Artery-Disease_Nelson_2017.txt",
+	"GWAS_Type-2-Diabetes_Zhao_2017.txt")){
+
 	print(gwas_fn)
 	
 	gwas=tryCatch({

@@ -1,3 +1,6 @@
+*.pdf
+*.xlsx
+processed_data/
 *test*
 *tmp*
 config/

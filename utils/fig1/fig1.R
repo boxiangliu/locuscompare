@@ -1,6 +1,6 @@
 library(data.table)
-detach('package:locuscomparer',unload=TRUE)
-devtools::install_github("boxiangliu/locuscomparer")
+# detach('package:locuscomparer',unload=TRUE)
+# devtools::install_github("boxiangliu/locuscomparer")
 library(locuscomparer)
 source('global.R')
 
