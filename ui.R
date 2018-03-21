@@ -116,7 +116,7 @@ shinyUI(fluidPage(
 			),
 			hr(),
 			fluidRow(
-				h3('Select a region (max 2Mb)')
+				h3('Select a region')
 				),
 			fluidRow(
 				column(
@@ -219,6 +219,7 @@ shinyUI(fluidPage(
 					)
 				)
 			),
+			br(),
 			fluidRow(
 				column(
 					6,

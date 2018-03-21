@@ -237,6 +237,17 @@ shinyServer(function(input, output, session) {
 
 		shiny::validate(need(any(valid_snp_region(),valid_gene_region(),valid_coordinate()),'Please provide a region!'))
 		shiny::validate(need({valid_snp_region()+valid_gene_region()+valid_coordinate()==1},'Please only provide one of SNP, gene, or coordinate!'))
+		
+		if (valid_snp_region()+valid_gene_region()+valid_coordinate()==1){
+		    if (valid_snp_region()){
+		        shiny::validate(need(input$snp_window<=1e3, 'Window size must be < 1Mb'))
+		    } else if (valid_gene_region()){
+		        shiny::validate(need(input$gene_window<=1e3, 'Window size must be < 1Mb'))
+		    } else if (valid_coordinate()){
+		        shiny::validate(need(abs(input$end-input$start) <= 1e6,'Window size must be < 1Mb'))
+		    }
+		}
+		
 	})
 
 	observeEvent(input$visualize, {
@@ -248,7 +259,18 @@ shinyServer(function(input, output, session) {
 
 		shiny::validate(need(any(valid_snp_region(),valid_gene_region(),valid_coordinate()),'Please provide a region!'))
 		shiny::validate(need({valid_snp_region()+valid_gene_region()+valid_coordinate()==1},'Please only provide one of SNP, gene, or coordinate!'))
+        
+		if (valid_snp_region()+valid_gene_region()+valid_coordinate()==1){
+		    if (valid_snp_region()){
+		        shiny::validate(need(input$snp_window<=1e3, 'Window size must be < 1Mb'))
+		    } else if (valid_gene_region()){
+		        shiny::validate(need(input$gene_window<=1e3, 'Window size must be < 1Mb'))
+		    } else if (valid_coordinate()){
+		        shiny::validate(need(abs(input$end-input$start) <= 1e6,'Window size must be < 1Mb'))
+		    }
+		}
 
+		
 		showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
 	})
 
@@ -288,7 +310,7 @@ shinyServer(function(input, output, session) {
 			res=list(
 				chr = chr_start_end$chr,
 				start = chr_start_end$start - input$gene_window*1e3,
-				end = chr_start_end$end + input$gene_window*1e3
+				end = chr_start_end$start + input$gene_window*1e3
 				)
 		}
 		if (valid_coordinate()){
