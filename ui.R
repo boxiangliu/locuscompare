@@ -46,7 +46,7 @@ shinyUI(fluidPage(
 				column(5,
 					selectizeInput(
 						inputId = 'trait1',
-						label = 'Trait',
+						label = 'Trait (e.g. phenotype or gene)',
 						choices = c('Choose' = ''),
 						width = "100%"
 					)
@@ -66,7 +66,7 @@ shinyUI(fluidPage(
 				column(5,
 					textInput(
 						inputId = 'file1_trait', 
-						label = 'Trait Name', 
+						label = 'Trait (e.g. phenotype or gene)', 
 						width = "100%"
 					)
 				)
@@ -89,7 +89,7 @@ shinyUI(fluidPage(
 				column(5,
 					selectizeInput(
 						inputId = 'trait2',
-						label = 'Trait',
+						label = 'Trait (e.g. phenotype or gene)',
 						choices = c('Choose' = ''),
 						width = "100%"
 					)
@@ -97,7 +97,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(2,
-					tags$i(h3('Or Upload'))
+					tags$i(h3(tags$b('Or'),'Upload'))
 				),
 				column(5,
 					fileInput(
@@ -109,14 +109,14 @@ shinyUI(fluidPage(
 				column(5,
 					textInput(
 						inputId = 'file2_trait', 
-						label = 'Trait Name', 
+						label = 'Trait (e.g. phenotype or gene)', 
 						width = "100%"
 					)
 				)
 			),
 			hr(),
 			fluidRow(
-				h3('Select a region (choose one)')
+				h3('Select a region (max 2Mb)')
 				),
 			fluidRow(
 				column(
@@ -131,7 +131,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(
-					3,tags$i(h3('Or Gene'))
+					3,tags$i(h3(tags$b('Or'),'Gene'))
 				),
 				column(
 					3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. BRCA1')
@@ -142,7 +142,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(
-					3, tags$i(h3('Or Coordinate'))
+					3, tags$i(h3(tags$b('Or'),'Coordinate'))
 				),
 				column(
 					3, 
