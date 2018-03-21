@@ -54,7 +54,7 @@ shinyUI(fluidPage(
 			),
 			fluidRow(
 				column(2,
-					tags$i(h3('Or','Upload'))
+					tags$i(h3(tags$b('Or'),'Upload'))
 				),
 				column(5,
 					fileInput(
