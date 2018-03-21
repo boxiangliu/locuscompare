@@ -116,7 +116,7 @@ shinyUI(fluidPage(
 			),
 			hr(),
 			fluidRow(
-				h3('Select a region')
+				h3('Select a region (Max window size is 2Mb)')
 				),
 			fluidRow(
 				column(
