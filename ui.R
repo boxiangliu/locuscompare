@@ -222,13 +222,18 @@ shinyUI(fluidPage(
 			fluidRow(
 				column(
 					6,
-					h3('LD calculation')
+					selectizeInput(
+						inputId = 'snp',
+						label = 'SNP',
+						choices = c('Choose' = ''),
+						width = "100%"
+						)
 					),
 				column(
 					6,
 					selectInput(
-						'population',
-						'Population:',
+						inputId = 'population',
+						label = 'Population:',
 						choices = c('AFR', 'AMR', 'EAS', 'EUR', 'SAS'),
 						selected = 'EUR',
 						width = '100%'
