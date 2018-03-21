@@ -325,9 +325,16 @@ shinyServer(function(input, output, session) {
 	
 	snp=reactiveVal(value=NULL,label='snp')
 	
+	observeEvent(merged(),{
+	    updateSelectizeInput(session, "snp", choices = merged()$rsid, server = TRUE)
+	})
+	
 	observeEvent(input$visualize,{
 		snp(merged()[which.min(pval1*pval2),rsid])
-		updateSelectizeInput(session, "snp", choices = merged()$rsid, server = TRUE)
+	})
+
+	observeEvent(input$snp,{
+	    snp(input$snp)
 	})
 
 	chr=reactive({
