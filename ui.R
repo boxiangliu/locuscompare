@@ -209,6 +209,7 @@ shinyUI(fluidPage(
 			)
 		),
 		
+		# Interactive plot panel:
 		tabPanel(
 			'Plots',
 			fluidRow(
@@ -483,6 +484,81 @@ shinyUI(fluidPage(
 						label = 'Report Bugs',
 						width = '100%',
 						onclick = "window.open('https://github.com/boxiangliu/locuscompare/issues', '_blank')"
+					)
+				)
+			)
+		),
+
+		# Download page
+		tabPanel(
+			title = 'Download',
+			fluidRow(
+				column(
+					width = 12,
+					h3('Downloading GWAS and QTL datasets'),
+					p('LocusCompare current hosts 50 (TODO: add automatic update) 
+						GWAS datasets and 44 (TODO: add automatic update) eQTL datasets.
+						We have spent a large amount of time finding and curating these 
+						datasets, and make little sense for anyone else to repeat the work.
+						Therefore, we wrote a convenient bash script for you to download 
+						these data.'),
+					p('Link to bash script: https://github.com/boxiangliu/locuscomparer (TODO: add Mike\'s bash script here)')
+				)
+			),
+			fluidRow(
+				column(
+					width = 12,
+					h3('Acknowledgement'),
+					p('We are grateful to the individuals and organizations who have made 
+						their data publically available. Below is a list of studies 
+						we included in LocusCompare. If we missed a reference to your 
+						study, please email Boxiang Liu at bliu2@stanford.edu or 
+						Mike Gloudemans at mgloud@stanford.edu.'),
+					dataTableOutput(outputId = 'study_info')
+				)
+			)
+		),
+
+		# Share page
+		tabPanel(
+			title = 'Share',
+			fluidRow(
+				column(
+					width = 12,
+					h3('Share your study'),
+					p('Making a dataset publically available increases the visibility of your research. Current 
+						GWAS datasets are distributed across various websites, making them difficult to find 
+						and download. ocusCompare provides a platform for sharing GWAS and QTL datasets. If you would like
+						to make a dataset publically available, please fill out the following form. 
+						Alternatively, you can email Boxiang Liu <bliu2@stanford.edu> and Mike Gloudemans <mgloud@stanford.edu>
+						to add your study.')
+				)
+			),
+			fluidRow(
+				column(
+					width = 6,
+					div(id = 'form1',
+						textInput(inputId = 'form_trait', label = 'Trait/Molecular Phenotype', width = '100%'),
+						textInput(inputId = 'form_ethnicity', label = 'Ethnicity', width = '100%'),
+						textInput(inputId = 'form_sample_size', label = 'Sample Size', width = '100%'),
+						textInput(inputId = 'form_author', label = 'Author/Consortium', width = '100%')
+					)
+				),
+				column(
+					width = 6,
+					div(id = 'form2',
+						textInput(inputId = 'form_year', label = 'Year', width = '100%'),
+						textInput(inputId = 'form_journal', label = 'Journal', width = '100%'),
+						textInput(inputId = 'form_link', label = 'Link to Publication', width = '100%'),
+						fileInput(inputId = 'form_file', label = 'Choose File', width = '100%')
+					)
+				)
+			),
+			fluidRow(
+				column(
+					width = 12,
+					div(id = 'form3',
+						actionButton(inputId = 'form_submit', label = 'Submit', class = "btn-primary", width = '100%')
 					)
 				)
 			)

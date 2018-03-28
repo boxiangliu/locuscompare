@@ -718,4 +718,26 @@ shinyServer(function(input, output, session) {
 			tar(file,coordinate_list,compression='gzip')
 		}
 	)
+
+	#---------------# 
+	# Download page #
+	#---------------#
+	study_info = fread('data/study_info/study_info.txt')
+	output$study_info = renderDataTable({
+		DT::datatable(study_info)
+	})
+
+	#------------#
+	# Contribute #
+	#------------#
+	mandatory_fields = c('form_trait','form_ethnicity','form_sample_size',
+		'form_author','form_year','form_journal','form_link','form_file')
+	observe({
+		mandatory_filled = vapply(
+			X = mandatory_fields,
+			FUN = function(x) isTruthy(input[[x]]),
+			FUN.VALUE = logical(1))
+		mandatory_filled = all(mandatory_filled)
+		shinyjs::toggleState(id = 'form_submit', condition = mandatory_filled)
+	})
 })
