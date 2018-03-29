@@ -18,3 +18,4 @@ data/population
 locuscompare.Rproj
 tmp/
 README.html
+.httr-oauth

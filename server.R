@@ -739,14 +739,15 @@ shinyServer(function(input, output, session) {
 	#---------------# 
 	# Download page #
 	#---------------#
-	study_info = fread('data/study_info/study_info.txt')
+	list_of_studies = googlesheets::gs_title("List_of_studies")
+	list_of_studies = googlesheets::gs_read(list_of_studies)
 	output$study_info = renderDataTable({
-		DT::datatable(study_info)
+		DT::datatable(list_of_studies)
 	})
 
-	#------------#
-	# Contribute #
-	#------------#
+	#-------#
+	# Share #
+	#-------#
 	mandatory_fields = c('form_trait','form_ethnicity','form_sample_size',
 		'form_author','form_year','form_journal','form_link','form_file')
 	observe({
