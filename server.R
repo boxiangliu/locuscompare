@@ -739,8 +739,8 @@ shinyServer(function(input, output, session) {
 	#---------------# 
 	# Download page #
 	#---------------#
-	list_of_studies = googlesheets::gs_title("List_of_studies")
-	list_of_studies = googlesheets::gs_read(list_of_studies)
+	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE)
+	list_of_studies = googlesheets::gs_read(sheet_key)
 	output$study_info = renderDataTable({
 		DT::datatable(list_of_studies)
 	})
