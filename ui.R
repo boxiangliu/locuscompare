@@ -522,44 +522,46 @@ shinyUI(fluidPage(
 		# Share page
 		tabPanel(
 			title = 'Share',
-			fluidRow(
-				column(
-					width = 12,
-					h3('Share your study'),
-					p('Making a dataset publically available increases the visibility of your research. Current 
-						GWAS datasets are distributed across various websites, making them difficult to find 
-						and download. ocusCompare provides a platform for sharing GWAS and QTL datasets. If you would like
-						to make a dataset publically available, please fill out the following form. 
-						Alternatively, you can email Boxiang Liu <bliu2@stanford.edu> and Mike Gloudemans <mgloud@stanford.edu>
-						to add your study.')
-				)
-			),
-			fluidRow(
-				column(
-					width = 6,
-					div(id = 'form1',
+			div(id = 'form',
+				fluidRow(
+					column(
+						width = 12,
+						h3('Share your study'),
+						p('Making a dataset publically available increases the visibility of your research. Current 
+							GWAS datasets are distributed across various websites, making them difficult to find 
+							and download. LocusCompare provides a platform for sharing GWAS and QTL datasets. If you would like
+							to make a dataset publically available, please fill out the following form. 
+							Alternatively, you can email Boxiang Liu <bliu2@stanford.edu> and Mike Gloudemans <mgloud@stanford.edu>
+							to add your study.')
+					)
+				),
+				fluidRow(
+					column(
+						width = 6,
 						textInput(inputId = 'form_trait', label = 'Trait/Molecular Phenotype', width = '100%'),
 						textInput(inputId = 'form_ethnicity', label = 'Ethnicity', width = '100%'),
 						textInput(inputId = 'form_sample_size', label = 'Sample Size', width = '100%'),
 						textInput(inputId = 'form_author', label = 'Author/Consortium', width = '100%')
-					)
-				),
-				column(
-					width = 6,
-					div(id = 'form2',
+					),
+					column(
+						width = 6,
 						textInput(inputId = 'form_year', label = 'Year', width = '100%'),
 						textInput(inputId = 'form_journal', label = 'Journal', width = '100%'),
 						textInput(inputId = 'form_link', label = 'Link to Publication', width = '100%'),
 						fileInput(inputId = 'form_file', label = 'Choose File', width = '100%')
 					)
-				)
-			),
-			fluidRow(
-				column(
-					width = 12,
-					div(id = 'form3',
+				),
+				fluidRow(
+					column(
+						width = 12,
 						actionButton(inputId = 'form_submit', label = 'Submit', class = "btn-primary", width = '100%')
 					)
+				)
+			),
+			shinyjs::hidden(
+				div(id = 'thankyou_msg',
+					h3('Thank you! Your response has been submitted succesfully.'),
+					actionLink('submit_another','Share another dataset')
 				)
 			)
 		)

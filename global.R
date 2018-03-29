@@ -10,8 +10,8 @@ library(zip)
 library(shinyjs)
 source('locuscompare.R')
 source('config/config.R')
-
-
+library(digest)
+library(utils)
 
 # Variables:
 tmp_dir=tempdir()

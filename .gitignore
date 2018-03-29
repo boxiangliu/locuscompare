@@ -1,3 +1,4 @@
+contrib/
 *.pdf
 *.xlsx
 processed_data/
