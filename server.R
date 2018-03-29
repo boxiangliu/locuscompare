@@ -212,10 +212,10 @@ humanTime <- function() {
 	format(Sys.time(), "%Y%m%d-%H%M%OS")
 }
 
-saveData <- function(data,dir) {
-	fileName <- sprintf("%s_%s.csv",
+saveData <- function(data,dir,name) {
+	fileName <- sprintf("%s_%s_info.csv",
 		humanTime(),
-		digest::digest(data))
+		name)
 
 	write.csv(x = data, file = file.path(dir, fileName),
 		row.names = FALSE, quote = FALSE)
@@ -774,7 +774,7 @@ shinyServer(function(input, output, session) {
 		shinyjs::reset('form')
 		shinyjs::hide('form')
 		shinyjs::show('thankyou_msg')
-		saveData(formData(),contrib_dir)
+		saveData(formData(),contrib_dir,input$form_file$name)
 		file_path = paste0(contrib_dir,'/',humanTime(),'_',input$form_file$name)
 		file.rename(input$form_file$datapath,file_path)
 	})
