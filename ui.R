@@ -502,7 +502,7 @@ shinyUI(fluidPage(
 						datasets, and make little sense for anyone else to repeat the work.
 						Therefore, we wrote a convenient bash script for you to download 
 						these data.'),
-					p('Link to bash script: https://github.com/boxiangliu/locuscomparer (TODO: add Mike\'s bash script here)')
+					p('Link to bash script: ',a('https://github.com/mikegloudemans/gwas-download',href='https://github.com/mikegloudemans/gwas-download'))
 				)
 			),
 			fluidRow(
@@ -512,8 +512,8 @@ shinyUI(fluidPage(
 					p('We are grateful to the individuals and organizations who have made 
 						their data publically available. Below is a list of studies 
 						we included in LocusCompare. If we missed a reference to your 
-						study, please email Boxiang Liu at bliu2@stanford.edu or 
-						Mike Gloudemans at mgloud@stanford.edu.'),
+						study, please email Boxiang Liu <bliu2@stanford.edu> or 
+						Mike Gloudemans <mgloud@stanford.edu>.'),
 					dataTableOutput(outputId = 'study_info')
 				)
 			)
