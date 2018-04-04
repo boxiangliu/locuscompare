@@ -204,6 +204,23 @@ get_batch_study = function(valid_study,study,datapath,coordinate){
 	return(res)
 }
 
+epochTime = function() {
+	as.integer(Sys.time())
+}
+
+humanTime <- function() {
+	format(Sys.time(), "%Y%m%d-%H%M%OS")
+}
+
+saveData <- function(data,dir,name) {
+	fileName <- sprintf("%s_%s_info.csv",
+		humanTime(),
+		name)
+
+	write.csv(x = data, file = file.path(dir, fileName),
+		row.names = FALSE, quote = FALSE)
+}
+
 shinyServer(function(input, output, session) {
 	#---------------------#
 	#   Interactive mode  #
@@ -718,4 +735,54 @@ shinyServer(function(input, output, session) {
 			tar(file,coordinate_list,compression='gzip')
 		}
 	)
+
+	#---------------# 
+	# Download page #
+	#---------------#
+	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE)
+	list_of_studies = googlesheets::gs_read(sheet_key)
+	output$study_info = renderDataTable({
+		DT::datatable(list_of_studies)
+	})
+
+	#-------#
+	# Share #
+	#-------#
+	mandatory_fields = c('form_trait','form_ethnicity','form_sample_size',
+		'form_author','form_year','form_journal','form_link','form_file')
+	observe({
+		mandatory_filled = vapply(
+			X = mandatory_fields,
+			FUN = function(x) isTruthy(input[[x]]),
+			FUN.VALUE = logical(1))
+		mandatory_filled = all(mandatory_filled)
+		shinyjs::toggleState(id = 'form_submit', condition = mandatory_filled)
+	})
+
+	description_fields = c('form_trait','form_ethnicity','form_sample_size',
+		'form_author','form_year','form_journal','form_link')
+
+	formData = eventReactive(input$form_submit,{
+		data = sapply(description_fields, function(x) input[[x]])
+		data = c(data, 
+				c(file_name = input$form_file$name,
+				file_size = utils:::format.object_size(input$form_file$size,'auto')))
+		data = data.frame(t(data))
+		return(data)
+	})
+
+	observeEvent(input$form_submit,{
+		shinyjs::reset('form')
+		shinyjs::hide('form')
+		shinyjs::show('thankyou_msg')
+		saveData(formData(),contrib_dir,input$form_file$name)
+		file_path = paste0(contrib_dir,'/',humanTime(),'_',input$form_file$name)
+		file.rename(input$form_file$datapath,file_path)
+	})
+
+
+	observeEvent(input$submit_another,{
+		shinyjs::show('form')
+		shinyjs::hide('thankyou_msg')
+	})
 })

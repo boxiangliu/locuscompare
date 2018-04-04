@@ -10,9 +10,10 @@ library(zip)
 library(shinyjs)
 source('locuscompare.R')
 source('config/config.R')
-
-
-
+library(digest)
+library(utils)
+library(googledrive)
+library(googlesheets)
 # Variables:
 tmp_dir=tempdir()
 Sys.chmod(tmp_dir, mode="0777")
