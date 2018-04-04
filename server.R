@@ -77,7 +77,7 @@ parse_coordinate=function(coordinate){
 		res=list(
 			chr = chr_start_end$chr,
 			start = chr_start_end$start - gene_window,
-			end = chr_start_end$end + gene_window
+			end = chr_start_end$start + gene_window
 			)
 	}
 	return(res)
