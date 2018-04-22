@@ -7,14 +7,26 @@ source('config/config.R')
 source('utils/shared_functions.R')
 
 read_gwas = function(gwas_fn){
+	message('INFO - reading GWAS...')
+	if (str_detect(gwas_fn,'gz')){
+		command = sprintf('gunzip -c %s',paste0(gwas_dir,gwas_fn))
+	} else {
+		command = paste0(gwas_dir,gwas_fn)
+	}
+
+	message(command)
+
 	gwas=tryCatch({
-		fread(paste0(gwas_dir,gwas_fn))
+		fread(command)
 		}, 
 		error = function(e) {NULL}
 		)
 	if (is.null(gwas)){
 		next
 	}
+
+	if ('snp_pos' %in% colnames(gwas)) {setnames(gwas,'snp_pos','pos')}
+	if ('pvalue' %in% colnames(gwas)) {setnames(gwas,'pvalue','pval')}
 
 	if (!('trait' %in% colnames(gwas))) {
 		trait=str_replace(gwas_fn,'.txt','')
@@ -24,6 +36,7 @@ read_gwas = function(gwas_fn){
 }
 
 create_table = function(table_name){
+	message('INFO - creating table...')
 	if (dbExistsTable(locuscompare_pool,table_name)) {
 		dbRemoveTable(locuscompare_pool,table_name)
 	}
@@ -39,6 +52,7 @@ create_table = function(table_name){
 }
 
 upload_gwas = function(gwas,table_name){
+	message('INFO - uploading GWAS')
 	step = 1e6
 	total_row = nrow(gwas)
 	for (i in seq(1,total_row,step)) {
@@ -62,6 +76,7 @@ upload_gwas = function(gwas,table_name){
 }
 
 index_table = function(table_name){
+	message('INFO - indexing table')
 	dbExecute(
 		conn = locuscompare_pool,
 		statement = sprintf('alter table %s
@@ -119,6 +134,17 @@ for (gwas_fn in gwas_fn_list){
 	print(gwas_fn)
 	gwas = read_gwas(gwas_fn)
 	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
+	create_table(table_name)
+	upload_gwas(gwas,table_name)
+	index_table(table_name)
+}
+
+gwas_dir = '/mnt/data/shared/datasets/gwas/batch5/'
+gwas_fn_list = list.files(gwas_dir,pattern='txt.gz$')
+for (gwas_fn in gwas_fn_list){
+	print(gwas_fn)
+	gwas = read_gwas(gwas_fn)
+	table_name = str_replace_all(str_replace(gwas_fn,'.txt.gz',''),'-','_')
 	create_table(table_name)
 	upload_gwas(gwas,table_name)
 	index_table(table_name)
