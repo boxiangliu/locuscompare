@@ -17,7 +17,7 @@ read_gwas = function(gwas_fn){
 	message(command)
 
 	gwas=tryCatch({
-		fread(command)
+		fread(command,header=TRUE)
 		}, 
 		error = function(e) {NULL}
 		)
@@ -138,6 +138,7 @@ for (gwas_fn in gwas_fn_list){
 	upload_gwas(gwas,table_name)
 	index_table(table_name)
 }
+
 
 gwas_dir = '/mnt/data/shared/datasets/gwas/batch5/'
 gwas_fn_list = list.files(gwas_dir,pattern='txt.gz$')
