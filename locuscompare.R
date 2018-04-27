@@ -1,10 +1,10 @@
 # Make locuscatter plots
 # Boxiang Liu
 # 2017-12-07
-library(R.utils)
+# library(R.utils)
 library(data.table)
 library(cowplot)
-library(ggrepel)
+# library(ggrepel)
 library(stringr)
 source('config/config.R')
 
@@ -206,7 +206,7 @@ make_locuscatter=function(merged,title1,title2,ld,color,shape,size,legend=TRUE){
 		scale_fill_manual(values=color,guide='none')+
 		scale_shape_manual(values=shape,guide='none')+
 		scale_size_manual(values=size,guide='none')+
-		geom_text_repel(aes(label=label))
+		geom_text(aes(label=label),hjust = 1.1)
 	
 	if (legend){
 		legend_box=data.frame(x=0.8,y=seq(0.4,0.2,-0.05))
@@ -227,17 +227,18 @@ make_locuszoom=function(metal,title,ld,color,shape,size,y_string='logp'){
 	# data=merge(metal,unique(ld[,list(chr=CHR_A,pos=BP_A,rsid=SNP_A)]),by='rsid')
 	data=metal
 	chr=unique(data$chr)
-	ggplot(data,aes_string(x='pos',y=y_string))+
+	p = ggplot(data,aes_string(x='pos',y=y_string))+
 		geom_point(aes(fill=rsid,size=rsid,shape=rsid),alpha=0.8)+
-		geom_point(data=data[label!=''],aes_string(x='pos',y=y_string,fill='rsid',size='rsid',shape='rsid'))+
+		# geom_point(data=data[label!=''],aes_string(x='pos',y=y_string,fill='rsid',size='rsid',shape='rsid'))+
 		scale_fill_manual(values=color,guide='none')+
 		scale_shape_manual(values=shape,guide='none')+
 		scale_size_manual(values=size,guide='none')+
-		scale_x_continuous(labels=function(x){sprintf('%.1f',x/1e6)},expand=c(0.01,0))+
-		geom_text_repel(aes(label=label))+
+		scale_x_continuous(labels=function(x){sprintf('%.2f',x/1e6)},expand=c(0.01,0))+
+		geom_text(aes(label=label),hjust = 1.1)+
 		xlab(paste0('chr',chr,' (Mb)'))+
 		ylab(paste(title,'\n-log10(P)'))+
 		theme(plot.margin=unit(c(0.5, 1, 0.5, 0.5), "lines"))
+	return(p)
 }
 
 main=function(in_fn1,marker_col1='rsid',pval_col1='pval',title1='eQTL',

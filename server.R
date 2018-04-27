@@ -222,6 +222,10 @@ saveData <- function(data,dir,name) {
 }
 
 shinyServer(function(input, output, session) {
+	# Session-specific variables:
+	tmp_dir=tempdir()
+	Sys.chmod(tmp_dir, mode="0777")
+
 	#---------------------#
 	#   Interactive mode  #
 	#---------------------#
@@ -416,7 +420,7 @@ shinyServer(function(input, output, session) {
 	})
 
 	output$locuscompare = renderPlot({
-		make_locuscatter(
+		p = make_locuscatter(
 			merged = plot_data(),
 			title1 = title1(),
 			title2 = title2(),
@@ -424,15 +428,12 @@ shinyServer(function(input, output, session) {
 			color = color(),
 			shape = shape(),
 			size = size(),
-			legend=FALSE
-			)
-	}#,height=function(){
-	#	session$clientData$output_locuscompare_width
-	#}
-	)
+			legend=FALSE)
+		return(p)
+	})
 	
 	output$locuszoom1 = renderPlot({
-		make_locuszoom(
+		p = make_locuszoom(
 			metal = plot_data()[,list(rsid,chr,pos,logp1,label)],
 			title = title1(),
 			ld = ld(),
@@ -440,10 +441,11 @@ shinyServer(function(input, output, session) {
 			shape = shape(),
 			size = size(),
 			y_string='logp1')
+		return(p)
 	})
 	
 	output$locuszoom2 = renderPlot({
-		make_locuszoom(
+		p = make_locuszoom(
 			metal = plot_data()[,list(rsid,chr,pos,logp2,label)],
 			title = title2(),
 			ld = ld(),
@@ -451,6 +453,7 @@ shinyServer(function(input, output, session) {
 			shape = shape(),
 			size = size(),
 			y_string='logp2')
+		return(p)
 	})
 	
 	output$snp_info = renderText({
@@ -531,12 +534,17 @@ shinyServer(function(input, output, session) {
 				size = size(),
 				y_string='logp2'
 				)
-
-			ggsave('locuscompare.pdf',locuscompare,width=input$locuscompare_length,height=input$locuscompare_length)
-			ggsave('locuszoom1.pdf',locuszoom1,width=input$locuszoom_width,height=input$locuszoom_height)
-			ggsave('locuszoom2.pdf',locuszoom2,width=input$locuszoom_width,height=input$locuszoom_height)
-			
-			zip(file,c('data.tsv','ld.tsv','locuscompare.pdf','locuszoom1.pdf','locuszoom2.pdf'))
+            ggsave_return = function(fn,p,width,height){
+                ggsave(filename = fn, plot = p, width = width, height = height)
+                return(fn)
+            }
+            length_ = input$locuscompare_length
+            width_ = input$locuszoom_width
+            height_ = input$locuszoom_height
+			ggsave('locuscompare.jpeg',locuscompare,width=length_,height=length_,device='jpeg')
+			ggsave('locuszoom1.jpeg',locuszoom1,width=width_,height=height_)
+			ggsave('locuszoom2.jpeg',locuszoom2,width=width_,height=height_)
+			zip(file,c('data.tsv','ld.tsv','locuscompare.jpeg','locuszoom1.jpeg','locuszoom2.jpeg'))
 		}
 		
 	)
@@ -608,28 +616,29 @@ shinyServer(function(input, output, session) {
 		progress$set(message = "Making plot", value = 0)
 		n = length(coordinate_list)
 
+
 		for (coordinate in coordinate_list){
 			if (!dir.exists(paste0(tmp_dir,'/',coordinate))){
 				dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
 			}
-			
+			warning('1')
 			parsed_coordinate=parse_coordinate(coordinate)
 
-
-			d1 = get_batch_study(
+			warning('2')
+			d1 = future({get_batch_study(
 				valid_study = valid_batch_study1(),
 				study = input$batch_study1,
 				datapath = input$batch_file1$datapath,
 				coordinate = parsed_coordinate
-				)
-
-			d2 = get_batch_study(
+				)})
+			warning('3')
+			d2 = future({get_batch_study(
 				valid_study = valid_batch_study2(),
 				study = input$batch_study2,
 				datapath = input$batch_file2$datapath,
 				coordinate = parsed_coordinate
-				)
-
+				)})
+			warning('4')
 			trait1_list=unique(d1$trait)
 			trait2_list=unique(d2$trait)
 			n1_trait=length(trait1_list)
@@ -637,6 +646,7 @@ shinyServer(function(input, output, session) {
 
 			for (trait1 in trait1_list){
 				for (trait2 in trait2_list){
+					warning('5')
 					d1_trait = d1[trait==trait1,list(rsid,pval)]
 					d2_trait = d2[trait==trait2,list(rsid,pval)]
 
@@ -721,6 +731,7 @@ shinyServer(function(input, output, session) {
 			}
 		}
 	})
+
 
 	output$batch_download = downloadHandler(
 		filename=function(){return('batch_results.zip')},
