@@ -333,7 +333,12 @@ shinyServer(function(input, output, session) {
 	d1 = eventReactive(input$visualize,{
 	    shiny::validate(need(valid_study1() | valid_file1(),'Please provide study 1!'))
 	    shiny::validate(need(!(valid_study1() & valid_file1()),'Please select or upload study 1, but not both!'))
-	    future({get_study(valid_study1(),input$study1,input$trait1,input$file1$datapath,coordinate())})
+	    valid_study1_ = valid_study1()
+	    input_study1_ = input$study1
+	    input_trait1_ = input$trait1
+	    input_file1_datapath_ = input$file1$datapath
+	    coordinate_ = coordinate()
+	    future({get_study(valid_study1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)})
 	})
 	
 	# d2 = eventReactive(input$visualize,{
@@ -345,7 +350,12 @@ shinyServer(function(input, output, session) {
 	d2 = eventReactive(input$visualize,{
 	    shiny::validate(need(valid_study2() | valid_file2(),'Please provide study 2!'))
 	    shiny::validate(need(!(valid_study2() & valid_file2()),'Please select or upload study 2, but not both!'))
-	    future({get_study(valid_study2(),input$study2,input$trait2,input$file2$datapath,coordinate())})
+	    valid_study2_ = valid_study2()
+	    input_study2_ = input$study2
+	    input_trait2_ = input$trait2
+	    input_file2_datapath_ = input$file2$datapath
+	    coordinate_ = coordinate()
+	    future({get_study(valid_study2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)})
 	})
 
 	# merged=reactive({
@@ -358,12 +368,13 @@ shinyServer(function(input, output, session) {
 	# })
 	
 	merged=reactive({
-	    merged = promise_all(a = d1(), b = d2()) %...>% {merge(.$a,.$b,by='rsid',suffixes=c('1','2'),all=FALSE) %...>%
-	            get_position() %...>%
-	            setDT() %...>%
-	            dplyr::mutate(logp1 = -log10(pval1), logp2 = -log10(pval2))}
-	    merged %...>% nrow() %...>% need(.,'No overlapping SNPs between two studies') %...>% shiny::validate()
-	    return(merged)
+		merged= promise_all(d1 = d1(), d2= d2()) %...>% {merge(.$d1,.$d2,by='rsid',suffixes=c('1','2'),all=FALSE)}
+		merged= merged %...>% get_position()
+		check_overlap = merged %...>% nrow() %...>% `>`(0)
+		shiny::validate(need(check_overlap,'No overlapping SNPs between two studies'))
+		merged = merged %...>% setDT()
+		merged = merged %...>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval1))
+		return(merged)
 	})
 
 	snp=reactiveVal(value=NULL,label='snp')
@@ -379,7 +390,8 @@ shinyServer(function(input, output, session) {
 	})
 
 	observeEvent(input$snp,{
-	    snp(input$snp)
+		input_snp_ = input$snp
+		future({input_snp_}) %...>% snp()
 	})
 
 	chr=reactive({
@@ -389,25 +401,29 @@ shinyServer(function(input, output, session) {
 	})
 
 	ld=reactive({
-	    # retrieve_LD(chr(),snp(),input$population)
-		snp() %...>% retrieve_LD(chr(),.,input$population)
+	    retrieve_LD(chr(),snp(),input$population)
+		# snp() %...>% retrieve_LD(chr(),.,input$population)
 	})
 
 	# color=reactive({merged() %>% assign_color(.$rsid,snp(),ld())})
 	# shape=reactive({merged() %>% assign_shape(.,snp())})
 	# size=reactive({merged() %>% assign_size(.,snp())})
 
-	color=reactive({promise_all(merged_=merged(),snp_=snp(),ld_=ld()) %...>% {assign_color(.$merged_$rsid,.$snp_,.$ld)}})
-	shape=reactive({promise_all(merged_=merged(),snp_=snp()) %...>% {assign_shape(.$merged_,.$snp_)}})
-	size=reactive({promise_all(merged_=merged(),snp_=snp()) %...>% {assign_size(.$merged_,.$snp_)}})
-	
+	color=reactive({promise_all(merged=merged()) %...>% {assign_color(.$merged$rsid,snp(),ld())}})
+	shape=reactive({promise_all(merged=merged()) %...>% {assign_shape(.$merged,snp())}})
+	size=reactive({promise_all(merged=merged()) %...>% {assign_size(.$merged,snp())}})
+
+	# color=reactive({promise_all(merged=merged(),snp=snp(),ld=ld()) %...>% {assign_color(.$merged$rsid,.$snp,.$ld)}})
+	# shape=reactive({promise_all(merged=merged(),snp=snp()) %...>% {assign_shape(.$merged,.$snp)}})
+	# size=reactive({promise_all(merged=merged(),snp=snp()) %...>% {assign_size(.$merged,.$snp)}})
+
 	observeEvent(input$plot_click,{
 	    # selected_snp = select_snp(input$plot_click,merged())
 	    # if (identical(selected_snp,character(0))){
 	    #     snp(selected_snp)    
 	    # }
 		selected_snp = merged() %...>% select_snp(input$plot_click,.)
-		if (!(selected_snp %...>% identical(.,character(0)))){
+		if (!(selected_snp %...>% identical(character(0)))){
 		    selected_snp %...>% snp()    
 		}
 	})
@@ -433,7 +449,12 @@ shinyServer(function(input, output, session) {
 		}
 		
 		# plot_data[,label:=ifelse(rsid==snp(),rsid,'')]
-		plot_data = plot_data %...>% mutate(label=ifelse(rsid==snp(),rsid,''))
+		# plot_data = promise_all(plot_data = plot_data, snp = snp()) %...>% {
+		# 	mutate(.$plot_data, label=ifelse(rsid==.$snp,rsid,''))
+		# }
+		plot_data = promise_all(plot_data = plot_data) %...>% {
+			mutate(.$plot_data, label=ifelse(rsid==snp(),rsid,''))
+		}
 		return(plot_data)
 	})
 	
@@ -464,15 +485,15 @@ shinyServer(function(input, output, session) {
 	    #         size = size(),
 	    #         legend=FALSE)
 	    
-	    p = promise_all(plot_data_ = plot_data(), ld_ = ld(), color_ = color(), shape_ = shape(), size_ = size()) %...>% {
+	    p = promise_all(plot_data = plot_data(), ld = ld(), color = color(), shape = shape(), size = size()) %...>% {
 	        make_locuscatter(
-	            merged = plot_data_,
+	            merged = plot_data,
 	            title1 = title1(),
 	            title2 = title2(),
-	            ld = ld_,
-	            color = color_,
-	            shape = shape_,
-	            size = size_,
+	            ld = ld,
+	            color = color,
+	            shape = shape,
+	            size = size,
 	            legend=FALSE)
 	    }
 
@@ -488,14 +509,14 @@ shinyServer(function(input, output, session) {
 		# 	shape = shape(),
 		# 	size = size(),
 		# 	y_string='logp1')
-	    p = promise_all(plot_data_ = plot_data(), ld_ = ld(), color_ = color(), shape_ = shape(), size_ = size()) %...>% {
+	    p = promise_all(plot_data = plot_data(), ld = ld(), color = color(), shape = shape(), size = size()) %...>% {
 	        make_locuszoom(
-    		    metal = plot_data_[,list(rsid,chr,pos,logp1,label)],
+    		    metal = plot_data,
     		    title = title1(),
-    		    ld = ld_,
-    		    color = color_,
-    		    shape = shape_,
-    		    size = size_,
+    		    ld = ld,
+    		    color = color,
+    		    shape = shape,
+    		    size = size,
     		    y_string='logp1')
 	        }
 
@@ -512,25 +533,40 @@ shinyServer(function(input, output, session) {
 		# 	size = size(),
 		# 	y_string='logp2')
 		
-		p = promise_all(plot_data_ = plot_data(), ld_ = ld(), color_ = color(), shape_ = shape(), size_ = size()) %...>% {
+		p = promise_all(plot_data = plot_data(), ld = ld(), color = color(), shape = shape(), size = size()) %...>% {
 		    make_locuszoom(
-		        metal = plot_data_[,list(rsid,chr,pos,logp1,label)],
+		        metal = plot_data,
 		        title = title2(),
-		        ld = ld_,
-		        color = color_,
-		        shape = shape_,
-		        size = size_,
+		        ld = ld,
+		        color = color,
+		        shape = shape,
+		        size = size,
 		        y_string='logp2')
 		}
 		return(p)
 	})
 	
 	output$snp_info = renderText({
-		res=dbGetQuery(
-			conn = locuscompare_pool,
-			# statement = sprintf('select * from tkg_p3v5a where rsid = "%s";',snp())
-			statement = snp() %...>% sprintf('select * from tkg_p3v5a where rsid = "%s";',.)
-			)
+		# res = snp() %...>% 
+		# 	sprintf('select * from tkg_p3v5a where rsid = "%s";',.) %...>% 
+		# 	dbGetQuery(conn = locuscompare_pool,statement = .)
+		res = snp() %>% 
+			sprintf('select * from tkg_p3v5a where rsid = "%s";',.) %>% 
+			dbGetQuery(conn = locuscompare_pool,statement = .)
+		# res %...>% sprintf(
+		# 	'Chromosome: %s\nPosition: %s\nrs ID: %s\nReference SNP: %s\nAlternate SNP: %s\nAllele Frequency: %s\nAFR Frequency: %s\nAMR Frequency: %s\nEAS Frequency: %s\nEUR Frequency: %s\nSAS Frequency: %s',
+		# 	.$chr,
+		# 	.$pos,
+		# 	.$rsid,
+		# 	.$ref,
+		# 	.$alt,
+		# 	.$AF,
+		# 	.$AFR_AF,
+		# 	.$AMR_AF,
+		# 	.$EAS_AF,
+		# 	.$EUR_AF,
+		# 	.$SAS_AF
+		# 	)
 		sprintf(
 			'Chromosome: %s\nPosition: %s\nrs ID: %s\nReference SNP: %s\nAlternate SNP: %s\nAllele Frequency: %s\nAFR Frequency: %s\nAMR Frequency: %s\nEAS Frequency: %s\nEUR Frequency: %s\nSAS Frequency: %s',
 			res$chr,
@@ -551,14 +587,17 @@ shinyServer(function(input, output, session) {
 		# ld_snps=ld()[SNP_A==snp(),][R2>=input$r2_threshold,list(rsid=SNP_B,r2=R2)]
 		# ld_snps=rbind(data.table(rsid=snp(),r2=1),ld_snps)
 		# tmp=merged()[rsid%in%ld_snps$rsid,list(rsid,chr,pos,pval1,pval2)]
-	    ld_snps = promise_all(ld_=ld(),snp_=snp()) %...>% {
-	        .$ld_ %...>% 
-	            filter(SNP_A==.$snp_, R2>=input$r2_threshold) %...>% 
+	    ld_snps = promise_all(ld=ld()) %...>% {
+	        .$ld %...>% 
+	            filter(SNP_A==snp(), R2>=input$r2_threshold) %...>% 
 	            select(rsid=SNP_B,r2=R2) %...>% 
-	            rbind(data.table(rsid=.$snp_,r2=1))}
-		tmp=merged() %...>% dplyr::filter(rsid%in%ld_snps$rsid) %...>% select(rsid,chr,pos,pval1,pval2)
-		snp_info=promise_all(tmp_ = tmp, ld_snps_ = ld_snp) %>% {merge(.$tmp_,.$ld_snps_,by='rsid')}
-		DT::datatable(snp_info)
+	            rbind(data.table(rsid=snp(),r2=1))
+	        }
+	    merged_thin = merged() %...>% dplyr::select(rsid,chr,pos,pval1,pval2)
+		snp_info=promise_all(merged_thin = merged_thin, ld_snps = ld_snps) %...>% {
+			merge(.$merged_thin,.$ld_snps,by='rsid')
+		}
+		snp_info %...>% DT::datatable()
 	})
 
 	output$file1_example = downloadHandler(
@@ -577,8 +616,7 @@ shinyServer(function(input, output, session) {
 			owd=setwd(tmp_dir)
 			on.exit({setwd(owd)})
 			
-			# fwrite(merged(),'data.tsv',sep='\t')
-			merged() %...>% fwrite(.,'data.tsv',sep='\t')
+			fwrite(merged(),'data.tsv',sep='\t')
 			fwrite(ld(),'ld.tsv',sep='\t')
 
 			locuscompare = make_locuscatter(
