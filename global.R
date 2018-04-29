@@ -19,10 +19,4 @@ library(future)
 plan(multiprocess)
 
 # Variables:
-locuscompare_pool = dbPool(
-    RMySQL::MySQL(), 
-    dbname = "locuscompare",
-    host = aws_host,
-    username = aws_username,
-    password = aws_password
-)
+
