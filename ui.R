@@ -2,6 +2,14 @@
 # Boxiang Liu
 # 2018-01-01
 
+locuscompare_pool = dbPool(
+    RMySQL::MySQL(), 
+    dbname = "locuscompare",
+    host = aws_host,
+    username = aws_username,
+    password = aws_password
+)
+
 get_study_list = function(locuscompare_pool) {
 	table_names = dbListTables(locuscompare_pool)
 	idx = which(str_detect(table_names, 'eQTL|GWAS') & !str_detect(table_names,'_trait'))
