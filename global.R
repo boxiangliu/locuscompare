@@ -24,5 +24,16 @@ locuscompare_pool = dbPool(
     dbname = "locuscompare",
     host = aws_host,
     username = aws_username,
+    password = aws_password,
+    minSize = 4,
+    maxSize = Inf,
+    idleTimeout = 3600000
+)
+
+args = list(
+    drv = RMySQL::MySQL(),
+    dbname = "locuscompare",
+    host = aws_host,
+    username = aws_username,
     password = aws_password
 )

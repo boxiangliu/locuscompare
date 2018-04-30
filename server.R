@@ -108,9 +108,11 @@ get_trait=function(study, conn = locuscompare_pool){
 }
 
 get_study = function(valid_study,study,trait,datapath,coordinate){
+    conn <- do.call(DBI::dbConnect, args)
+    on.exit(DBI::dbDisconnect(conn))
 	if (str_detect(study,'^eQTL')){
 		res = dbGetQuery(
-			conn = locuscompare_pool,
+			conn = conn,
 			statement = sprintf(
 				"select gene_id 
 				from gencode_v19_gtex_v6p
@@ -123,7 +125,7 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 
 	if (valid_study){
 		res=dbGetQuery(
-			conn = locuscompare_pool,
+			conn = conn,
 			statement = sprintf(
 				"select t1.rsid, t1.pval 
 				from %s as t1 
@@ -145,7 +147,7 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 		shiny::validate(need(all(c('rsid','pval')%in%colnames(res)),'Input file must have columns rsid, pval!'))
 
 		rsid_list=dbGetQuery(
-			conn = locuscompare_pool,
+			conn = conn,
 			statement = sprintf(
 				"select rsid 
 				from tkg_p3v5a 
@@ -157,7 +159,7 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 				coordinate$end
 				)
 			)
-		res=res[rsid%in%rsid_list$rsid,]
+		res = res %>% dplyr::filter(rsid %in% rsid_list$rsid)
 	}
 	setDT(res)
 	return(res)
