@@ -225,13 +225,7 @@ shinyServer(function(input, output, session) {
 	# Session-specific variables:
 	tmp_dir=tempdir()
 	Sys.chmod(tmp_dir, mode="0777")
-	locuscompare_pool = dbPool(
-	    RMySQL::MySQL(), 
-	    dbname = "locuscompare",
-	    host = aws_host,
-	    username = aws_username,
-	    password = aws_password
-	)
+
 	#---------------------#
 	#   Interactive mode  #
 	#---------------------#
