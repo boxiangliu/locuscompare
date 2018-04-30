@@ -331,11 +331,10 @@ shinyUI(fluidPage(
 					    )
 					),
 					fluidRow(
-					    # div(
-					    #     style = 'overflow-x: scroll', 
-					    #     tableOutput('ld_snps')
-					    # ) 
-				        tableOutput('ld_snps')
+					    div(
+					        style = 'overflow-x: scroll', 
+					        DT::dataTableOutput('ld_snps')
+					    ) 
 					)
 				)
 			)

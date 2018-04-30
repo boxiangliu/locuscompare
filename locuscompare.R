@@ -147,22 +147,13 @@ assign_color=function(rsid,snp,ld){
         names(color)=rsid
         return(color)
     }
-    # TODO: when snp is not in ld$SNP_A, the color of the 
-    # SNP in the locuszoom plot is white. Add a if condition
-    # that triggers when snp is not in ld$SNP_A, and add snp
-    # into ld$SNP_A. 
-	color_dt=ld %>% 
-		dplyr::filter(SNP_A==snp) %>% 
-		dplyr::transmute(
-			rsid=SNP_B,
-			color=as.character(cut(
-				R2,
-				breaks=c(0,0.2,0.4,0.6,0.8,1),
-				labels=c('blue4','skyblue','darkgreen','orange','red'),
-				include.lowest=TRUE)))
+
+	color_dt=ld[SNP_A==snp,list(rsid=SNP_B,color=cut(R2,breaks=c(0,0.2,0.4,0.6,0.8,1),
+													 labels=c('blue4','skyblue','darkgreen','orange','red'),
+													 include.lowest=TRUE))]
 	snps_not_in_ld = rsid[!(rsid %in% ld$SNP_B)]
-	color_dt=rbind(color_dt,data.frame(rsid=snps_not_in_ld,color='blue4'))
-	color_dt[color_dt$rsid==snp,]$color='purple'
+	color_dt=rbind(color_dt,data.table(rsid=snps_not_in_ld,color='blue4'))
+	color_dt[rsid==snp,color:='purple']
 	color=as.character(color_dt$color)
 	names(color)=color_dt$rsid
 	return(color)
@@ -208,8 +199,9 @@ make_combined_plot=function(merged,title1,title2,ld,snp=NULL){
 
 
 make_locuscatter=function(merged,title1,title2,ld,color,shape,size,legend=TRUE){
-	p = ggplot(merged,aes(logp1,logp2))+
+	p=ggplot(merged,aes(logp1,logp2))+
 		geom_point(aes(fill=rsid,size=rsid,shape=rsid),alpha=0.8)+
+		geom_point(data=merged[label!=''],aes(logp1,logp2,fill=rsid,size=rsid,shape=rsid))+
 		xlab(paste(title1,' -log10(P)'))+ylab(paste(title2,' -log10(P)'))+
 		scale_fill_manual(values=color,guide='none')+
 		scale_shape_manual(values=shape,guide='none')+
@@ -232,10 +224,12 @@ make_locuscatter=function(merged,title1,title2,ld,color,shape,size,legend=TRUE){
 }
 
 make_locuszoom=function(metal,title,ld,color,shape,size,y_string='logp'){
+	# data=merge(metal,unique(ld[,list(chr=CHR_A,pos=BP_A,rsid=SNP_A)]),by='rsid')
 	data=metal
 	chr=unique(data$chr)
 	p = ggplot(data,aes_string(x='pos',y=y_string))+
 		geom_point(aes(fill=rsid,size=rsid,shape=rsid),alpha=0.8)+
+		# geom_point(data=data[label!=''],aes_string(x='pos',y=y_string,fill='rsid',size='rsid',shape='rsid'))+
 		scale_fill_manual(values=color,guide='none')+
 		scale_shape_manual(values=shape,guide='none')+
 		scale_size_manual(values=size,guide='none')+
