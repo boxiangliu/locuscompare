@@ -336,13 +336,20 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 		}
 	}
 	tar_fn = paste0(tmp_dir,'/',input$batch_job_name,'.tar.gz')
-	tar(tar_fn,paste0(tmp_dir,'/',coordinate_list),compression='gzip')
-	email_content = mime() %>% 
-		to(input$batch_job_email) %>% 
-		from('jollier.liu@gmail.com') %>%
-		subject(sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())) %>%
-		attach_file(tar_fn)
-	send_message(email_content)
+	suppressWarnings(tar(tar_fn,paste0(tmp_dir,'/',coordinate_list),compression='gzip'))
+
+	from = email_username
+	to = input$batch_job_email
+	subject = sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())
+	msg = sprintf('LocusCompare job %s was completed on %s. Results are attached!',input$batch_job_name,Sys.time())
+	attachment = tar_fn
+	send.mail(from = from,
+	          to = to, 
+	          subject = subject, body = msg, 
+	          smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
+	          attach.files = attachment, 
+	          authenticate = TRUE, 
+	          send = TRUE)   
 }
 
 
