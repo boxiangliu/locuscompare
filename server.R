@@ -224,6 +224,7 @@ saveData <- function(data,dir,name) {
 }
 
 batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_study2,input){
+    Sys.sleep(10)
 	for (coordinate in coordinate_list){
 		if (!dir.exists(paste0(tmp_dir,'/',coordinate))){
 			dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
@@ -335,21 +336,11 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 			}
 		}
 	}
+    
 	tar_fn = paste0(tmp_dir,'/',input$batch_job_name,'.tar.gz')
 	suppressWarnings(tar(tar_fn,paste0(tmp_dir,'/',coordinate_list),compression='gzip'))
-
-	from = email_username
-	to = input$batch_job_email
-	subject = sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())
-	msg = sprintf('LocusCompare job %s was completed on %s. Results are attached!',input$batch_job_name,Sys.time())
-	attachment = tar_fn
-	send.mail(from = from,
-	          to = to, 
-	          subject = subject, body = msg, 
-	          smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
-	          attach.files = attachment, 
-	          authenticate = TRUE, 
-	          send = TRUE)   
+    
+    return(tar_fn)
 }
 
 
@@ -799,7 +790,20 @@ shinyServer(function(input, output, session) {
 		valid_batch_study1_ = function() {valid_batch_study1()}
 		valid_batch_study2_ = function() {valid_batch_study2()}
 		input_ = reactiveValuesToList(input)
-		batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_)
+		tar_fn = future({batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_)})
+		
+		subject = sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())
+		msg = sprintf('LocusCompare job %s was completed on %s. Results are attached!',input$batch_job_name,Sys.time())
+		
+		tar_fn %...>% send.mail(from = email_username,
+		          to = input$batch_job_email, 
+		          subject = subject, 
+		          body = msg, 
+		          smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
+		          attach.files = ., 
+		          authenticate = TRUE, 
+		          send = TRUE)   
+
 		warning('sending email')
 	})
 
