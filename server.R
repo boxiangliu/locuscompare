@@ -224,9 +224,6 @@ saveData <- function(data,dir,name) {
 }
 
 batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_study2,input){
-	owd=setwd(tmp_dir)
-	on.exit({setwd(owd)})
-	
 	for (coordinate in coordinate_list){
 		if (!dir.exists(paste0(tmp_dir,'/',coordinate))){
 			dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
@@ -338,8 +335,8 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 			}
 		}
 	}
-	tar_fn = paste0(input$batch_job_name,'.tar.gz')
-	suppressWarnings(tar(tar_fn,coordinate_list,compression='gzip'))
+	tar_fn = paste0(tmp_dir,'/',input$batch_job_name,'.tar.gz')
+	suppressWarnings(tar(tar_fn,paste0(tmp_dir,'/',coordinate_list),compression='gzip'))
 	email_content = mime() %>% 
 		to(input$batch_job_email) %>% 
 		from('jollier.liu@gmail.com') %>%
@@ -786,9 +783,6 @@ shinyServer(function(input, output, session) {
 		shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
 		shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
 
-		owd=setwd(tmp_dir)
-		on.exit({setwd(owd)})
-
 		if (valid_batch_input()){
 			coordinate_list = str_split(trimws(input$batch_input),'\n')[[1]]
 		} else {
@@ -798,7 +792,8 @@ shinyServer(function(input, output, session) {
 		valid_batch_study1_ = function() {valid_batch_study1()}
 		valid_batch_study2_ = function() {valid_batch_study2()}
 		input_ = reactiveValuesToList(input)
-		future({batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_)})
+		batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_)
+		warning('sending email')
 	})
 
 	#---------------# 

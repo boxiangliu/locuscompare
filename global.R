@@ -18,6 +18,7 @@ library(promises)
 library(future)
 plan(multiprocess)
 library(gmailr)
+use_secret_file("config/locuscompare-gmail-api-key.json")
 
 # Variables:
 locuscompare_pool = dbPool(
