@@ -17,6 +17,7 @@ library(googlesheets)
 library(promises)
 library(future)
 plan(multiprocess)
+library(gmailr)
 
 # Variables:
 locuscompare_pool = dbPool(
