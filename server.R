@@ -336,7 +336,7 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 		}
 	}
 	tar_fn = paste0(tmp_dir,'/',input$batch_job_name,'.tar.gz')
-	suppressWarnings(tar(tar_fn,paste0(tmp_dir,'/',coordinate_list),compression='gzip'))
+	tar(tar_fn,paste0(tmp_dir,'/',coordinate_list),compression='gzip')
 	email_content = mime() %>% 
 		to(input$batch_job_email) %>% 
 		from('jollier.liu@gmail.com') %>%
