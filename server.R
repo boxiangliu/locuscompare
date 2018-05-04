@@ -224,7 +224,6 @@ saveData <- function(data,dir,name) {
 }
 
 batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_study2,input){
-    Sys.sleep(10)
 	for (coordinate in coordinate_list){
 		if (!dir.exists(paste0(tmp_dir,'/',coordinate))){
 			dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
