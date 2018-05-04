@@ -333,7 +333,6 @@ shinyUI(fluidPage(
 				)
 			)
 		),
-
 		# Batch mode
 		tabPanel(
 			'Batch Plot',
@@ -434,21 +433,36 @@ shinyUI(fluidPage(
 					)
 				)
 			),
+			fluidRow(h3('Job metadata')),
 			fluidRow(
-				column(6,
+				column(2,tags$i(h3('Job name'))),
+				column(10,
+					textInput(
+						inputId = 'batch_job_name', 
+						label = 'Job name', 
+						value = Sys.Date(), 
+						width = '100%'
+					)
+				)
+			),
+			fluidRow(
+				column(2,tags$i(h3('Email'))),
+				column(10,
+					textInput(
+						inputId = 'batch_job_email',
+						label = 'Email',
+						placeholder = 'e.g. me@domain.com',
+						width = '100%'
+					)
+				)
+			),
+			fluidRow(
+				column(12,
 					actionButton(
 						inputId = 'submit', 
 						label = 'Submit',
 						width = '100%',
 						style = 'font-weight:bold; background-color:#ADD8E6;'
-					)
-				),
-				tags$head(tags$style(".butt{width:100%;font-weight:bold;background-color:#ADD8E6}")), # background color and font color
-				column(6,
-					downloadButton(
-						outputId = 'batch_download', 
-						label = 'Download',
-						class = 'butt'
 					)
 				)
 			),
@@ -489,7 +503,6 @@ shinyUI(fluidPage(
 				)
 			)
 		),
-
 		# Download page
 		tabPanel(
 			title = 'Download',
@@ -519,7 +532,6 @@ shinyUI(fluidPage(
 				)
 			)
 		),
-
 		# Share page
 		tabPanel(
 			title = 'Share',
