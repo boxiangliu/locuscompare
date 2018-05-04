@@ -18,6 +18,7 @@ library(promises)
 library(future)
 plan(multiprocess)
 library(mailR)
+library(shinycssloaders)
 
 # Variables:
 locuscompare_pool = dbPool(

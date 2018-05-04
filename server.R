@@ -108,8 +108,8 @@ get_trait=function(study, conn = locuscompare_pool){
 }
 
 get_study = function(valid_study,study,trait,datapath,coordinate){
-    conn <- do.call(DBI::dbConnect, args)
-    on.exit(DBI::dbDisconnect(conn))
+	conn <- do.call(DBI::dbConnect, args)
+	on.exit(DBI::dbDisconnect(conn))
 	if (str_detect(study,'^eQTL')){
 		res = dbGetQuery(
 			conn = conn,
@@ -335,11 +335,11 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 			}
 		}
 	}
-    
+	
 	tar_fn = paste0(tmp_dir,'/',input$batch_job_name,'.tar.gz')
 	suppressWarnings(tar(tar_fn,paste0(tmp_dir,'/',coordinate_list),compression='gzip'))
-    
-    return(tar_fn)
+	
+	return(tar_fn)
 }
 
 
@@ -347,6 +347,8 @@ shinyServer(function(input, output, session) {
 	# Session-specific variables:
 	tmp_dir=tempdir()
 	Sys.chmod(tmp_dir, mode="0777")
+	hide(id = "loading-content", anim = TRUE, animType = "fade")    
+	show("app-content")
 	#---------------------#
 	#   Interactive mode  #
 	#---------------------#
@@ -391,15 +393,14 @@ shinyServer(function(input, output, session) {
 
 		shiny::validate(need(any(valid_snp_region(),valid_gene_region(),valid_coordinate()),'Please provide a region!'))
 		shiny::validate(need({valid_snp_region()+valid_gene_region()+valid_coordinate()==1},'Please only provide one of SNP, gene, or coordinate!'))
-        
 		showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
 	})
 
 	observeEvent(input$back,{
 		hideTab(inputId = "navbarPage", target = "Plots")
-	    range$xmin=NULL
-	    range$xmax=NULL
-	    merged() %...>% 
+		range$xmin=NULL
+		range$xmax=NULL
+		merged() %...>% 
 			dplyr::slice(which.min(pval1*pval2)) %...>% 
 			dplyr::select(rsid) %...>% 
 			unlist() %...>% 
@@ -450,25 +451,25 @@ shinyServer(function(input, output, session) {
 
 
 	d1 = eventReactive(input$visualize,{
-	    shiny::validate(need(valid_study1() | valid_file1(),'Please provide study 1!'))
-	    shiny::validate(need(!(valid_study1() & valid_file1()),'Please select or upload study 1, but not both!'))
-	    valid_study1_ = valid_study1()
-	    input_study1_ = input$study1
-	    input_trait1_ = input$trait1
-	    input_file1_datapath_ = input$file1$datapath
-	    coordinate_ = coordinate()
-	    future({get_study(valid_study1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)})
+		shiny::validate(need(valid_study1() | valid_file1(),'Please provide study 1!'))
+		shiny::validate(need(!(valid_study1() & valid_file1()),'Please select or upload study 1, but not both!'))
+		valid_study1_ = valid_study1()
+		input_study1_ = input$study1
+		input_trait1_ = input$trait1
+		input_file1_datapath_ = input$file1$datapath
+		coordinate_ = coordinate()
+		future({get_study(valid_study1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)})
 	})
 
 	d2 = eventReactive(input$visualize,{
-	    shiny::validate(need(valid_study2() | valid_file2(),'Please provide study 2!'))
-	    shiny::validate(need(!(valid_study2() & valid_file2()),'Please select or upload study 2, but not both!'))
-	    valid_study2_ = valid_study2()
-	    input_study2_ = input$study2
-	    input_trait2_ = input$trait2
-	    input_file2_datapath_ = input$file2$datapath
-	    coordinate_ = coordinate()
-	    future({get_study(valid_study2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)})
+		shiny::validate(need(valid_study2() | valid_file2(),'Please provide study 2!'))
+		shiny::validate(need(!(valid_study2() & valid_file2()),'Please select or upload study 2, but not both!'))
+		valid_study2_ = valid_study2()
+		input_study2_ = input$study2
+		input_trait2_ = input$trait2
+		input_file2_datapath_ = input$file2$datapath
+		coordinate_ = coordinate()
+		future({get_study(valid_study2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)})
 	})
 
 	merged=reactive({
@@ -484,12 +485,12 @@ shinyServer(function(input, output, session) {
 	snp=reactiveVal(value=NULL,label='snp')
 	
 	observeEvent(merged(),{
-	    # updateSelectizeInput(session, "snp", choices = merged()$rsid, server = TRUE)
-	    merged() %...>% 
-	    	select(rsid) %...>% 
-	        unname () %...>%
-	    	unlist() %...>% 
-	    	updateSelectizeInput(session, "snp", choices = ., server = TRUE)
+		# updateSelectizeInput(session, "snp", choices = merged()$rsid, server = TRUE)
+		merged() %...>% 
+			select(rsid) %...>% 
+			unname () %...>%
+			unlist() %...>% 
+			updateSelectizeInput(session, "snp", choices = ., server = TRUE)
 	})
 	
 	observeEvent(input$visualize,{
@@ -511,7 +512,7 @@ shinyServer(function(input, output, session) {
 	})
 
 	ld=reactive({
-	    retrieve_LD(chr(),snp(),input$population)
+		retrieve_LD(chr(),snp(),input$population)
 	})
 
 	color=reactive({
@@ -528,11 +529,11 @@ shinyServer(function(input, output, session) {
 		selected_snp = merged() %...>% select_snp(input$plot_click,.)
 		nonempty_snp = selected_snp %...>% identical(character(0)) %...>% `!`
 		nonempty_snp %...>% (
-		    function(nonempty_snp){
-		        if (nonempty_snp){
-		            selected_snp %...>% snp() 
-		        }
-		    }
+			function(nonempty_snp){
+				if (nonempty_snp){
+					selected_snp %...>% snp() 
+				}
+			}
 		)
 	})
 
@@ -593,7 +594,7 @@ shinyServer(function(input, output, session) {
 	})
 	
 	output$locuszoom1 = renderPlot({
-	    p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
+		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
 			metal = .$plot_data,
 			title = title1(),
@@ -620,6 +621,11 @@ shinyServer(function(input, output, session) {
 		return(p)
 	})
 	
+	output$blank_plot = renderPlot({
+		p = plot_data() %...>% {ggplot() + geom_blank()}
+		return(p)
+	})
+	
 	output$snp_info = renderText({
 		res = dbGetQuery(
 			conn = locuscompare_pool,
@@ -639,7 +645,7 @@ shinyServer(function(input, output, session) {
 			res$SAS_AF
 			)
 	})
-    
+	
 	# TODO: Use this code when DT is compatible with async.
 	# output$ld_snps = DT::renderDataTable({
 	# 	ld_snps=ld() %>%
@@ -653,14 +659,14 @@ shinyServer(function(input, output, session) {
 	# })
 
 	output$ld_snps = renderTable({
-	    ld_snps=ld() %>%
-	        dplyr::filter(SNP_A==snp(),R2>=input$r2_threshold) %>%
-	        dplyr::select(rsid=SNP_B,r2=R2)
-	    ld_snps=rbind(data.frame(rsid=snp(),r2=1),ld_snps)
-	    ld_snps_2 = merged() %...>%
-	        dplyr::select(rsid,chr,pos,pval1,pval2) %...>%
-	        merge(ld_snps,by='rsid')
-	    return(ld_snps_2)
+		ld_snps=ld() %>%
+			dplyr::filter(SNP_A==snp(),R2>=input$r2_threshold) %>%
+			dplyr::select(rsid=SNP_B,r2=R2)
+		ld_snps=rbind(data.frame(rsid=snp(),r2=1),ld_snps)
+		ld_snps_2 = merged() %...>%
+			dplyr::select(rsid,chr,pos,pval1,pval2) %...>%
+			merge(ld_snps,by='rsid')
+		return(ld_snps_2)
 	},width = '100%', striped = TRUE, hover = TRUE, bordered = TRUE)
 	
 	output$file1_example = downloadHandler(
@@ -712,13 +718,13 @@ shinyServer(function(input, output, session) {
 				size = size(),
 				y_string='logp2'
 				)
-            ggsave_return = function(fn,p,width,height){
-                ggsave(filename = fn, plot = p, width = width, height = height)
-                return(fn)
-            }
-            length_ = input$locuscompare_length
-            width_ = input$locuszoom_width
-            height_ = input$locuszoom_height
+			ggsave_return = function(fn,p,width,height){
+				ggsave(filename = fn, plot = p, width = width, height = height)
+				return(fn)
+			}
+			length_ = input$locuscompare_length
+			width_ = input$locuszoom_width
+			height_ = input$locuszoom_height
 			ggsave('locuscompare.jpeg',locuscompare,width=length_,height=length_,device='jpeg')
 			ggsave('locuszoom1.jpeg',locuszoom1,width=width_,height=height_)
 			ggsave('locuszoom2.jpeg',locuszoom2,width=width_,height=height_)
@@ -795,17 +801,27 @@ shinyServer(function(input, output, session) {
 		msg = sprintf('LocusCompare job %s was completed on %s. Results are attached!',input$batch_job_name,Sys.time())
 		
 		tar_fn %...>% send.mail(from = email_username,
-		          to = input$batch_job_email, 
-		          subject = subject, 
-		          body = msg, 
-		          smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
-		          attach.files = ., 
-		          authenticate = TRUE, 
-		          send = TRUE)   
-
-		warning('sending email')
+			to = input$batch_job_email,
+			subject = subject, 
+			body = msg, 
+			smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
+			attach.files = ., 
+			authenticate = TRUE, 
+			send = TRUE)
 	})
-
+	
+	observeEvent(input$submit,{
+		shinyjs::hide('batch_query')
+		shinyjs::show('batch_query_success')
+	})
+	
+	
+	observeEvent(input$submit_another_query,{
+		shinyjs::reset('batch_query')
+		shinyjs::show('batch_query')
+		shinyjs::hide('batch_query_success')
+	})
+	
 	#---------------# 
 	# Download page #
 	#---------------#
@@ -842,7 +858,6 @@ shinyServer(function(input, output, session) {
 	})
 
 	observeEvent(input$form_submit,{
-		shinyjs::reset('form')
 		shinyjs::hide('form')
 		shinyjs::show('thankyou_msg')
 		saveData(formData(),contrib_dir,input$form_file$name)
@@ -852,6 +867,7 @@ shinyServer(function(input, output, session) {
 
 
 	observeEvent(input$submit_another,{
+		shinyjs::reset('form')
 		shinyjs::show('form')
 		shinyjs::hide('thankyou_msg')
 	})
