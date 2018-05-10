@@ -216,8 +216,8 @@ humanTime <- function() {
 
 saveData <- function(data,dir,name) {
 	fileName <- sprintf("%s_%s_info.csv",
-		humanTime(),
-		name)
+		name,
+		humanTime())
 
 	write.csv(x = data, file = file.path(dir, fileName),
 		row.names = FALSE, quote = FALSE)
@@ -834,8 +834,7 @@ shinyServer(function(input, output, session) {
 	#-------#
 	# Share #
 	#-------#
-	mandatory_fields = c('form_trait','form_ethnicity','form_sample_size',
-		'form_author','form_year','form_journal','form_link','form_file')
+	mandatory_fields = c('form_trait','form_author','form_year','form_journal','form_link')
 	observe({
 		mandatory_filled = vapply(
 			X = mandatory_fields,
@@ -846,13 +845,11 @@ shinyServer(function(input, output, session) {
 	})
 
 	description_fields = c('form_trait','form_ethnicity','form_sample_size',
-		'form_author','form_year','form_journal','form_link')
+		'form_author','form_year','form_journal','form_link','form_download_link')
 
 	formData = eventReactive(input$form_submit,{
 		data = sapply(description_fields, function(x) input[[x]])
-		data = c(data, 
-				c(file_name = input$form_file$name,
-				file_size = utils:::format.object_size(input$form_file$size,'auto')))
+		data = c(data, file_name = ifelse(isTruthy(input$form_file),input$form_file$name,''))
 		data = data.frame(t(data))
 		return(data)
 	})
@@ -860,9 +857,18 @@ shinyServer(function(input, output, session) {
 	observeEvent(input$form_submit,{
 		shinyjs::hide('form')
 		shinyjs::show('thankyou_msg')
-		saveData(formData(),contrib_dir,input$form_file$name)
-		file_path = paste0(contrib_dir,'/',humanTime(),'_',input$form_file$name)
-		file.rename(input$form_file$datapath,file_path)
+		file_name = sprintf('%s_%s_%s_%s',input$form_trait,input$form_author,input$form_year,input$form_journal)
+		saveData(formData(),contrib_dir,file_name)
+		if (isTruthy(input$form_file)) {
+		    file_path = paste0(contrib_dir,'/',file_name,'_',humanTime(),'_',input$form_file$name)
+		    file.rename(input$form_file$datapath,file_path)}
+		send.mail(from = email_username,
+		          to = bosh_email,
+		          subject = 'New study uploaded to LocusCompare', 
+		          body = sprintf('Path: %s/%s',contrib_dir,file_name), 
+		          smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
+		          authenticate = TRUE, 
+		          send = TRUE)
 	})
 
 

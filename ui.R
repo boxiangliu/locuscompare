@@ -547,24 +547,26 @@ shinyUI(fluidPage(
 								p('Making a dataset publically available increases the visibility of your research. Current 
 								  GWAS datasets are distributed across various websites, making them difficult to find 
 								  and download. LocusCompare provides a platform for sharing GWAS and QTL datasets. If you would like
-								  to make a dataset publically available, please fill out the following form. 
-								  Alternatively, you can email Boxiang Liu <bliu2@stanford.edu> and Mike Gloudemans <mgloud@stanford.edu>
-								  to add your study.')
+								  to host your data on LocusCompare, please fill out the following form. 
+								  Alternatively, you can email', tags$a(href="mailto:bliu2@stanford.edu", "Boxiang Liu"), 'or', 
+								  tags$a(href="mailto:mgloud@stanford.edu", "Mike Gloudemans"),
+								  'to add your study.',tags$b('(* = mandatory)'))
 								)
 						),
 						fluidRow(
 							column(
 								width = 6,
-								textInput(inputId = 'form_trait', label = 'Trait/Molecular Phenotype', width = '100%'),
+								textInput(inputId = 'form_trait', label = 'Trait/Molecular Phenotype*', width = '100%'),
 								textInput(inputId = 'form_ethnicity', label = 'Ethnicity', width = '100%'),
 								textInput(inputId = 'form_sample_size', label = 'Sample Size', width = '100%'),
-								textInput(inputId = 'form_author', label = 'Author/Consortium', width = '100%')
+								textInput(inputId = 'form_author', label = 'Author/Consortium*', width = '100%'),
+								textInput(inputId = 'form_download_link', label = 'Link to Dataset', width = '100%')
 							),
 							column(
 								width = 6,
-								textInput(inputId = 'form_year', label = 'Year', width = '100%'),
-								textInput(inputId = 'form_journal', label = 'Journal', width = '100%'),
-								textInput(inputId = 'form_link', label = 'Link to Publication', width = '100%'),
+								textInput(inputId = 'form_year', label = 'Year*', width = '100%'),
+								textInput(inputId = 'form_journal', label = 'Journal*', width = '100%'),
+								textInput(inputId = 'form_link', label = 'Link to Publication*', width = '100%'),
 								fileInput(inputId = 'form_file', label = 'Choose File', width = '100%')
 							)
 						),
