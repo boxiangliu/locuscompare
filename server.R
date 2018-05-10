@@ -845,7 +845,7 @@ shinyServer(function(input, output, session) {
 	})
 
 	description_fields = c('form_trait','form_ethnicity','form_sample_size',
-		'form_author','form_year','form_journal','form_link','form_download_link')
+		'form_author','form_year','form_journal','form_link','form_download_link','form_comments')
 
 	formData = eventReactive(input$form_submit,{
 		data = sapply(description_fields, function(x) input[[x]])

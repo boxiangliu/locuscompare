@@ -560,14 +560,15 @@ shinyUI(fluidPage(
 								textInput(inputId = 'form_ethnicity', label = 'Ethnicity', width = '100%'),
 								textInput(inputId = 'form_sample_size', label = 'Sample Size', width = '100%'),
 								textInput(inputId = 'form_author', label = 'Author/Consortium*', width = '100%'),
-								textInput(inputId = 'form_download_link', label = 'Link to Dataset', width = '100%')
+								fileInput(inputId = 'form_file', label = 'Upload Association Summary Statistics', width = '100%')
 							),
 							column(
 								width = 6,
 								textInput(inputId = 'form_year', label = 'Year*', width = '100%'),
 								textInput(inputId = 'form_journal', label = 'Journal*', width = '100%'),
 								textInput(inputId = 'form_link', label = 'Link to Publication*', width = '100%'),
-								fileInput(inputId = 'form_file', label = 'Choose File', width = '100%')
+								textInput(inputId = 'form_download_link', label = 'Link to Dataset', width = '100%'),
+								textInput(inputId = 'form_comments',label = 'Comments', width = '100%')
 							)
 						),
 						fluidRow(
