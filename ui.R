@@ -181,7 +181,7 @@ shinyUI(fluidPage(
 								inputId = 'faq',
 								label = 'Frequently Asked Questions',
 								width = '100%',
-								onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki', '_blank')"
+								onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki/Frequently-Asked-Questions', '_blank')"
 							)
 						),
 						column(
@@ -477,7 +477,7 @@ shinyUI(fluidPage(
 									inputId = 'faq',
 									label = 'Frequently Asked Questions',
 									width = '100%',
-									onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki', '_blank')"
+									onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki/Frequently-Asked-Questions', '_blank')"
 								)
 							),
 							column(
