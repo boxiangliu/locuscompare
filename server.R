@@ -90,8 +90,8 @@ get_trait=function(study, conn = locuscompare_pool){
 		trait = dbGetQuery(
 			conn = conn,
 			statement = sprintf(
-				"select distinct trait 
-				from %s;",study)
+				"select display_trait 
+				from %s_trait;",study)
 			)
 	} else if (str_detect(study,'^eQTL_')){
 		trait = dbGetQuery(
@@ -122,7 +122,21 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 			)
 		trait = res$gene_id[1]
 	}
-
+    
+	if (str_detect(study,'^GWAS')){
+	    res = dbGetQuery(
+	        conn = conn,
+	        statement = sprintf(
+	            "select trait
+	            from %s_trait
+	            where display_trait = '%s'",
+	            study,
+	            trait
+	        )
+	    )
+	    trait = res$trait[1]
+	}
+	
 	if (valid_study){
 		res=dbGetQuery(
 			conn = conn,
