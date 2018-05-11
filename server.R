@@ -412,13 +412,7 @@ shinyServer(function(input, output, session) {
 
 	observeEvent(input$back,{
 		hideTab(inputId = "navbarPage", target = "Plots")
-		range$xmin=NULL
-		range$xmax=NULL
-		merged() %...>% 
-			dplyr::slice(which.min(pval1*pval2)) %...>% 
-			dplyr::select(rsid) %...>% 
-			unlist() %...>% 
-			snp()
+	    shinyjs::reset('Plots')
 	})
 
 	coordinate = eventReactive(input$visualize,{
@@ -487,6 +481,10 @@ shinyServer(function(input, output, session) {
 	})
 
 	merged=reactive({
+	    d1_non_empty = d1() %...>% nrow() %...>% `>`(0)
+	    d2_non_empty = d2() %...>% nrow() %...>% `>`(0)
+	    shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you input the correct region?'))
+	    shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
 		merged= promise_all(d1 = d1(), d2= d2()) %...>% {merge(.$d1,.$d2,by='rsid',suffixes=c('1','2'),all=FALSE)}
 		merged= merged %...>% get_position()
 		check_overlap = merged %...>% nrow() %...>% `>`(0)
@@ -496,7 +494,7 @@ shinyServer(function(input, output, session) {
 		return(merged)
 	})
 
-	snp=reactiveVal(value=NULL,label='snp')
+	snp=reactiveVal(value='',label='snp')
 	
 	observeEvent(merged(),{
 		# updateSelectizeInput(session, "snp", choices = merged()$rsid, server = TRUE)
@@ -508,11 +506,20 @@ shinyServer(function(input, output, session) {
 	})
 	
 	observeEvent(input$visualize,{
-		merged() %...>% 
-			dplyr::slice(which.min(pval1*pval2)) %...>% 
-			dplyr::select(rsid) %...>% 
-			unlist() %...>% 
-			snp()
+	    non_empty_merge = merged() %...>% nrow() %...>% `>`(0)
+	    non_empty_merge %...>% (
+	        function(non_empty_merge){
+	            if (non_empty_merge){
+	                merged() %...>% 
+	                    dplyr::slice(which.min(pval1*pval2)) %...>% 
+	                    dplyr::select(rsid) %...>% 
+	                    unlist() %...>% 
+	                    snp()
+	            } else {
+	                snp('')
+	            }
+	        }
+	    )
 	})
 
 	observeEvent(input$snp,{
@@ -552,25 +559,25 @@ shinyServer(function(input, output, session) {
 	})
 
 	range=reactiveValues(xmin=NULL,xmax=NULL)
+
+	observeEvent(input$plot_brush,{
+	    brush = input$plot_brush
+        range$xmin=brush$xmin
+        range$xmax=brush$xmax
+	})
+	
 	observeEvent(input$plot_dblclick,{
-		brush = input$plot_brush
-		if (!is.null(brush)){
-			range$xmin=brush$xmin
-			range$xmax=brush$xmax
-		} else {
-			range$xmin=NULL
-			range$xmax=NULL
-		}
+        range$xmin=NULL
+        range$xmax=NULL
 	})
 	
 	plot_data=reactive({
 		if (is.null(range$xmin)){
-			plot_data=merged()
+			plot_data = merged()
 		} else {
-			plot_data=merged() %...>% dplyr::filter(pos<=range$xmax,pos>=range$xmin)
+			plot_data = merged() %...>% dplyr::filter(pos<=range$xmax,pos>=range$xmin)
 		}
-
-		plot_data = merged() %...>% mutate(label=ifelse(rsid==snp(),rsid,''))
+		plot_data = plot_data %...>% mutate(label=ifelse(rsid==snp(),rsid,''))
 		return(plot_data)
 	})
 	
@@ -603,7 +610,6 @@ shinyServer(function(input, output, session) {
 			legend=FALSE
 			)
 		}
-
 		return(p)
 	})
 	

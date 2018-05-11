@@ -133,7 +133,7 @@ shinyUI(fluidPage(
 					),
 					fluidRow(
 						column(3,tags$i(h3(tags$b('Or'),'Gene'))),
-						column(3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. BRCA1')),
+						column(3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. PHACTR1')),
 						column(3, numericInput(inputId = 'gene_window', label = 'Flanking Window (Kb)', value = 100))
 					),
 					fluidRow(
