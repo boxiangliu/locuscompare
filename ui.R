@@ -74,7 +74,7 @@ shinyUI(fluidPage(
 						column(5,
 								textInput(
 									inputId = 'file1_trait', 
-									label = 'Trait (e.g. phenotype or gene)', 
+									label = 'Label (x-axis)', 
 									width = "100%"
 								)
 						)
@@ -117,7 +117,7 @@ shinyUI(fluidPage(
 						column(5,
 								textInput(
 									inputId = 'file2_trait', 
-									label = 'Trait (e.g. phenotype or gene)', 
+									label = 'Label (y-axis)', 
 									width = "100%"
 								)
 						)
