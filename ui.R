@@ -170,7 +170,7 @@ shinyUI(fluidPage(
 					fluidRow(
 						column(
 							12,
-							withSpinner(plotOutput(outputId = 'blank_plot', height = '1px'))
+							shinycssloaders::withSpinner(plotOutput(outputId = 'blank_plot', height = '1px'))
 						)
 					),
 					br(),
@@ -239,12 +239,12 @@ shinyUI(fluidPage(
 					),
 					fluidRow(
 						column(6,
-							withSpinner(plotOutput('locuscompare', height = '500px', click = 'plot_click'))
+						       shinycssloaders::withSpinner(plotOutput('locuscompare', height = '500px', click = 'plot_click'))
 						),
 						column(6,
 							fluidRow(
 								column(12,
-									withSpinner(
+								       shinycssloaders::withSpinner(
 										plotOutput(
 											outputId = 'locuszoom1',
 											click = 'plot_click',
@@ -257,7 +257,7 @@ shinyUI(fluidPage(
 							),
 							fluidRow(
 								column(12,
-									withSpinner(
+								       shinycssloaders::withSpinner(
 										plotOutput(
 											outputId = 'locuszoom2',
 											click = 'plot_click',
