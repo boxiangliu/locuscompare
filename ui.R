@@ -181,7 +181,7 @@ shinyUI(fluidPage(
 								inputId = 'faq',
 								label = 'Frequently Asked Questions',
 								width = '100%',
-								onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki/Frequently-Asked-Questions', '_blank')"
+								onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki/1.-FAQ', '_blank')"
 							)
 						),
 						column(
