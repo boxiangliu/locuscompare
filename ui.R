@@ -124,7 +124,7 @@ shinyUI(fluidPage(
 					),
 					hr(),
 					fluidRow(
-						h3('Select a region (Max window size is 2Mb)')
+						h3('Select a region (maximum 2Mb flanking window)')
 					),
 					fluidRow(
 						column(3,tags$i(h3('SNP'))),
@@ -407,7 +407,7 @@ shinyUI(fluidPage(
 							)
 						),
 						# Genomic coordinates:
-						fluidRow(h3('Genomic regions')),
+						fluidRow(h3('Genomic regions (maximum 25 regions)')),
 						fluidRow(
 							column(2,tags$i(h3('Input'))),
 							column(10,
@@ -434,24 +434,63 @@ shinyUI(fluidPage(
 						fluidRow(
 							column(2,tags$i(h3('Job name'))),
 							column(10,
-									textInput(
-										inputId = 'batch_job_name', 
-										label = 'Job name', 
-										value = Sys.Date(), 
-										width = '100%'
-									)
+								textInput(
+									inputId = 'batch_job_name', 
+									label = 'Job name', 
+									placeholder = 'myjob', 
+									width = '100%'
+								)
 							)
 						),
 						fluidRow(
 							column(2,tags$i(h3('Email'))),
 							column(10,
-									textInput(
-										inputId = 'batch_job_email',
-										label = 'Email',
-										placeholder = 'e.g. me@domain.com',
-										width = '100%'
-									)
+    							textInput(
+    								inputId = 'batch_job_email',
+    								label = 'Email',
+    								placeholder = 'e.g. me@domain.com',
+    								width = '100%'
+    							)
 							)
+						),
+						fluidRow(
+						    column(2,tags$i(h3('LocusCompare'))),
+						    column(10,
+						        numericInput(
+    						        inputId = 'batch_locuscompare_length',
+    						        label = 'LocusCompare side length (inches)',
+    						        value = 8,
+    						        min = 1,
+    						        step = 1,
+    						        width = '100%'
+						        )
+						    )
+						),
+						fluidRow(
+						    column(2,tags$i(h3('LocusZoom'))),
+						    column(10,
+						        numericInput(
+    						        inputId = 'batch_locuszoom_height',
+    						        label = 'LocusZoom height (inches)',
+    						        value = 4,
+    						        min = 1,
+    						        step = 1,
+    						        width = '100%'
+						        )
+						     )
+						),
+						fluidRow(
+						    column(2,''),
+						    column(10,
+						        numericInput(
+    						        inputId = 'batch_locuszoom_width',
+    						        label = 'LocusZoom width (inches)',
+    						        value = 8,
+    						        min = 1,
+    						        step = 1,
+    						        width = '100%'
+						        )
+						    )
 						),
 						fluidRow(
 							column(12,

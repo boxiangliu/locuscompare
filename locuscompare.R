@@ -161,7 +161,7 @@ assign_color=function(rsid,snp,ld){
 				labels=c('blue4','skyblue','darkgreen','orange','red'),
 				include.lowest=TRUE)))
 	snps_not_in_ld = rsid[!(rsid %in% ld$SNP_B)]
-	if (nrow(snps_not_in_ld)>0) {
+	if (length(snps_not_in_ld)>0) {
 	    color_dt=rbind(color_dt,data.frame(rsid=snps_not_in_ld,color='blue4'))
 	}
 	if (snp %in% color_dt$rsid){

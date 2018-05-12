@@ -237,7 +237,7 @@ saveData <- function(data,dir,name) {
 		row.names = FALSE, quote = FALSE)
 }
 
-batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_study2,input){
+batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_study2,input,token){
 	for (coordinate in coordinate_list){
 		if (!dir.exists(paste0(tmp_dir,'/',coordinate))){
 			dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
@@ -327,15 +327,21 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 				
 				cowplot::save_plot(
 					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuscompare.pdf'),
-					plot = p1)
+					plot = p1,
+					base_height = input$batch_locuscompare_length,
+					base_width = input$batch_locuscompare_length)
 				
 				cowplot::save_plot(
 					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuszoom1.pdf'),
-					plot = p2)
+					plot = p2,
+					base_height = input$batch_locuszoom_height,
+					base_width = input$batch_locuszoom_width)
 				
 				cowplot::save_plot(
 					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuszoom2.pdf'),
-					plot = p3)
+					plot = p3,
+					base_height = input$batch_locuszoom_height,
+					base_width = input$batch_locuszoom_width)
 				
 				data.table::fwrite(
 					x = merged,
@@ -350,8 +356,11 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 		}
 	}
 	
-	tar_fn = paste0(tmp_dir,'/',input$batch_job_name,'.tar.gz')
-	suppressWarnings(tar(tar_fn,paste0(tmp_dir,'/',coordinate_list),compression='gzip'))
+	tar_fn = paste0(tmp_dir,'/',input$batch_job_name,'-',token,'-',format(Sys.time(), "%Y_%b_%d_%X"),'.tar.gz')
+
+	owd = setwd(tmp_dir)
+	suppressWarnings(tar(tar_fn,coordinate_list,compression='gzip'))
+	setwd(owd)
 	
 	return(tar_fn)
 }
@@ -359,7 +368,8 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 
 shinyServer(function(input, output, session) {
 	# Session-specific variables:
-	tmp_dir=tempdir()
+	tmp_dir = paste0(tempdir(),'/',session$token,'/')
+	dir.create(tmp_dir,recursive = TRUE)
 	Sys.chmod(tmp_dir, mode="0777")
 	hide(id = "loading-content", anim = TRUE, animType = "fade")    
 	show("app-content")
@@ -792,6 +802,9 @@ shinyServer(function(input, output, session) {
 
 		shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
 		shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
+        
+		shiny::validate(need(isTruthy(input$batch_job_name),'Please provide job name!'))
+		shiny::validate(need(isTruthy(input$batch_job_email),'Please provide an email!'))
 
 		return('All inputs are given. Ready to submit!')
 	})
@@ -805,29 +818,36 @@ shinyServer(function(input, output, session) {
 
 		shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
 		shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
-
+		
 		if (valid_batch_input()){
 			coordinate_list = str_split(trimws(input$batch_input),'\n')[[1]]
 		} else {
 			coordinate_list = unlist(fread(input$batch_region$datapath,header=FALSE,sep='\t'))
 		}
+
+		coordinate_list = coordinate_list[1:min(25,length(coordinate_list))] # Subset to first 25 because of gmail size limit.
 		
 		valid_batch_study1_ = function() {valid_batch_study1()}
 		valid_batch_study2_ = function() {valid_batch_study2()}
 		input_ = reactiveValuesToList(input)
-		tar_fn = future({batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_)})
+		token_ = session$token
+		tar_fn = future({batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_,token_)})
+
+		link = tar_fn %...>% 
+		    googledrive::drive_upload(media = ., path = paste0('LocusCompare/Download/',basename(.))) %...>%
+		    googledrive::drive_share(role = 'reader', type = 'anyone') %...>%
+		    googledrive::drive_link()
 		
 		subject = sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())
-		msg = sprintf('LocusCompare job %s was completed on %s. Results are attached!',input$batch_job_name,Sys.time())
+		msg = link %...>% sprintf('LocusCompare job %s was completed on %s. Download via this link: %s',input$batch_job_name,Sys.time(),.)
 		
-		tar_fn %...>% send.mail(from = email_username,
-			to = input$batch_job_email,
-			subject = subject, 
-			body = msg, 
-			smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
-			attach.files = ., 
-			authenticate = TRUE, 
-			send = TRUE)
+		msg %...>% send.mail(from = email_username,
+          	to = input$batch_job_email,
+          	subject = subject,
+          	body = .,
+          	smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
+          	authenticate = TRUE,
+          	send = TRUE)
 	})
 	
 	observeEvent(input$submit,{
