@@ -1,0 +1,646 @@
+A04	Diagnoses - main ICD10: A04 Other bacterial intestinal infections
+A08	Diagnoses - main ICD10: A08 Viral and other specified intestinal infections
+A09	Diagnoses - main ICD10: A09 Diarrhoea and gastro-enteritis of presumed infectious origin
+A41	Diagnoses - main ICD10: A41 Other septicaemia
+A63	"Diagnoses - main ICD10: A63 Other predominantly sexually transmitted diseases, not elsewhere classified"
+A87	Diagnoses - main ICD10: A87 Viral meningitis
+B02	Diagnoses - main ICD10: B02 Zoster [herpes zoster]
+B07	Diagnoses - main ICD10: B07 Viral warts
+B18	Diagnoses - main ICD10: B18 Chronic viral hepatitis
+B34	Diagnoses - main ICD10: B34 Viral infection of unspecified site
+B37	Diagnoses - main ICD10: B37 Candidiasis
+B50	Diagnoses - main ICD10: B50 Plasmodium falciparum malaria
+C02	Diagnoses - main ICD10: C02 Malignant neoplasm of other and unspecified parts of tongue
+C09	Diagnoses - main ICD10: C09 Malignant neoplasm of tonsil
+C15	Diagnoses - main ICD10: C15 Malignant neoplasm of oesophagus
+C16	Diagnoses - main ICD10: C16 Malignant neoplasm of stomach
+C18	Diagnoses - main ICD10: C18 Malignant neoplasm of colon
+C19	Diagnoses - main ICD10: C19 Malignant neoplasm of rectosigmoid junction
+C20	Diagnoses - main ICD10: C20 Malignant neoplasm of rectum
+C21	Diagnoses - main ICD10: C21 Malignant neoplasm of anus and anal canal
+C22	Diagnoses - main ICD10: C22 Malignant neoplasm of liver and intrahepatic bile ducts
+C25	Diagnoses - main ICD10: C25 Malignant neoplasm of pancreas
+C32	Diagnoses - main ICD10: C32 Malignant neoplasm of larynx
+C34	Diagnoses - main ICD10: C34 Malignant neoplasm of bronchus and lung
+C43	Diagnoses - main ICD10: C43 Malignant melanoma of skin
+C44	Diagnoses - main ICD10: C44 Other malignant neoplasms of skin
+C45	Diagnoses - main ICD10: C45 Mesothelioma
+C49	Diagnoses - main ICD10: C49 Malignant neoplasm of other connective and soft tissue
+C50	Diagnoses - main ICD10: C50 Malignant neoplasm of breast
+C53	Diagnoses - main ICD10: C53 Malignant neoplasm of cervix uteri
+C54	Diagnoses - main ICD10: C54 Malignant neoplasm of corpus uteri
+C56	Diagnoses - main ICD10: C56 Malignant neoplasm of ovary
+C61	Diagnoses - main ICD10: C61 Malignant neoplasm of prostate
+C62	Diagnoses - main ICD10: C62 Malignant neoplasm of testis
+C64	"Diagnoses - main ICD10: C64 Malignant neoplasm of kidney, except renal pelvis"
+C67	Diagnoses - main ICD10: C67 Malignant neoplasm of bladder
+C69	Diagnoses - main ICD10: C69 Malignant neoplasm of eye and adnexa
+C71	Diagnoses - main ICD10: C71 Malignant neoplasm of brain
+C73	Diagnoses - main ICD10: C73 Malignant neoplasm of thyroid gland
+C77	Diagnoses - main ICD10: C77 Secondary and unspecified malignant neoplasm of lymph nodes
+C78	Diagnoses - main ICD10: C78 Secondary malignant neoplasm of respiratory and digestive organs
+C79	Diagnoses - main ICD10: C79 Secondary malignant neoplasm of other sites
+C80	Diagnoses - main ICD10: C80 Malignant neoplasm without specification of site
+C81	Diagnoses - main ICD10: C81 Hodgkin's disease
+C82	Diagnoses - main ICD10: C82 Follicular [nodular] non-Hodgkin's lymphoma
+C83	Diagnoses - main ICD10: C83 Diffuse non-Hodgkin's lymphoma
+C85	Diagnoses - main ICD10: C85 Other and unspecified types of non-Hodgkin's lymphoma
+C90	Diagnoses - main ICD10: C90 Multiple myeloma and malignant plasma cell neoplasms
+C91	Diagnoses - main ICD10: C91 Lymphoid leukaemia
+C92	Diagnoses - main ICD10: C92 Myeloid leukaemia
+D03	Diagnoses - main ICD10: D03 Melanoma in situ
+D04	Diagnoses - main ICD10: D04 Carcinoma in situ of skin
+D05	Diagnoses - main ICD10: D05 Carcinoma in situ of breast
+D06	Diagnoses - main ICD10: D06 Carcinoma in situ of cervix uteri
+D07	Diagnoses - main ICD10: D07 Carcinoma in situ of other and unspecified genital organs
+D09	Diagnoses - main ICD10: D09 Carcinoma in situ of other and unspecified sites
+D10	Diagnoses - main ICD10: D10 Benign neoplasm of mouth and pharynx
+D11	Diagnoses - main ICD10: D11 Benign neoplasm of major salivary glands
+D12	"Diagnoses - main ICD10: D12 Benign neoplasm of colon, rectum, anus and anal canal"
+D13	Diagnoses - main ICD10: D13 Benign neoplasm of other and ill-defined parts of digestive system
+D14	Diagnoses - main ICD10: D14 Benign neoplasm of middle ear and respiratory system
+D16	Diagnoses - main ICD10: D16 Benign neoplasm of bone and articular cartilage
+D17	Diagnoses - main ICD10: D17 Benign lipomatous neoplasm
+D18	"Diagnoses - main ICD10: D18 Haemangioma and lymphangioma, any site"
+D21	Diagnoses - main ICD10: D21 Other benign neoplasms of connective and other soft tissue
+D22	Diagnoses - main ICD10: D22 Melanocytic naevi
+D23	Diagnoses - main ICD10: D23 Other benign neoplasms of skin
+D24	Diagnoses - main ICD10: D24 Benign neoplasm of breast
+D25	Diagnoses - main ICD10: D25 Leiomyoma of uterus
+D26	Diagnoses - main ICD10: D26 Other benign neoplasms of uterus
+D27	Diagnoses - main ICD10: D27 Benign neoplasm of ovary
+D28	Diagnoses - main ICD10: D28 Benign neoplasm of other and unspecified female genital organs
+D30	Diagnoses - main ICD10: D30 Benign neoplasm of urinary organs
+D32	Diagnoses - main ICD10: D32 Benign neoplasm of meninges
+D33	Diagnoses - main ICD10: D33 Benign neoplasm of brain and other parts of central nervous system
+D34	Diagnoses - main ICD10: D34 Benign neoplasm of thyroid gland
+D35	Diagnoses - main ICD10: D35 Benign neoplasm of other and unspecified endocrine glands
+D36	Diagnoses - main ICD10: D36 Benign neoplasm of other and unspecified sites
+D37	Diagnoses - main ICD10: D37 Neoplasm of uncertain or unknown behaviour of oral cavity and digestive organs
+D38	Diagnoses - main ICD10: D38 Neoplasm of uncertain or unknown behaviour of middle ear and respiratory and intrathoracic organs
+D39	Diagnoses - main ICD10: D39 Neoplasm of uncertain or unknown behaviour of female genital organs
+D41	Diagnoses - main ICD10: D41 Neoplasm of uncertain or unknown behaviour of urinary organs
+D44	Diagnoses - main ICD10: D44 Neoplasm of uncertain or unknown behaviour of endocrine glands
+D45	Diagnoses - main ICD10: D45 Polycythaemia vera
+D46	Diagnoses - main ICD10: D46 Myelodysplastic syndromes
+D47	"Diagnoses - main ICD10: D47 Other neoplasms of uncertain or unknown behaviour of lymphoid, haematopoietic and related tissue"
+D48	Diagnoses - main ICD10: D48 Neoplasm of uncertain or unknown behaviour of other and unspecified sites
+D50	Diagnoses - main ICD10: D50 Iron deficiency anaemia
+D61	Diagnoses - main ICD10: D61 Other aplastic anaemias
+D64	Diagnoses - main ICD10: D64 Other anaemias
+D68	Diagnoses - main ICD10: D68 Other coagulation defects
+D69	Diagnoses - main ICD10: D69 Purpura and other haemorrhagic conditions
+D70	Diagnoses - main ICD10: D70 Agranulocytosis
+D75	Diagnoses - main ICD10: D75 Other diseases of blood and blood-forming organs
+D86	Diagnoses - main ICD10: D86 Sarcoidosis
+D89	"Diagnoses - main ICD10: D89 Other disorders involving the immune mechanism, not elsewhere classified"
+E03	Diagnoses - main ICD10: E03 Other hypothyroidism
+E04	Diagnoses - main ICD10: E04 Other non-toxic goitre
+E05	Diagnoses - main ICD10: E05 Thyrotoxicosis [hyperthyroidism]
+E07	Diagnoses - main ICD10: E07 Other disorders of thyroid
+E10	Diagnoses - main ICD10: E10 Insulin-dependent diabetes mellitus
+E11	Diagnoses - main ICD10: E11 Non-insulin-dependent diabetes mellitus
+E14	Diagnoses - main ICD10: E14 Unspecified diabetes mellitus
+E16	Diagnoses - main ICD10: E16 Other disorders of pancreatic internal secretion
+E21	Diagnoses - main ICD10: E21 Hyperparathyroidism and other disorders of parathyroid gland
+E22	Diagnoses - main ICD10: E22 Hyperfunction of pituitary gland
+E23	Diagnoses - main ICD10: E23 Hypofunction and other disorders of pituitary gland
+E27	Diagnoses - main ICD10: E27 Other disorders of adrenal gland
+E66	Diagnoses - main ICD10: E66 Obesity
+E83	Diagnoses - main ICD10: E83 Disorders of mineral metabolism
+E86	Diagnoses - main ICD10: E86 Volume depletion
+E87	"Diagnoses - main ICD10: E87 Other disorders of fluid, electrolyte and acid-base balance"
+F10	Diagnoses - main ICD10: F10 Mental and behavioural disorders due to use of alcohol
+F20	Diagnoses - main ICD10: F20 Schizophrenia
+F23	Diagnoses - main ICD10: F23 Acute and transient psychotic disorders
+F25	Diagnoses - main ICD10: F25 Schizoaffective disorders
+F30	Diagnoses - main ICD10: F30 Manic episode
+F31	Diagnoses - main ICD10: F31 Bipolar affective disorder
+F32	Diagnoses - main ICD10: F32 Depressive episode
+F33	Diagnoses - main ICD10: F33 Recurrent depressive disorder
+F41	Diagnoses - main ICD10: F41 Other anxiety disorders
+F43	"Diagnoses - main ICD10: F43 Reaction to severe stress, and adjustment disorders"
+F45	Diagnoses - main ICD10: F45 Somatoform disorders
+F52	"Diagnoses - main ICD10: F52 Sexual dysfunction, not caused by organic disorder or disease"
+F60	Diagnoses - main ICD10: F60 Specific personality disorders
+F99	"Diagnoses - main ICD10: F99 Mental disorder, not otherwise specified"
+G20	Diagnoses - main ICD10: G20 Parkinson's disease
+G24	Diagnoses - main ICD10: G24 Dystonia
+G35	Diagnoses - main ICD10: G35 Multiple sclerosis
+G37	Diagnoses - main ICD10: G37 Other demyelinating diseases of central nervous system
+G40	Diagnoses - main ICD10: G40 Epilepsy
+G43	Diagnoses - main ICD10: G43 Migraine
+G44	Diagnoses - main ICD10: G44 Other headache syndromes
+G45	Diagnoses - main ICD10: G45 Transient cerebral ischaemic attacks and related syndromes
+G47	Diagnoses - main ICD10: G47 Sleep disorders
+G50	Diagnoses - main ICD10: G50 Disorders of trigeminal nerve
+G51	Diagnoses - main ICD10: G51 Facial nerve disorders
+G54	Diagnoses - main ICD10: G54 Nerve root and plexus disorders
+G56	Diagnoses - main ICD10: G56 Mononeuropathies of upper limb
+G57	Diagnoses - main ICD10: G57 Mononeuropathies of lower limb
+G58	Diagnoses - main ICD10: G58 Other mononeuropathies
+G61	Diagnoses - main ICD10: G61 Inflammatory polyneuropathy
+G62	Diagnoses - main ICD10: G62 Other polyneuropathies
+G70	Diagnoses - main ICD10: G70 Myasthenia gravis and other myoneural disorders
+G81	Diagnoses - main ICD10: G81 Hemiplegia
+G82	Diagnoses - main ICD10: G82 Paraplegia and tetraplegia
+G93	Diagnoses - main ICD10: G93 Other disorders of brain
+G95	Diagnoses - main ICD10: G95 Other diseases of spinal cord
+H00	Diagnoses - main ICD10: H00 Hordeolum and chalazion
+H01	Diagnoses - main ICD10: H01 Other inflammation of eyelid
+H02	Diagnoses - main ICD10: H02 Other disorders of eyelid
+H04	Diagnoses - main ICD10: H04 Disorders of lachrymal system
+H05	Diagnoses - main ICD10: H05 Disorders of orbit
+H11	Diagnoses - main ICD10: H11 Other disorders of conjunctiva
+H16	Diagnoses - main ICD10: H16 Keratitis
+H18	Diagnoses - main ICD10: H18 Other disorders of cornea
+H25	Diagnoses - main ICD10: H25 Senile cataract
+H26	Diagnoses - main ICD10: H26 Other cataract
+H27	Diagnoses - main ICD10: H27 Other disorders of lens
+H33	Diagnoses - main ICD10: H33 Retinal detachments and breaks
+H34	Diagnoses - main ICD10: H34 Retinal vascular occlusions
+H35	Diagnoses - main ICD10: H35 Other retinal disorders
+H40	Diagnoses - main ICD10: H40 Glaucoma
+H43	Diagnoses - main ICD10: H43 Disorders of vitreous body
+H49	Diagnoses - main ICD10: H49 Paralytic strabismus
+H50	Diagnoses - main ICD10: H50 Other strabismus
+H52	Diagnoses - main ICD10: H52 Disorders of refraction and accommodation
+H53	Diagnoses - main ICD10: H53 Visual disturbances
+H57	Diagnoses - main ICD10: H57 Other disorders of eye and adnexa
+H59	"Diagnoses - main ICD10: H59 Postprocedural disorders of eye and adnexa, not elsewhere classified"
+H60	Diagnoses - main ICD10: H60 Otitis externa
+H61	Diagnoses - main ICD10: H61 Other disorders of external ear
+H65	Diagnoses - main ICD10: H65 Nonsuppurative otitis media
+H66	Diagnoses - main ICD10: H66 Suppurative and unspecified otitis media
+H69	Diagnoses - main ICD10: H69 Other disorders of Eustachian tube
+H71	Diagnoses - main ICD10: H71 Cholesteatoma of middle ear
+H72	Diagnoses - main ICD10: H72 Perforation of tympanic membrane
+H73	Diagnoses - main ICD10: H73 Other disorders of tympanic membrane
+H74	Diagnoses - main ICD10: H74 Other disorders of middle ear and mastoid
+H80	Diagnoses - main ICD10: H80 Otosclerosis
+H81	Diagnoses - main ICD10: H81 Disorders of vestibular function
+H83	Diagnoses - main ICD10: H83 Other diseases of inner ear
+H90	Diagnoses - main ICD10: H90 Conductive and sensorineural hearing loss
+H91	Diagnoses - main ICD10: H91 Other hearing loss
+H92	Diagnoses - main ICD10: H92 Otalgia and effusion of ear
+H93	"Diagnoses - main ICD10: H93 Other disorders of ear, not elsewhere classified"
+I05	Diagnoses - main ICD10: I05 Rheumatic mitral valve diseases
+I08	Diagnoses - main ICD10: I08 Multiple valve diseases
+I10	Diagnoses - main ICD10: I10 Essential (primary) hypertension
+I12	Diagnoses - main ICD10: I12 Hypertensive renal disease
+I20	Diagnoses - main ICD10: I20 Angina pectoris
+I21	Diagnoses - main ICD10: I21 Acute myocardial infarction
+I22	Diagnoses - main ICD10: I22 Subsequent myocardial infarction
+I24	Diagnoses - main ICD10: I24 Other acute ischaemic heart diseases
+I25	Diagnoses - main ICD10: I25 Chronic ischaemic heart disease
+I26	Diagnoses - main ICD10: I26 Pulmonary embolism
+I30	Diagnoses - main ICD10: I30 Acute pericarditis
+I31	Diagnoses - main ICD10: I31 Other diseases of pericardium
+I33	Diagnoses - main ICD10: I33 Acute and subacute endocarditis
+I34	Diagnoses - main ICD10: I34 Nonrheumatic mitral valve disorders
+I35	Diagnoses - main ICD10: I35 Nonrheumatic aortic valve disorders
+I42	Diagnoses - main ICD10: I42 Cardiomyopathy
+I44	Diagnoses - main ICD10: I44 Atrioventricular and left bundle-branch block
+I45	Diagnoses - main ICD10: I45 Other conduction disorders
+I46	Diagnoses - main ICD10: I46 Cardiac arrest
+I47	Diagnoses - main ICD10: I47 Paroxysmal tachycardia
+I48	Diagnoses - main ICD10: I48 Atrial fibrillation and flutter
+I49	Diagnoses - main ICD10: I49 Other cardiac arrhythmias
+I50	Diagnoses - main ICD10: I50 Heart failure
+I51	Diagnoses - main ICD10: I51 Complications and ill-defined descriptions of heart disease
+I60	Diagnoses - main ICD10: I60 Subarachnoid haemorrhage
+I61	Diagnoses - main ICD10: I61 Intracerebral haemorrhage
+I62	Diagnoses - main ICD10: I62 Other nontraumatic intracranial haemorrhage
+I63	Diagnoses - main ICD10: I63 Cerebral infarction
+I64	"Diagnoses - main ICD10: I64 Stroke, not specified as haemorrhage or infarction"
+I65	"Diagnoses - main ICD10: I65 Occlusion and stenosis of precerebral arteries, not resulting in cerebral infarction"
+I67	Diagnoses - main ICD10: I67 Other cerebrovascular diseases
+I70	Diagnoses - main ICD10: I70 Atherosclerosis
+I71	Diagnoses - main ICD10: I71 Aortic aneurysm and dissection
+I72	Diagnoses - main ICD10: I72 Other aneurysm
+I73	Diagnoses - main ICD10: I73 Other peripheral vascular diseases
+I74	Diagnoses - main ICD10: I74 Arterial embolism and thrombosis
+I77	Diagnoses - main ICD10: I77 Other disorders of arteries and arterioles
+I78	Diagnoses - main ICD10: I78 Diseases of capillaries
+I80	Diagnoses - main ICD10: I80 Phlebitis and thrombophlebitis
+I82	Diagnoses - main ICD10: I82 Other venous embolism and thrombosis
+I83	Diagnoses - main ICD10: I83 Varicose veins of lower extremities
+I84	Diagnoses - main ICD10: I84 Haemorrhoids
+I85	Diagnoses - main ICD10: I85 Oesophageal varices
+I86	Diagnoses - main ICD10: I86 Varicose veins of other sites
+I87	Diagnoses - main ICD10: I87 Other disorders of veins
+I89	Diagnoses - main ICD10: I89 Other non-infective disorders of lymphatic vessels and lymph nodes
+I95	Diagnoses - main ICD10: I95 Hypotension
+J01	Diagnoses - main ICD10: J01 Acute sinusitis
+J02	Diagnoses - main ICD10: J02 Acute pharyngitis
+J03	Diagnoses - main ICD10: J03 Acute tonsillitis
+J06	Diagnoses - main ICD10: J06 Acute upper respiratory infections of multiple and unspecified sites
+J13	Diagnoses - main ICD10: J13 Pneumonia due to Streptococcus pneumoniae
+J15	"Diagnoses - main ICD10: J15 Bacterial pneumonia, not elsewhere classified"
+J18	"Diagnoses - main ICD10: J18 Pneumonia, organism unspecified"
+J22	Diagnoses - main ICD10: J22 Unspecified acute lower respiratory infection
+J31	"Diagnoses - main ICD10: J31 Chronic rhinitis, nasopharyngitis and pharyngitis"
+J32	Diagnoses - main ICD10: J32 Chronic sinusitis
+J33	Diagnoses - main ICD10: J33 Nasal polyp
+J34	Diagnoses - main ICD10: J34 Other disorders of nose and nasal sinuses
+J35	Diagnoses - main ICD10: J35 Chronic diseases of tonsils and adenoids
+J36	Diagnoses - main ICD10: J36 Peritonsillar abscess
+J38	"Diagnoses - main ICD10: J38 Diseases of vocal cords and larynx, not elsewhere classified"
+J39	Diagnoses - main ICD10: J39 Other diseases of upper respiratory tract
+J40	"Diagnoses - main ICD10: J40 Bronchitis, not specified as acute or chronic"
+J43	Diagnoses - main ICD10: J43 Emphysema
+J44	Diagnoses - main ICD10: J44 Other chronic obstructive pulmonary disease
+J45	Diagnoses - main ICD10: J45 Asthma
+J46	Diagnoses - main ICD10: J46 Status asthmaticus
+J47	Diagnoses - main ICD10: J47 Bronchiectasis
+J84	Diagnoses - main ICD10: J84 Other interstitial pulmonary diseases
+J86	Diagnoses - main ICD10: J86 Pyothorax
+J90	"Diagnoses - main ICD10: J90 Pleural effusion, not elsewhere classified"
+J93	Diagnoses - main ICD10: J93 Pneumothorax
+J96	"Diagnoses - main ICD10: J96 Respiratory failure, not elsewhere classified"
+J98	Diagnoses - main ICD10: J98 Other respiratory disorders
+K00	Diagnoses - main ICD10: K00 Disorders of tooth development and eruption
+K01	Diagnoses - main ICD10: K01 Embedded and impacted teeth
+K02	Diagnoses - main ICD10: K02 Dental caries
+K04	Diagnoses - main ICD10: K04 Diseases of pulp and periapical tissues
+K05	Diagnoses - main ICD10: K05 Gingivitis and periodontal diseases
+K06	Diagnoses - main ICD10: K06 Other disorders of gingiva and edentulous alveolar ridge
+K07	Diagnoses - main ICD10: K07 Dentofacial anomalies [including malocclusion]
+K08	Diagnoses - main ICD10: K08 Other disorders of teeth and supporting structures
+K09	"Diagnoses - main ICD10: K09 Cysts of oral region, not elsewhere classified"
+K10	Diagnoses - main ICD10: K10 Other diseases of jaws
+K11	Diagnoses - main ICD10: K11 Diseases of salivary glands
+K12	Diagnoses - main ICD10: K12 Stomatitis and related lesions
+K13	Diagnoses - main ICD10: K13 Other diseases of lip and oral mucosa
+K14	Diagnoses - main ICD10: K14 Diseases of tongue
+K20	Diagnoses - main ICD10: K20 Oesophagitis
+K21	Diagnoses - main ICD10: K21 Gastro-oesophageal reflux disease
+K22	Diagnoses - main ICD10: K22 Other diseases of oesophagus
+K25	Diagnoses - main ICD10: K25 Gastric ulcer
+K26	Diagnoses - main ICD10: K26 Duodenal ulcer
+K27	"Diagnoses - main ICD10: K27 Peptic ulcer, site unspecified"
+K29	Diagnoses - main ICD10: K29 Gastritis and duodenitis
+K30	Diagnoses - main ICD10: K30 Dyspepsia
+K31	Diagnoses - main ICD10: K31 Other diseases of stomach and duodenum
+K35	Diagnoses - main ICD10: K35 Acute appendicitis
+K37	Diagnoses - main ICD10: K37 Unspecified appendicitis
+K40	Diagnoses - main ICD10: K40 Inguinal hernia
+K41	Diagnoses - main ICD10: K41 Femoral hernia
+K42	Diagnoses - main ICD10: K42 Umbilical hernia
+K43	Diagnoses - main ICD10: K43 Ventral hernia
+K44	Diagnoses - main ICD10: K44 Diaphragmatic hernia
+K46	Diagnoses - main ICD10: K46 Unspecified abdominal hernia
+K50	Diagnoses - main ICD10: K50 Crohn's disease [regional enteritis]
+K51	Diagnoses - main ICD10: K51 Ulcerative colitis
+K52	Diagnoses - main ICD10: K52 Other non-infective gastro-enteritis and colitis
+K55	Diagnoses - main ICD10: K55 Vascular disorders of intestine
+K56	Diagnoses - main ICD10: K56 Paralytic ileus and intestinal obstruction without hernia
+K57	Diagnoses - main ICD10: K57 Diverticular disease of intestine
+K58	Diagnoses - main ICD10: K58 Irritable bowel syndrome
+K59	Diagnoses - main ICD10: K59 Other functional intestinal disorders
+K60	Diagnoses - main ICD10: K60 Fissure and fistula of anal and rectal regions
+K61	Diagnoses - main ICD10: K61 Abscess of anal and rectal regions
+K62	Diagnoses - main ICD10: K62 Other diseases of anus and rectum
+K63	Diagnoses - main ICD10: K63 Other diseases of intestine
+K65	Diagnoses - main ICD10: K65 Peritonitis
+K66	Diagnoses - main ICD10: K66 Other disorders of peritoneum
+K70	Diagnoses - main ICD10: K70 Alcoholic liver disease
+K74	Diagnoses - main ICD10: K74 Fibrosis and cirrhosis of liver
+K75	Diagnoses - main ICD10: K75 Other inflammatory liver diseases
+K76	Diagnoses - main ICD10: K76 Other diseases of liver
+K80	Diagnoses - main ICD10: K80 Cholelithiasis
+K81	Diagnoses - main ICD10: K81 Cholecystitis
+K82	Diagnoses - main ICD10: K82 Other diseases of gallbladder
+K83	Diagnoses - main ICD10: K83 Other diseases of biliary tract
+K85	Diagnoses - main ICD10: K85 Acute pancreatitis
+K86	Diagnoses - main ICD10: K86 Other diseases of pancreas
+K90	Diagnoses - main ICD10: K90 Intestinal malabsorption
+K91	"Diagnoses - main ICD10: K91 Postprocedural disorders of digestive system, not elsewhere classified"
+K92	Diagnoses - main ICD10: K92 Other diseases of digestive system
+L02	"Diagnoses - main ICD10: L02 Cutaneous abscess, furuncle and carbuncle"
+L03	Diagnoses - main ICD10: L03 Cellulitis
+L05	Diagnoses - main ICD10: L05 Pilonidal cyst
+L08	Diagnoses - main ICD10: L08 Other local infections of skin and subcutaneous tissue
+L27	Diagnoses - main ICD10: L27 Dermatitis due to substances taken internally
+L28	Diagnoses - main ICD10: L28 Lichen simplex chronicus and prurigo
+L29	Diagnoses - main ICD10: L29 Pruritus
+L30	Diagnoses - main ICD10: L30 Other dermatitis
+L40	Diagnoses - main ICD10: L40 Psoriasis
+L43	Diagnoses - main ICD10: L43 Lichen planus
+L50	Diagnoses - main ICD10: L50 Urticaria
+L53	Diagnoses - main ICD10: L53 Other erythematous conditions
+L57	Diagnoses - main ICD10: L57 Skin changes due to chronic exposure to nonionising radiation
+L60	Diagnoses - main ICD10: L60 Nail disorders
+L72	Diagnoses - main ICD10: L72 Follicular cysts of skin and subcutaneous tissue
+L73	Diagnoses - main ICD10: L73 Other follicular disorders
+L81	Diagnoses - main ICD10: L81 Other disorders of pigmentation
+L82	Diagnoses - main ICD10: L82 Seborrhoeic keratosis
+L85	Diagnoses - main ICD10: L85 Other epidermal thickening
+L90	Diagnoses - main ICD10: L90 Atrophic disorders of skin
+L91	Diagnoses - main ICD10: L91 Hypertrophic disorders of skin
+L92	Diagnoses - main ICD10: L92 Granulomatous disorders of skin and subcutaneous tissue
+L97	"Diagnoses - main ICD10: L97 Ulcer of lower limb, not elsewhere classified"
+L98	"Diagnoses - main ICD10: L98 Other disorders of skin and subcutaneous tissue, not elsewhere classified"
+M00	Diagnoses - main ICD10: M00 Pyogenic arthritis
+M05	Diagnoses - main ICD10: M05 Seropositive rheumatoid arthritis
+M06	Diagnoses - main ICD10: M06 Other rheumatoid arthritis
+M10	Diagnoses - main ICD10: M10 Gout
+M13	Diagnoses - main ICD10: M13 Other arthritis
+M15	Diagnoses - main ICD10: M15 Polyarthrosis
+M16	Diagnoses - main ICD10: M16 Coxarthrosis [arthrosis of hip]
+M17	Diagnoses - main ICD10: M17 Gonarthrosis [arthrosis of knee]
+M18	Diagnoses - main ICD10: M18 Arthrosis of first carpometacarpal joint
+M19	Diagnoses - main ICD10: M19 Other arthrosis
+M20	Diagnoses - main ICD10: M20 Acquired deformities of fingers and toes
+M21	Diagnoses - main ICD10: M21 Other acquired deformities of limbs
+M22	Diagnoses - main ICD10: M22 Disorders of patella
+M23	Diagnoses - main ICD10: M23 Internal derangement of knee
+M24	Diagnoses - main ICD10: M24 Other specific joint derangements
+M25	"Diagnoses - main ICD10: M25 Other joint disorders, not elsewhere classified"
+M31	Diagnoses - main ICD10: M31 Other necrotising vasculopathies
+M32	Diagnoses - main ICD10: M32 Systemic lupus erythematosus
+M34	Diagnoses - main ICD10: M34 Systemic sclerosis
+M35	Diagnoses - main ICD10: M35 Other systemic involvement of connective tissue
+M41	Diagnoses - main ICD10: M41 Scoliosis
+M43	Diagnoses - main ICD10: M43 Other deforming dorsopathies
+M45	Diagnoses - main ICD10: M45 Ankylosing spondylitis
+M46	Diagnoses - main ICD10: M46 Other inflammatory spondylopathies
+M47	Diagnoses - main ICD10: M47 Spondylosis
+M48	Diagnoses - main ICD10: M48 Other spondylopathies
+M50	Diagnoses - main ICD10: M50 Cervical disk disorders
+M51	Diagnoses - main ICD10: M51 Other intervertebral disk disorders
+M53	"Diagnoses - main ICD10: M53 Other dorsopathies, not elsewhere classified"
+M54	Diagnoses - main ICD10: M54 Dorsalgia
+M60	Diagnoses - main ICD10: M60 Myositis
+M62	Diagnoses - main ICD10: M62 Other disorders of muscle
+M65	Diagnoses - main ICD10: M65 Synovitis and tenosynovitis
+M66	Diagnoses - main ICD10: M66 Spontaneous rupture of synovium and tendon
+M67	Diagnoses - main ICD10: M67 Other disorders of synovium and tendon
+M70	"Diagnoses - main ICD10: M70 Soft tissue disorders related to use, overuse and pressure"
+M71	Diagnoses - main ICD10: M71 Other bursopathies
+M72	Diagnoses - main ICD10: M72 Fibroblastic disorders
+M75	Diagnoses - main ICD10: M75 Shoulder lesions
+M76	"Diagnoses - main ICD10: M76 Enthesopathies of lower limb, excluding foot"
+M77	Diagnoses - main ICD10: M77 Other enthesopathies
+M79	"Diagnoses - main ICD10: M79 Other soft tissue disorders, not elsewhere classified"
+M80	Diagnoses - main ICD10: M80 Osteoporosis with pathological fracture
+M81	Diagnoses - main ICD10: M81 Osteoporosis without pathological fracture
+M84	Diagnoses - main ICD10: M84 Disorders of continuity of bone
+M85	Diagnoses - main ICD10: M85 Other disorders of bone density and structure
+M86	Diagnoses - main ICD10: M86 Osteomyelitis
+M87	Diagnoses - main ICD10: M87 Osteonecrosis
+M89	Diagnoses - main ICD10: M89 Other disorders of bone
+M94	Diagnoses - main ICD10: M94 Other disorders of cartilage
+M95	Diagnoses - main ICD10: M95 Other acquired deformities of musculoskeletal system and connective tissue
+M96	"Diagnoses - main ICD10: M96 Postprocedural musculoskeletal disorders, not elsewhere classified"
+N/A	List of variants included in the analysis
+N/A	All partioned heritability results
+N/A	All univariate heritability results
+N/A	Description of phenotypes acquired under application 111898 and 18597
+N02	Diagnoses - main ICD10: N02 Recurrent and persistent haematuria
+N05	Diagnoses - main ICD10: N05 Unspecified nephritic syndrome
+N10	Diagnoses - main ICD10: N10 Acute tubulo-interstitial nephritis
+N12	"Diagnoses - main ICD10: N12 Tubulo-interstitial nephritis, not specified as acute or chronic"
+N13	Diagnoses - main ICD10: N13 Obstructive and reflux uropathy
+N17	Diagnoses - main ICD10: N17 Acute renal failure
+N18	Diagnoses - main ICD10: N18 Chronic renal failure
+N19	Diagnoses - main ICD10: N19 Unspecified renal failure
+N20	Diagnoses - main ICD10: N20 Calculus of kidney and ureter
+N21	Diagnoses - main ICD10: N21 Calculus of lower urinary tract
+N23	Diagnoses - main ICD10: N23 Unspecified renal colic
+N28	"Diagnoses - main ICD10: N28 Other disorders of kidney and ureter, not elsewhere classified"
+N30	Diagnoses - main ICD10: N30 Cystitis
+N31	"Diagnoses - main ICD10: N31 Neuromuscular dysfunction of bladder, not elsewhere classified"
+N32	Diagnoses - main ICD10: N32 Other disorders of bladder
+N34	Diagnoses - main ICD10: N34 Urethritis and urethral syndrome
+N35	Diagnoses - main ICD10: N35 Urethral stricture
+N36	Diagnoses - main ICD10: N36 Other disorders of urethra
+N39	Diagnoses - main ICD10: N39 Other disorders of urinary system
+N40	Diagnoses - main ICD10: N40 Hyperplasia of prostate
+N41	Diagnoses - main ICD10: N41 Inflammatory diseases of prostate
+N42	Diagnoses - main ICD10: N42 Other disorders of prostate
+N43	Diagnoses - main ICD10: N43 Hydrocele and spermatocele
+N45	Diagnoses - main ICD10: N45 Orchitis and epididymitis
+N47	"Diagnoses - main ICD10: N47 Redundant prepuce, phimosis and paraphimosis"
+N48	Diagnoses - main ICD10: N48 Other disorders of penis
+N49	"Diagnoses - main ICD10: N49 Inflammatory disorders of male genital organs, not elsewhere classified"
+N50	Diagnoses - main ICD10: N50 Other disorders of male genital organs
+N60	Diagnoses - main ICD10: N60 Benign mammary dysplasia
+N61	Diagnoses - main ICD10: N61 Inflammatory disorders of breast
+N62	Diagnoses - main ICD10: N62 Hypertrophy of breast
+N63	Diagnoses - main ICD10: N63 Unspecified lump in breast
+N64	Diagnoses - main ICD10: N64 Other disorders of breast
+N70	Diagnoses - main ICD10: N70 Salpingitis and oophoritis
+N71	"Diagnoses - main ICD10: N71 Inflammatory disease of uterus, except cervix"
+N72	Diagnoses - main ICD10: N72 Inflammatory disease of cervix uteri
+N73	Diagnoses - main ICD10: N73 Other female pelvic inflammatory diseases
+N75	Diagnoses - main ICD10: N75 Diseases of Bartholin's gland
+N76	Diagnoses - main ICD10: N76 Other inflammation of vagina and vulva
+N80	Diagnoses - main ICD10: N80 Endometriosis
+N81	Diagnoses - main ICD10: N81 Female genital prolapse
+N82	Diagnoses - main ICD10: N82 Fistulae involving female genital tract
+N83	"Diagnoses - main ICD10: N83 Noninflammatory disorders of ovary, Fallopian tube and broad ligament"
+N84	Diagnoses - main ICD10: N84 Polyp of female genital tract
+N85	"Diagnoses - main ICD10: N85 Other noninflammatory disorders of uterus, except cervix"
+N86	Diagnoses - main ICD10: N86 Erosion and ectropion of cervix uteri
+N87	Diagnoses - main ICD10: N87 Dysplasia of cervix uteri
+N88	Diagnoses - main ICD10: N88 Other noninflammatory disorders of cervix uteri
+N89	Diagnoses - main ICD10: N89 Other noninflammatory disorders of vagina
+N90	Diagnoses - main ICD10: N90 Other noninflammatory disorders of vulva and perineum
+N92	"Diagnoses - main ICD10: N92 Excessive, frequent and irregular menstruation"
+N93	Diagnoses - main ICD10: N93 Other abnormal uterine and vaginal bleeding
+N94	Diagnoses - main ICD10: N94 Pain and other conditions associated with female genital organs and menstrual cycle
+N95	Diagnoses - main ICD10: N95 Menopausal and other perimenopausal disorders
+N97	Diagnoses - main ICD10: N97 Female infertility
+N99	"Diagnoses - main ICD10: N99 Postprocedural disorders of genito-urinary system, not elsewhere classified"
+O00	Diagnoses - main ICD10: O00 Ectopic pregnancy
+O02	Diagnoses - main ICD10: O02 Other abnormal products of conception
+O03	Diagnoses - main ICD10: O03 Spontaneous abortion
+O04	Diagnoses - main ICD10: O04 Medical abortion
+O13	Diagnoses - main ICD10: O13 Gestational [pregnancy-induced] hypertension without significant proteinuria
+O14	Diagnoses - main ICD10: O14 Gestational [pregnancy-induced] hypertension with significant proteinuria
+O16	Diagnoses - main ICD10: O16 Unspecified maternal hypertension
+O20	Diagnoses - main ICD10: O20 Haemorrhage in early pregnancy
+O21	Diagnoses - main ICD10: O21 Excessive vomiting in pregnancy
+O23	Diagnoses - main ICD10: O23 Infections of genito-urinary tract in pregnancy
+O24	Diagnoses - main ICD10: O24 Diabetes mellitus in pregnancy
+O26	Diagnoses - main ICD10: O26 Maternal care for other conditions predominantly related to pregnancy
+O32	Diagnoses - main ICD10: O32 Maternal care for known or suspected malpresentation of foetus
+O34	Diagnoses - main ICD10: O34 Maternal care for known or suspected abnormality of pelvic organs
+O35	Diagnoses - main ICD10: O35 Maternal care for known or suspected foetal abnormality and damage
+O36	Diagnoses - main ICD10: O36 Maternal care for other known or suspected foetal problems
+O41	Diagnoses - main ICD10: O41 Other disorders of amniotic fluid and membranes
+O42	Diagnoses - main ICD10: O42 Premature rupture of membranes
+O44	Diagnoses - main ICD10: O44 Placenta praevia
+O46	"Diagnoses - main ICD10: O46 Antepartum haemorrhage, not elsewhere classified"
+O47	Diagnoses - main ICD10: O47 False labour
+O48	Diagnoses - main ICD10: O48 Prolonged pregnancy
+O60	Diagnoses - main ICD10: O60 Preterm delivery
+O62	Diagnoses - main ICD10: O62 Abnormalities of forces of labour
+O63	Diagnoses - main ICD10: O63 Long labour
+O64	Diagnoses - main ICD10: O64 Obstructed labour due to malposition and malpresentation of foetus
+O66	Diagnoses - main ICD10: O66 Other obstructed labour
+O68	Diagnoses - main ICD10: O68 Labour and delivery complicated by foetal stress [distress]
+O69	Diagnoses - main ICD10: O69 Labour and delivery complicated by umbilical cord complications
+O70	Diagnoses - main ICD10: O70 Perineal laceration during delivery
+O72	Diagnoses - main ICD10: O72 Postpartum haemorrhage
+O73	"Diagnoses - main ICD10: O73 Retained placenta and membranes, without haemorrhage"
+O75	"Diagnoses - main ICD10: O75 Other complications of labour and delivery, not elsewhere classified"
+O80	Diagnoses - main ICD10: O80 Single spontaneous delivery
+O81	Diagnoses - main ICD10: O81 Single delivery by forceps and vacuum extractor
+O82	Diagnoses - main ICD10: O82 Single delivery by Caesarean section
+O90	"Diagnoses - main ICD10: O90 Complications of the puerperium, not elsewhere classified"
+O99	"Diagnoses - main ICD10: O99 Other maternal diseases classifiable elsewhere but complicating pregnancy, childbirth and the puerperium"
+Q18	Diagnoses - main ICD10: Q18 Other congenital malformations of face and neck
+Q21	Diagnoses - main ICD10: Q21 Congenital malformations of cardiac septa
+Q28	Diagnoses - main ICD10: Q28 Other congenital malformations of circulatory system
+Q38	"Diagnoses - main ICD10: Q38 Other congenital malformations of tongue, mouth and pharynx"
+Q82	Diagnoses - main ICD10: Q82 Other congenital malformations of skin
+R00	Diagnoses - main ICD10: R00 Abnormalities of heart beat
+R04	Diagnoses - main ICD10: R04 Haemorrhage from respiratory passages
+R05	Diagnoses - main ICD10: R05 Cough
+R06	Diagnoses - main ICD10: R06 Abnormalities of breathing
+R07	Diagnoses - main ICD10: R07 Pain in throat and chest
+R09	Diagnoses - main ICD10: R09 Other symptoms and signs involving the circulatory and respiratory systems
+R10	Diagnoses - main ICD10: R10 Abdominal and pelvic pain
+R11	Diagnoses - main ICD10: R11 Nausea and vomiting
+R12	Diagnoses - main ICD10: R12 Heartburn
+R13	Diagnoses - main ICD10: R13 Dysphagia
+R14	Diagnoses - main ICD10: R14 Flatulence and related conditions
+R15	Diagnoses - main ICD10: R15 Faecal incontinence
+R17	Diagnoses - main ICD10: R17 Unspecified jaundice
+R18	Diagnoses - main ICD10: R18 Ascites
+R19	Diagnoses - main ICD10: R19 Other symptoms and signs involving the digestive system and abdomen
+R20	Diagnoses - main ICD10: R20 Disturbances of skin sensation
+R21	Diagnoses - main ICD10: R21 Rash and other nonspecific skin eruption
+R22	"Diagnoses - main ICD10: R22 Localised swelling, mass and lump of skin and subcutaneous tissue"
+R23	Diagnoses - main ICD10: R23 Other skin changes
+R25	Diagnoses - main ICD10: R25 Abnormal involuntary movements
+R26	Diagnoses - main ICD10: R26 Abnormalities of gait and mobility
+R29	Diagnoses - main ICD10: R29 Other symptoms and signs involving the nervous and musculoskeletal systems
+R30	Diagnoses - main ICD10: R30 Pain associated with micturition
+R31	Diagnoses - main ICD10: R31 Unspecified haematuria
+R32	Diagnoses - main ICD10: R32 Unspecified urinary incontinence
+R33	Diagnoses - main ICD10: R33 Retention of urine
+R35	Diagnoses - main ICD10: R35 Polyuria
+R39	Diagnoses - main ICD10: R39 Other symptoms and signs involving the urinary system
+R40	"Diagnoses - main ICD10: R40 Somnolence, stupor and coma"
+R41	Diagnoses - main ICD10: R41 Other symptoms and signs involving cognitive functions and awareness
+R42	Diagnoses - main ICD10: R42 Dizziness and giddiness
+R47	"Diagnoses - main ICD10: R47 Speech disturbances, not elsewhere classified"
+R49	Diagnoses - main ICD10: R49 Voice disturbances
+R50	Diagnoses - main ICD10: R50 Fever of unknown origin
+R51	Diagnoses - main ICD10: R51 Headache
+R52	"Diagnoses - main ICD10: R52 Pain, not elsewhere classified"
+R53	Diagnoses - main ICD10: R53 Malaise and fatigue
+R54	Diagnoses - main ICD10: R54 Senility
+R55	Diagnoses - main ICD10: R55 Syncope and collapse
+R56	"Diagnoses - main ICD10: R56 Convulsions, not elsewhere classified"
+R59	Diagnoses - main ICD10: R59 Enlarged lymph nodes
+R60	"Diagnoses - main ICD10: R60 Oedema, not elsewhere classified"
+R61	Diagnoses - main ICD10: R61 Hyperhidrosis
+R63	Diagnoses - main ICD10: R63 Symptoms and signs concerning food and fluid intake
+R68	Diagnoses - main ICD10: R68 Other general symptoms and signs
+R69	Diagnoses - main ICD10: R69 Unknown and unspecified causes of morbidity
+R73	Diagnoses - main ICD10: R73 Elevated blood glucose level
+R76	Diagnoses - main ICD10: R76 Other abnormal immunological findings in serum
+R79	Diagnoses - main ICD10: R79 Other abnormal findings of blood chemistry
+R86	Diagnoses - main ICD10: R86 Abnormal findings in specimens from male genital organs
+R87	Diagnoses - main ICD10: R87 Abnormal findings in specimens from female genital organs
+R90	Diagnoses - main ICD10: R90 Abnormal findings on diagnostic imaging of central nervous system
+R91	Diagnoses - main ICD10: R91 Abnormal findings on diagnostic imaging of lung
+R93	Diagnoses - main ICD10: R93 Abnormal findings on diagnostic imaging of other body structures
+R94	Diagnoses - main ICD10: R94 Abnormal results of function studies
+S00	Diagnoses - main ICD10: S00 Superficial injury of head
+S01	Diagnoses - main ICD10: S01 Open wound of head
+S02	Diagnoses - main ICD10: S02 Fracture of skull and facial bones
+S05	Diagnoses - main ICD10: S05 Injury of eye and orbit
+S06	Diagnoses - main ICD10: S06 Intracranial injury
+S09	Diagnoses - main ICD10: S09 Other and unspecified injuries of head
+S12	Diagnoses - main ICD10: S12 Fracture of neck
+S13	"Diagnoses - main ICD10: S13 Dislocation, sprain and strain of joints and ligaments at neck level"
+S20	Diagnoses - main ICD10: S20 Superficial injury of thorax
+S22	"Diagnoses - main ICD10: S22 Fracture of rib(s), sternum and thoracic spine"
+S27	Diagnoses - main ICD10: S27 Injury of other and unspecified intrathoracic organs
+S30	"Diagnoses - main ICD10: S30 Superficial injury of abdomen, lower back and pelvis"
+S31	"Diagnoses - main ICD10: S31 Open wound of abdomen, lower back and pelvis"
+S32	Diagnoses - main ICD10: S32 Fracture of lumbar spine and pelvis
+S39	"Diagnoses - main ICD10: S39 Other and unspecified injuries of abdomen, lower back and pelvis"
+S42	Diagnoses - main ICD10: S42 Fracture of shoulder and upper arm
+S43	"Diagnoses - main ICD10: S43 Dislocation, sprain and strain of joints and ligaments of shoulder girdle"
+S46	Diagnoses - main ICD10: S46 Injury of muscle and tendon at shoulder and upper arm level
+S51	Diagnoses - main ICD10: S51 Open wound of forearm
+S52	Diagnoses - main ICD10: S52 Fracture of forearm
+S56	Diagnoses - main ICD10: S56 Injury of muscle and tendon at forearm level
+S60	Diagnoses - main ICD10: S60 Superficial injury of wrist and hand
+S61	Diagnoses - main ICD10: S61 Open wound of wrist and hand
+S62	Diagnoses - main ICD10: S62 Fracture at wrist and hand level
+S63	"Diagnoses - main ICD10: S63 Dislocation, sprain and strain of joints and ligaments at wrist and hand level"
+S64	Diagnoses - main ICD10: S64 Injury of nerves at wrist and hand level
+S66	Diagnoses - main ICD10: S66 Injury of muscle and tendon at wrist and hand level
+S67	Diagnoses - main ICD10: S67 Crushing injury of wrist and hand
+S68	Diagnoses - main ICD10: S68 Traumatic amputation of wrist and hand
+S69	Diagnoses - main ICD10: S69 Other and unspecified injuries of wrist and hand
+S72	Diagnoses - main ICD10: S72 Fracture of femur
+S76	Diagnoses - main ICD10: S76 Injury of muscle and tendon at hip and thigh level
+S80	Diagnoses - main ICD10: S80 Superficial injury of lower leg
+S81	Diagnoses - main ICD10: S81 Open wound of lower leg
+S82	"Diagnoses - main ICD10: S82 Fracture of lower leg, including ankle"
+S83	"Diagnoses - main ICD10: S83 Dislocation, sprain and strain of joints and ligaments of knee"
+S86	Diagnoses - main ICD10: S86 Injury of muscle and tendon at lower leg level
+S89	Diagnoses - main ICD10: S89 Other and unspecified injuries of lower leg
+S91	Diagnoses - main ICD10: S91 Open wound of ankle and foot
+S92	"Diagnoses - main ICD10: S92 Fracture of foot, except ankle"
+S93	"Diagnoses - main ICD10: S93 Dislocation, sprain and strain of joints and ligaments at ankle and foot level"
+T14	Diagnoses - main ICD10: T14 Injury of unspecified body region
+T17	Diagnoses - main ICD10: T17 Foreign body in respiratory tract
+T18	Diagnoses - main ICD10: T18 Foreign body in alimentary tract
+T39	"Diagnoses - main ICD10: T39 Poisoning by nonopioid analgesics, antipyretics and antirheumatics"
+T40	Diagnoses - main ICD10: T40 Poisoning by narcotics and psychodysleptics [hallucinogens]
+T42	"Diagnoses - main ICD10: T42 Poisoning by antiepileptic, sedative-hypnotic and anti-Parkinsonism drugs"
+T43	"Diagnoses - main ICD10: T43 Poisoning by psychotropic drugs, not elsewhere classified"
+T50	"Diagnoses - main ICD10: T50 Poisoning by diuretics and other and unspecified drugs, medicaments and biological substances"
+T78	"Diagnoses - main ICD10: T78 Adverse effects, not elsewhere classified"
+T79	"Diagnoses - main ICD10: T79 Certain early complications of trauma, not elsewhere classified"
+T81	"Diagnoses - main ICD10: T81 Complications of procedures, not elsewhere classified"
+T82	"Diagnoses - main ICD10: T82 Complications of cardiac and vascular prosthetic devices, implants and grafts"
+T83	"Diagnoses - main ICD10: T83 Complications of genito-urinary prosthetic devices, implants and grafts"
+T84	"Diagnoses - main ICD10: T84 Complications of internal orthopaedic prosthetic devices, implants and grafts"
+T85	"Diagnoses - main ICD10: T85 Complications of other internal prosthetic devices, implants and grafts"
+T86	Diagnoses - main ICD10: T86 Failure and rejection of transplanted organs and tissues
+T87	Diagnoses - main ICD10: T87 Complications peculiar to reattachment and amputation
+T88	"Diagnoses - main ICD10: T88 Other complications of surgical and medical care, not elsewhere classified"
+Z00	Diagnoses - main ICD10: Z00 General examination and investigation of persons without complaint or reported diagnosis
+Z01	Diagnoses - main ICD10: Z01 Other special examinations and investigations of persons without complaint or reported diagnosis
+Z03	Diagnoses - main ICD10: Z03 Medical observation and evaluation for suspected diseases and conditions
+Z04	Diagnoses - main ICD10: Z04 Examination and observation for other reasons
+Z08	Diagnoses - main ICD10: Z08 Follow-up examination after treatment for malignant neoplasm
+Z09	Diagnoses - main ICD10: Z09 Follow-up examination after treatment for conditions other than malignant neoplasms
+Z11	Diagnoses - main ICD10: Z11 Special screening examination for infectious and parasitic diseases
+Z12	Diagnoses - main ICD10: Z12 Special screening examination for neoplasms
+Z13	Diagnoses - main ICD10: Z13 Special screening examination for other diseases and disorders
+Z30	Diagnoses - main ICD10: Z30 Contraceptive management
+Z31	Diagnoses - main ICD10: Z31 Procreative management
+Z32	Diagnoses - main ICD10: Z32 Pregnancy examination and test
+Z34	Diagnoses - main ICD10: Z34 Supervision of normal pregnancy
+Z35	Diagnoses - main ICD10: Z35 Supervision of high-risk pregnancy
+Z36	Diagnoses - main ICD10: Z36 Antenatal screening
+Z39	Diagnoses - main ICD10: Z39 Postpartum care and examination
+Z40	Diagnoses - main ICD10: Z40 Prophylactic surgery
+Z41	Diagnoses - main ICD10: Z41 Procedures for purposes other than remedying health state
+Z42	Diagnoses - main ICD10: Z42 Follow-up care involving plastic surgery
+Z43	Diagnoses - main ICD10: Z43 Attention to artificial openings
+Z44	Diagnoses - main ICD10: Z44 Fitting and adjustment of external prosthetic device
+Z45	Diagnoses - main ICD10: Z45 Adjustment and management of implanted device
+Z46	Diagnoses - main ICD10: Z46 Fitting and adjustment of other devices
+Z47	Diagnoses - main ICD10: Z47 Other orthopaedic follow-up care
+Z48	Diagnoses - main ICD10: Z48 Other surgical follow-up care
+Z50	Diagnoses - main ICD10: Z50 Care involving use of rehabilitation procedures
+Z51	Diagnoses - main ICD10: Z51 Other medical care
+Z52	Diagnoses - main ICD10: Z52 Donors of organs and tissues
+Z53	"Diagnoses - main ICD10: Z53 Persons encountering health services for specifie procedures, not carried out"
+Z71	"Diagnoses - main ICD10: Z71 Persons encountering health services for other counselling and medical advice, not elsewhere classified"
+Z76	Diagnoses - main ICD10: Z76 Persons encountering health services in other circumstances
+Z80	Diagnoses - main ICD10: Z80 Family history of malignant neoplasm
+Z85	Diagnoses - main ICD10: Z85 Personal history of malignant neoplasm
+Z87	Diagnoses - main ICD10: Z87 Personal history of other diseases and conditions

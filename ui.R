@@ -74,7 +74,7 @@ shinyUI(fluidPage(
 						column(5,
 								textInput(
 									inputId = 'file1_trait', 
-									label = 'Trait (e.g. phenotype or gene)', 
+									label = 'Label (x-axis)', 
 									width = "100%"
 								)
 						)
@@ -117,14 +117,14 @@ shinyUI(fluidPage(
 						column(5,
 								textInput(
 									inputId = 'file2_trait', 
-									label = 'Trait (e.g. phenotype or gene)', 
+									label = 'Label (y-axis)', 
 									width = "100%"
 								)
 						)
 					),
 					hr(),
 					fluidRow(
-						h3('Select a region (Max window size is 2Mb)')
+						h3('Select a region (maximum 2Mb flanking window)')
 					),
 					fluidRow(
 						column(3,tags$i(h3('SNP'))),
@@ -133,7 +133,7 @@ shinyUI(fluidPage(
 					),
 					fluidRow(
 						column(3,tags$i(h3(tags$b('Or'),'Gene'))),
-						column(3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. BRCA1')),
+						column(3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. PHACTR1')),
 						column(3, numericInput(inputId = 'gene_window', label = 'Flanking Window (Kb)', value = 100))
 					),
 					fluidRow(
@@ -181,7 +181,7 @@ shinyUI(fluidPage(
 								inputId = 'faq',
 								label = 'Frequently Asked Questions',
 								width = '100%',
-								onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki', '_blank')"
+								onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki/Frequently-Asked-Questions', '_blank')"
 							)
 						),
 						column(
@@ -407,7 +407,7 @@ shinyUI(fluidPage(
 							)
 						),
 						# Genomic coordinates:
-						fluidRow(h3('Genomic regions')),
+						fluidRow(h3('Genomic regions (maximum 25 regions)')),
 						fluidRow(
 							column(2,tags$i(h3('Input'))),
 							column(10,
@@ -434,24 +434,63 @@ shinyUI(fluidPage(
 						fluidRow(
 							column(2,tags$i(h3('Job name'))),
 							column(10,
-									textInput(
-										inputId = 'batch_job_name', 
-										label = 'Job name', 
-										value = Sys.Date(), 
-										width = '100%'
-									)
+								textInput(
+									inputId = 'batch_job_name', 
+									label = 'Job name', 
+									placeholder = 'myjob', 
+									width = '100%'
+								)
 							)
 						),
 						fluidRow(
 							column(2,tags$i(h3('Email'))),
 							column(10,
-									textInput(
-										inputId = 'batch_job_email',
-										label = 'Email',
-										placeholder = 'e.g. me@domain.com',
-										width = '100%'
-									)
+    							textInput(
+    								inputId = 'batch_job_email',
+    								label = 'Email',
+    								placeholder = 'e.g. me@domain.com',
+    								width = '100%'
+    							)
 							)
+						),
+						fluidRow(
+						    column(2,tags$i(h3('LocusCompare'))),
+						    column(10,
+						        numericInput(
+    						        inputId = 'batch_locuscompare_length',
+    						        label = 'LocusCompare side length (inches)',
+    						        value = 8,
+    						        min = 1,
+    						        step = 1,
+    						        width = '100%'
+						        )
+						    )
+						),
+						fluidRow(
+						    column(2,tags$i(h3('LocusZoom'))),
+						    column(10,
+						        numericInput(
+    						        inputId = 'batch_locuszoom_height',
+    						        label = 'LocusZoom height (inches)',
+    						        value = 4,
+    						        min = 1,
+    						        step = 1,
+    						        width = '100%'
+						        )
+						     )
+						),
+						fluidRow(
+						    column(2,''),
+						    column(10,
+						        numericInput(
+    						        inputId = 'batch_locuszoom_width',
+    						        label = 'LocusZoom width (inches)',
+    						        value = 8,
+    						        min = 1,
+    						        step = 1,
+    						        width = '100%'
+						        )
+						    )
 						),
 						fluidRow(
 							column(12,
@@ -477,7 +516,7 @@ shinyUI(fluidPage(
 									inputId = 'faq',
 									label = 'Frequently Asked Questions',
 									width = '100%',
-									onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki', '_blank')"
+									onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki/Frequently-Asked-Questions', '_blank')"
 								)
 							),
 							column(
@@ -560,14 +599,15 @@ shinyUI(fluidPage(
 								textInput(inputId = 'form_ethnicity', label = 'Ethnicity', width = '100%'),
 								textInput(inputId = 'form_sample_size', label = 'Sample Size', width = '100%'),
 								textInput(inputId = 'form_author', label = 'Author/Consortium*', width = '100%'),
-								textInput(inputId = 'form_download_link', label = 'Link to Dataset', width = '100%')
+								fileInput(inputId = 'form_file', label = 'Upload Association Summary Statistics', width = '100%')
 							),
 							column(
 								width = 6,
 								textInput(inputId = 'form_year', label = 'Year*', width = '100%'),
 								textInput(inputId = 'form_journal', label = 'Journal*', width = '100%'),
 								textInput(inputId = 'form_link', label = 'Link to Publication*', width = '100%'),
-								fileInput(inputId = 'form_file', label = 'Choose File', width = '100%')
+								textInput(inputId = 'form_download_link', label = 'Link to Dataset', width = '100%'),
+								textInput(inputId = 'form_comments',label = 'Comments', width = '100%')
 							)
 						),
 						fluidRow(
