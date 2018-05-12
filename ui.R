@@ -541,8 +541,7 @@ shinyUI(fluidPage(
 					),
 					shinyjs::hidden(
 						div(id = 'batch_query_success',
-							h3('Your query has been submitted succesfully!'),
-							actionLink('submit_another_query','Submit another query')
+							h3('Your query has been submitted succesfully!')
 						)
 					)
 				),

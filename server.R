@@ -910,11 +910,4 @@ shinyServer(function(input, output, session) {
 		          authenticate = TRUE, 
 		          send = TRUE)
 	})
-
-
-	observeEvent(input$submit_another,{
-		shinyjs::reset('form')
-		shinyjs::show('form')
-		shinyjs::hide('thankyou_msg')
-	})
 })
