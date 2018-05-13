@@ -366,6 +366,16 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 }
 
 
+fwrite_return = function(x,file,sep){
+    fwrite(x=x,file=file,sep=sep)
+    return(file)
+}
+
+ggsave_return = function(filename,plot,width,height){
+    ggsave(filename=filename,plot=plot,width=width,height=height)
+    return(filename)
+}
+
 shinyServer(function(input, output, session) {
 	# Session-specific variables:
 	tmp_dir = paste0(tempdir(),'/',session$token,'/')
@@ -712,53 +722,50 @@ shinyServer(function(input, output, session) {
 	output$single_download = downloadHandler(
 		filename=function(){return('results.zip')},
 		content=function(file){
-			owd=setwd(tmp_dir)
-			on.exit({setwd(owd)})
+			data_fn = merged() %...>% fwrite_return(paste0(tmp_dir,'/data.tsv'),sep='\t')
+			fwrite(ld(),paste0(tmp_dir,'/ld.tsv'),sep='\t')
+
+			locuscompare = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
+			    make_locuscatter(
+			        merged = .$plot_data,
+			        title1 = title1(),
+			        title2 = title2(),
+			        ld = ld(),
+			        color = .$color,
+			        shape = .$shape,
+			        size = .$size,
+			        legend=FALSE)}
 			
-			fwrite(merged(),'data.tsv',sep='\t')
-			fwrite(ld(),'ld.tsv',sep='\t')
+			locuszoom1 = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
+			    make_locuszoom(
+			        metal = .$plot_data,
+			        title = title1(),
+			        ld = ld(),
+			        color = .$color,
+			        shape = .$shape,
+			        size = .$size,
+			        y_string='logp1')}
+			    
+			locuszoom2 = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
+			    make_locuszoom(
+			        metal = .$plot_data,
+			        title = title2(),
+			        ld = ld(),
+			        color = .$color,
+			        shape = .$shape,
+			        size = .$size,
+			        y_string='logp2')}
 
-			locuscompare = make_locuscatter(
-				merged = plot_data(),
-				title1 = title1(),
-				title2 = title2(),
-				ld = ld(),
-				color = color(),
-				shape = shape(),
-				size = size(),
-				legend=FALSE
-				)
-
-			locuszoom1 = make_locuszoom(
-				metal = plot_data()[,list(rsid,chr,pos,logp1,label)],
-				title = title1(),
-				ld = ld(),
-				color = color(),
-				shape = shape(),
-				size = size(),
-				y_string='logp1'
-				)
-
-			locuszoom2 = make_locuszoom(
-				metal = plot_data()[,list(rsid,chr,pos,logp2,label)],
-				title = title2(),
-				ld = ld(),
-				color = color(),
-				shape = shape(),
-				size = size(),
-				y_string='logp2'
-				)
-			ggsave_return = function(fn,p,width,height){
-				ggsave(filename = fn, plot = p, width = width, height = height)
-				return(fn)
-			}
+			
 			length_ = input$locuscompare_length
 			width_ = input$locuszoom_width
 			height_ = input$locuszoom_height
-			ggsave('locuscompare.jpeg',locuscompare,width=length_,height=length_,device='jpeg')
-			ggsave('locuszoom1.jpeg',locuszoom1,width=width_,height=height_)
-			ggsave('locuszoom2.jpeg',locuszoom2,width=width_,height=height_)
-			zip(file,c('data.tsv','ld.tsv','locuscompare.jpeg','locuszoom1.jpeg','locuszoom2.jpeg'))
+			locuscompare_fn = locuscompare %...>% ggsave_return(paste0(tmp_dir,'/locuscompare.jpg'),.,width=length_,height=length_)
+			locuszoom1_fn = locuszoom1 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom1.jpg'),.,width=width_,height=height_)
+			locuszoom2_fn = locuszoom2 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom2.jpg'),.,width=width_,height=height_)
+			browser()
+			promise_all(data_fn = data_fn, locuscompare_fn = locuscompare_fn, locuszoom1_fn = locuszoom1_fn, locuszoom2_fn = locuszoom2_fn) %...>% {
+			    c(.$data_fn,paste0(tmp_dir,'/ld.tsv'),.$locuscompare_fn,.$locuszoom1_fn,.$locuszoom2_fn) %>% utils::zip(file,.,flags = '-j')}
 		}
 		
 	)
