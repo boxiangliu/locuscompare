@@ -14,23 +14,15 @@ message(length(in_fn_list),' published GWAS.')
 count_trait = function(in_fn_list){
 	n_trait = foreach(fn = in_fn_list,.combine='c')%do%{
 		print(fn)
-		x = fread(sprintf('zcat %s',fn),nrow=2,header=TRUE)
-		print(colnames(x))
-		if (colnames(x)[1] == 'rsid') {
+		command = sprintf('zcat %s | cut -f1-1 | uniq',fn)
+		result = system(command,intern=TRUE)
+		if (str_detect(result[1],'rsid')){
 			n_trait = 1
-			return(n_trait)
-		} else if (colnames(x)[1] == 'trait'){
-			# x = fread(sprintf('zcat %s',fn),select=1)
-			# n_trait = length(unique(x$trait))
-			command = sprintf('zcat %s | cut -f1-1 | uniq',fn)
-			result = system(command,intern=TRUE)
-			split_result = unlist(str_split(result,pattern='\n'))
-			split_result = split_result[split_result!='trait']
-			n_trait = length(unique(split_result))
-			return(n_trait)
 		} else {
-			stop('The first column is either "trait" or "rsid".')
+			result = result[result!='trait']
+			n_trait = length(unique(result))
 		}
+		return(n_trait)
 	}
 	return(n_trait)
 }
