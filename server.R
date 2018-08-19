@@ -704,8 +704,10 @@ shinyServer(function(input, output, session) {
 			dplyr::select(rsid=SNP_B,r2=R2)
 		ld_snps=rbind(data.frame(rsid=snp(),r2=1),ld_snps)
 		ld_snps_2 = merged() %...>%
-			dplyr::select(rsid,chr,pos,pval1,pval2) %...>%
-			merge(ld_snps,by='rsid')
+		    dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %...>%
+			dplyr::select(rsid,chr,pos,pval1_disp,pval2_disp) %...>%
+			merge(ld_snps,by='rsid') %...>%
+		    dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value 1` = pval1_disp, `P-value 2` = pval2_disp)
 		return(ld_snps_2)
 	},width = '100%', striped = TRUE, hover = TRUE, bordered = TRUE)
 	
