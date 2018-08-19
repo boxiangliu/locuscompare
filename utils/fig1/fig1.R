@@ -131,7 +131,7 @@ p1 = locuscomparer::main(
 	in_fn2 = Coronary_Artery_PHACTR1_eqtl,
 	title1 = 'CAD GWAS',
 	title2 = 'Coronary Artery eQTL',
-	vcf_fn = '/mnt/data/shared/1KG/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',
+	vcf_fn = sprintf('%s/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir),
 	combine = FALSE
 	)
 
@@ -140,7 +140,7 @@ p2 = locuscomparer::main(
 	in_fn2 = Lung_PHACTR1_eqtl,
 	title1 = 'CAD GWAS',
 	title2 = 'Lung eQTL',
-	vcf_fn = '/mnt/data/shared/1KG/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',
+	vcf_fn = sprintf('%s/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir),
 	combine = FALSE,
 	snp = 'rs9349379'
 	)
@@ -153,7 +153,7 @@ p3 = locuscomparer::main(
 	in_fn2 = Adipose_PCSK9_eqtl,
 	title1 = 'CAD GWAS',
 	title2 = 'Adipose eQTL',
-	vcf_fn = '/mnt/data/shared/1KG/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',
+	vcf_fn = sprintf('%s/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir),
 	combine = FALSE,
 	snp = PCSK9_eqtl_lead_SNP
 	)
@@ -163,7 +163,7 @@ p4 = locuscomparer::main(
 	in_fn2 = Adipose_PCSK9_eqtl,
 	title1 = 'CAD GWAS',
 	title2 = 'Adipose eQTL',
-	vcf_fn = '/mnt/data/shared/1KG/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',
+	vcf_fn = sprintf('%s/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir),
 	combine = FALSE,
 	snp = PCSK9_gwas_lead_SNP
 	)

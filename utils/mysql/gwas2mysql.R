@@ -17,12 +17,12 @@ read_gwas = function(gwas_fn){
 	message(command)
 
 	gwas=tryCatch({
-		fread(command,header=TRUE)
+		fread(command,header=TRUE,fill=TRUE)
 		}, 
 		error = function(e) {NULL}
 		)
 	if (is.null(gwas)){
-		next
+		return(gwas)
 	}
 
 	if ('snp_pos' %in% colnames(gwas)) {setnames(gwas,'snp_pos','pos')}
@@ -30,6 +30,8 @@ read_gwas = function(gwas_fn){
 
 	if (!('trait' %in% colnames(gwas))) {
 		trait=str_replace(gwas_fn,'.txt','')
+		trait=str_replace(gwas_fn,'.gz','')
+		trait=str_split_fixed(trait,'_',4)[,2]
 		gwas$trait=trait
 	}
 	return(gwas)
@@ -85,6 +87,29 @@ index_table = function(table_name){
 		)
 }
 
+upload_large_table = function(gwas_fn){
+	out_fn = sprintf('processed_data/mysql/gwas2mysql/%s',str_replace(gwas_fn,'.gz',''))
+	message(out_fn)
+	table_name = str_replace_all(str_replace(gwas_fn,'.txt.gz',''),'-','_')
+	command = sprintf("zcat %s/%s | cut -f1,2,5 | sed '1 s/pvalue/pval/' > %s",gwas_dir,gwas_fn,out_fn)
+	system(command)
+
+	create_table(table_name)
+
+	dbExecute(
+		conn = locuscompare_pool,
+		statement = sprintf("load data local infile '%s' 
+		into table %s 
+		fields terminated by '\t'
+		lines terminated by '\n'
+		ignore 1 lines
+		(trait, rsid, pval);",
+		out_fn,
+		table_name)
+		)
+
+	file.remove(out_fn)
+}
 
 locuscompare_pool = dbPool(
 	drv = RMySQL::MySQL(), 
@@ -94,59 +119,89 @@ locuscompare_pool = dbPool(
 	password = aws_password
 	)
 
-gwas_dir = '/mnt/data/shared/datasets/gwas/batch1/'
-gwas_fn_list = list.files(gwas_dir)
-for (gwas_fn in gwas_fn_list){
-	print(gwas_fn)
-	gwas = read_gwas(gwas_fn)
-	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
-	create_table(table_name)
-	upload_gwas(gwas,table_name)
-	index_table(table_name)
-}
+##
+## The following batch 1 to 5 are on py-gy1: 
+##
 
-gwas_dir = '/mnt/data/shared/datasets/gwas/batch2/'
-gwas_fn_list = list.files(gwas_dir)
-for (gwas_fn in gwas_fn_list){
-	print(gwas_fn)
-	gwas = read_gwas(gwas_fn)
-	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
-	create_table(table_name)
-	upload_gwas(gwas,table_name)
-	index_table(table_name)
-}
+# gwas_dir = '/mnt/data/shared/datasets/gwas/batch1/'
+# gwas_fn_list = list.files(gwas_dir)
+# for (gwas_fn in gwas_fn_list){
+# 	print(gwas_fn)
+# 	gwas = read_gwas(gwas_fn)
+# 	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
+# 	create_table(table_name)
+# 	upload_gwas(gwas,table_name)
+# 	index_table(table_name)
+# }
 
-
-gwas_dir = '/mnt/data/shared/datasets/gwas/batch3_japanese/'
-gwas_fn_list = list.files(gwas_dir)
-for (gwas_fn in gwas_fn_list){
-	print(gwas_fn)
-	gwas = read_gwas(gwas_fn)
-	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
-	create_table(table_name)
-	upload_gwas(gwas,table_name)
-	index_table(table_name)
-}
-
-gwas_dir = '/mnt/data/shared/datasets/gwas/batch4_ukbb/'
-gwas_fn_list = list.files(gwas_dir)
-for (gwas_fn in gwas_fn_list){
-	print(gwas_fn)
-	gwas = read_gwas(gwas_fn)
-	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
-	create_table(table_name)
-	upload_gwas(gwas,table_name)
-	index_table(table_name)
-}
+# gwas_dir = '/mnt/data/shared/datasets/gwas/batch2/'
+# gwas_fn_list = list.files(gwas_dir)
+# for (gwas_fn in gwas_fn_list){
+# 	print(gwas_fn)
+# 	gwas = read_gwas(gwas_fn)
+# 	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
+# 	create_table(table_name)
+# 	upload_gwas(gwas,table_name)
+# 	index_table(table_name)
+# }
 
 
-gwas_dir = '/mnt/data/shared/datasets/gwas/batch5/'
+# gwas_dir = '/mnt/data/shared/datasets/gwas/batch3_japanese/'
+# gwas_fn_list = list.files(gwas_dir)
+# for (gwas_fn in gwas_fn_list){
+# 	print(gwas_fn)
+# 	gwas = read_gwas(gwas_fn)
+# 	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
+# 	create_table(table_name)
+# 	upload_gwas(gwas,table_name)
+# 	index_table(table_name)
+# }
+
+# gwas_dir = '/mnt/data/shared/datasets/gwas/batch4_ukbb/'
+# gwas_fn_list = list.files(gwas_dir)
+# for (gwas_fn in gwas_fn_list){
+# 	print(gwas_fn)
+# 	gwas = read_gwas(gwas_fn)
+# 	table_name = str_replace_all(str_replace(gwas_fn,'.txt',''),'-','_')
+# 	create_table(table_name)
+# 	upload_gwas(gwas,table_name)
+# 	index_table(table_name)
+# }
+
+
+# gwas_dir = '/mnt/data/shared/datasets/gwas/batch5/'
+# gwas_fn_list = list.files(gwas_dir,pattern='txt.gz$')
+# for (gwas_fn in gwas_fn_list){
+# 	print(gwas_fn)
+# 	gwas = read_gwas(gwas_fn)
+# 	table_name = str_replace_all(str_replace(gwas_fn,'.txt.gz',''),'-','_')
+# 	create_table(table_name)
+# 	upload_gwas(gwas,table_name)
+# 	index_table(table_name)
+# }
+
+##
+## Mike has created a new set of GWAS to replace the old 
+## batch 1 to 5. Note that the japanese ones and UKBB stayed the 
+## same. 
+## 
+gwas_dir = '/users/mgloud/projects/gwas/data/munged/'
 gwas_fn_list = list.files(gwas_dir,pattern='txt.gz$')
-for (gwas_fn in gwas_fn_list){
+gwas_fn_list = gwas_fn_list[!gwas_fn_list %in% c('GWAS_Waist-Format-2_Shungin_2015.txt.gz','GWAS_Waist-Format-1_Shungin_2015.txt.gz','GWAS_Blood-Cell-Traits_Astle_2016.txt.gz','GWAS_Circulating-Metabolites_Kettunen_2016.txt.gz')]
+
+for (gwas_fn in gwas_fn_list[c(134:length(gwas_fn_list))]){
 	print(gwas_fn)
 	gwas = read_gwas(gwas_fn)
+	if (is.null(gwas)){
+		write.table(gwas_fn,'utils/mysql/failed_gwas.txt',append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
+		next
+	}
 	table_name = str_replace_all(str_replace(gwas_fn,'.txt.gz',''),'-','_')
 	create_table(table_name)
 	upload_gwas(gwas,table_name)
 	index_table(table_name)
 }
+
+# Two large tables:
+upload_large_table('GWAS_Blood-Cell-Traits_Astle_2016.txt.gz')
+upload_large_table('GWAS_Circulating-Metabolites_Kettunen_2016.txt.gz')
