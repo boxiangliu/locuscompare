@@ -24,7 +24,9 @@ table_names = dbGetQuery(
     statement = "select table_name 
         from information_schema.tables
         where table_name like 'GWAS_%'
-        and table_name not like '%_trait'"
+        and table_name not like '%_trait'
+        and table_name not like '%UKBB%'
+        and table_name not like '%Kanai%'"
     )
 
 # Get trait:
@@ -37,7 +39,7 @@ for (i in 1:nrow(table_names)){
         )
 
 
-# Create GWAS trait table:
+    # Create GWAS trait table:
     if (str_detect(tn,'UKBB')){
         trait = merge(trait,UKBB_mapping)
     } else {
@@ -53,9 +55,13 @@ for (i in 1:nrow(table_names)){
     print(trait)
     
     # Upload to MySQL:
+    trait_table = sprintf('%s_trait',tn)
+    if (dbExistsTable(locuscompare_pool,trait_table)) {
+        dbRemoveTable(locuscompare_pool,trait_table)
+    }
     dbWriteTable(
         conn = locuscompare_pool, 
-        name = sprintf('%s_trait',tn),
+        name = trait_table,
         value = trait,
         overwrite = TRUE
     )
