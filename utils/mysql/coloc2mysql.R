@@ -26,6 +26,14 @@ munge_colocalization = function(x){
 	return(y)
 }
 
+get_gencode = function(){
+	gencode = dbGetQuery(
+        conn = locuscompare_pool,
+        statement = "select gene_id, chr, start 
+			from gencode_v19_gtex_v6p;"
+    )
+}
+
 create_table = function(table_name){
 	message('INFO - creating table...')
 	if (dbExistsTable(locuscompare_pool,table_name)) {
@@ -90,6 +98,9 @@ locuscompare_pool = dbPool(
 
 colocalization = read_colocalization(in_fn)
 colocalization = munge_colocalization(colocalization)
+gencode = get_gencode()
+colocalization = merge(colocalization,gencode,by='gene_id')
+setnames(colocalization,'start','pos')
 
 table_name = 'eCAVIAR'
 create_table(table_name)
