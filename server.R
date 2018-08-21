@@ -4,7 +4,9 @@
 
 options(shiny.maxRequestSize=100*1024^2) 
 
-# Functions:
+#############
+# Functions #
+#############
 select_snp=function(click,merged){
 	merged_subset=nearPoints(merged,click,maxpoints=1)
 	snp=merged_subset %>% dplyr::select(rsid) %>% unlist()
@@ -365,7 +367,6 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 	return(tar_fn)
 }
 
-
 fwrite_return = function(x,file,sep){
     fwrite(x=x,file=file,sep=sep)
     return(file)
@@ -377,15 +378,21 @@ ggsave_return = function(filename,plot,width,height){
 }
 
 shinyServer(function(input, output, session) {
-	# Session-specific variables:
+
+	#----------------------------#
+	# Session-specific variables #
+	#----------------------------#
+
 	tmp_dir = paste0(tempdir(),'/',session$token,'/')
 	dir.create(tmp_dir,recursive = TRUE)
 	Sys.chmod(tmp_dir, mode="0777")
 	hide(id = "loading-content", anim = TRUE, animType = "fade")    
-	show("app-content")
+	show(id = "app-content")
+
 	#---------------------#
 	#   Interactive mode  #
 	#---------------------#
+
 	observeEvent(input$study1,{
 		trait1=get_trait(input$study1)
 		updateSelectizeInput(session, "trait1", choices = trait1, server = TRUE)
@@ -559,9 +566,11 @@ shinyServer(function(input, output, session) {
 	color=reactive({
 		merged() %...>% dplyr::select(rsid) %...>% assign_color(snp(),ld())
 	})
+
 	shape=reactive({
 		merged() %...>% assign_shape(snp())
 	})
+
 	size=reactive({
 		merged() %...>% assign_size(snp())
 	})
@@ -775,6 +784,7 @@ shinyServer(function(input, output, session) {
 	#----------------# 
 	#   Batch mode   #
 	#----------------#
+
 	output$batch_file1_example = downloadHandler(
 		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015_batch.tsv')},
 		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015_batch.tsv',home_dir),file)},
@@ -870,7 +880,28 @@ shinyServer(function(input, output, session) {
 		shinyjs::show('batch_query')
 		shinyjs::hide('batch_query_success')
 	})
-	
+
+	#----------------#
+	# Colocalization #
+	#----------------#
+
+	output$coloc = renderPlot({
+		# p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
+		# 	make_locuscatter(
+		# 	merged = .$plot_data,
+		# 	title1 = title1(),
+		# 	title2 = title2(),
+		# 	ld = ld(),
+		# 	color = .$color,
+		# 	shape = .$shape,
+		# 	size = .$size,
+		# 	legend=FALSE
+		# 	)
+		# }
+		p = ggplot() + geom_blank()
+		return(p)
+	})
+
 	#---------------# 
 	# Download page #
 	#---------------#

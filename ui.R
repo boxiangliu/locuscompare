@@ -3,9 +3,9 @@
 # 2018-01-01
 
 
-get_study_list = function(locuscompare_pool) {
+get_study_list = function(locuscompare_pool,pattern = 'eQTL|GWAS') {
 	table_names = dbListTables(locuscompare_pool)
-	idx = which(str_detect(table_names, 'eQTL|GWAS') & !str_detect(table_names,'_trait'))
+	idx = which(str_detect(table_names, pattern) & !str_detect(table_names,'_trait'))
 	table_names = table_names[idx]
 	study_category = str_split_fixed(table_names, '_', 2)[, 1]
 	study_list = foreach(i = unique(study_category), .combine = c) %do% {
@@ -16,12 +16,19 @@ get_study_list = function(locuscompare_pool) {
 	return(study_list)
 }
 
-study_list=get_study_list(locuscompare_pool)
+
+study_list = get_study_list(locuscompare_pool, pattern = 'eQTL|GWAS')
+gwas_list = get_study_list(locuscompare_pool, pattern = 'GWAS')
+eqtl_list = get_study_list(locuscompare_pool, pattern = 'eQTL')
 
 shinyUI(fluidPage(
 	useShinyjs(),
 	extendShinyjs(script = sprintf('%s/init.js',home_dir)),
-	# Loading message:
+
+	###################
+	# Loading message #
+	###################
+
 	div(
 		id = "loading-content",
 		h2("Loading...")
@@ -32,9 +39,13 @@ shinyUI(fluidPage(
 			navbarPage(
 				title = 'LocusCompare',
 				id = 'navbarPage',
-				# Interactive input panel:
+
+				###########################
+				# Interactive input panel #
+				###########################
+
 				tabPanel(
-					'Interactive Plot',
+					title = 'Interactive Plot',
 					fluidRow(h3('Select Studies')),
 					
 					# Select study 1:
@@ -204,9 +215,14 @@ shinyUI(fluidPage(
 						)
 					)
 				),
-				# Interactive plot panel:
+
+				##########################
+				# Interactive plot panel #
+				##########################
+
 				tabPanel(
-					'Plots',
+					title = 'Plots',
+
 					fluidRow(
 						column(4,
 							actionButton(
@@ -215,7 +231,9 @@ shinyUI(fluidPage(
 							)
 						)
 					),
+
 					br(),
+
 					fluidRow(
 						column(
 							6,
@@ -237,14 +255,23 @@ shinyUI(fluidPage(
 							)
 						)
 					),
+
 					fluidRow(
-						column(6,
-						       shinycssloaders::withSpinner(plotOutput('locuscompare', height = '500px', click = 'plot_click'))
+						column(
+							width = 6,
+							shinycssloaders::withSpinner(
+								plotOutput(
+									outputId = 'locuscompare', 
+									height = '500px', 
+									click = 'plot_click'
+								)
+							)
 						),
-						column(6,
+						column(
+							width = 6,
 							fluidRow(
 								column(12,
-								       shinycssloaders::withSpinner(
+									shinycssloaders::withSpinner(
 										plotOutput(
 											outputId = 'locuszoom1',
 											click = 'plot_click',
@@ -270,8 +297,10 @@ shinyUI(fluidPage(
 							)
 						)
 					),
+
 					br(),
 					br(),
+
 					fluidRow(
 						column(
 							4,
@@ -332,7 +361,11 @@ shinyUI(fluidPage(
 						)
 					)
 				),
-				# Batch mode
+
+				##############
+				# Batch mode #
+				##############
+
 				tabPanel(
 					title = 'Batch Query',
 					div(
@@ -545,7 +578,89 @@ shinyUI(fluidPage(
 						)
 					)
 				),
-				# Download page
+
+				########################
+				# Colocalization panel #
+				########################
+				
+				tabPanel(
+					title = 'Colocalization',
+					fluidRow(h3('Select Studies')),
+
+					fluidRow(
+						column(
+							width = 2,
+							tags$i(h3('Select GWAS'))
+						),
+						column(
+							width = 5,
+							selectInput(
+								inputId = 'coloc_gwas',
+								label = 'GWAS study',
+								choices = c('Choose' = '', gwas_list),
+								width = '100%'
+							)
+						),
+						column(
+							width = 5,
+							selectizeInput(
+								inputId = 'coloc_trait',
+								label = 'Trait',
+								choices = c('Choose' = ''),
+								width = '100%'
+							)
+						)
+					),
+
+					fluidRow(
+						column(
+							width = 2,
+							tags$i(h3('Select eQTL'))
+						),
+						column(
+							width = 10,
+							selectizeInput(
+								inputId = 'coloc_eqtl',
+								label = 'eQTL',
+								choices = c('Choose' = '', eqtl_list),
+								width = '100%'
+							)
+						)
+					),
+
+					br(),
+
+					fluidRow(
+						column(
+							width = 12,
+							actionButton(
+								inputId = 'plot_coloc',
+								label = 'Plot colocalization', 
+								width = '100%',
+								class = "btn-primary"
+							)
+						)
+					),
+
+					fluidRow(
+						column(
+							width = 12,
+							shinycssloaders::withSpinner(
+								plotOutput(
+									outputId = 'coloc',
+									click = 'plot_click',
+									dblclick = 'plot_dblclick',
+									brush = brushOpts(id = 'plot_brush', direction = 'x'),
+									height = '250px'
+								)
+							)
+						)
+					)
+				),
+				#################
+				# Download page #
+				#################
+
 				tabPanel(
 					title = 'Download',
 					fluidRow(
@@ -574,7 +689,11 @@ shinyUI(fluidPage(
 							)
 						)
 				),
-				# Share page
+
+				##############
+				# Share page #
+				##############
+
 				tabPanel(
 					title = 'Share',
 					div(id = 'form',
