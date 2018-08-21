@@ -32,6 +32,14 @@ get_gencode = function(){
         statement = "select gene_id, chr, start 
 			from gencode_v19_gtex_v6p;"
     )
+    return(gencode)
+}
+
+merge_with_gencode = function(colocalization){
+	colocalization = merge(colocalization,gencode,by='gene_id')
+	setnames(colocalization,'start','pos')
+	setcolorder(colocalization,c('gwas','trait','eqtl','gene_id','chr','pos','clpp'))
+	return(colocalization)
 }
 
 create_table = function(table_name){
@@ -48,6 +56,8 @@ create_table = function(table_name){
 		trait varchar(64),
 		eqtl varchar(64),
 		gene_id varchar(20),
+		chr varchar(5),
+		pos integer,
 		clpp double);",table_name,table_name)
 		)
 }
@@ -69,7 +79,7 @@ upload_table = function(colocalization,table_name){
 			fields terminated by ','
 			lines terminated by '\n'
 			ignore 1 lines
-			(gwas, trait, eqtl, gene_id, clpp);",table_name)
+			(gwas, trait, eqtl, gene_id, chr, pos, clpp);",table_name)
 			)
 
 		unlink('coloc_tmp.csv')
@@ -99,8 +109,8 @@ locuscompare_pool = dbPool(
 colocalization = read_colocalization(in_fn)
 colocalization = munge_colocalization(colocalization)
 gencode = get_gencode()
-colocalization = merge(colocalization,gencode,by='gene_id')
-setnames(colocalization,'start','pos')
+colocalization = merge_with_gencode(colocalization)
+colocalization
 
 table_name = 'eCAVIAR'
 create_table(table_name)
