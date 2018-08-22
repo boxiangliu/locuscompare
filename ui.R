@@ -352,11 +352,7 @@ shinyUI(fluidPage(
 								)
 							),
 							fluidRow(
-								# div(
-								#     style = 'overflow-x: scroll', 
-								#     tableOutput('ld_snps')
-								# ) 
-								tableOutput('ld_snps')
+								dataTableOutput('ld_snps')
 							)
 						)
 					)
@@ -642,21 +638,27 @@ shinyUI(fluidPage(
 						)
 					),
 
+					br(),
+
 					fluidRow(
 						column(
 							width = 12,
 							shinycssloaders::withSpinner(
 								plotOutput(
 									outputId = 'coloc',
-									click = 'plot_click',
-									dblclick = 'plot_dblclick',
-									brush = brushOpts(id = 'plot_brush', direction = 'x'),
+									click = 'coloc_plot_click',
+									brush = brushOpts(id = 'coloc_plot_brush', direction = 'x'),
 									height = '250px'
 								)
 							)
 						)
+					),
+
+					fluidRow(
+						dataTableOutput(outputId = 'coloc_gene')
 					)
 				),
+
 				#################
 				# Download page #
 				#################

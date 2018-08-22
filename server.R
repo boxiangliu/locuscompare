@@ -7,13 +7,18 @@ options(shiny.maxRequestSize=100*1024^2)
 #############
 # Functions #
 #############
-select_snp=function(click,merged){
-	merged_subset=nearPoints(merged,click,maxpoints=1)
-	snp=merged_subset %>% dplyr::select(rsid) %>% unlist()
+select_snp = function(click,merged){
+	merged_subset = nearPoints(merged,click,maxpoints=1)
+	snp = merged_subset %>% dplyr::select(rsid) %>% unlist()
 	return(snp)
 }
 
-convert_unit=function(x){
+select_gene = function(click,x){
+	subset = nearPoints(x, click, maxpoints = 1)
+	return(subset)
+}
+
+convert_unit = function(x){
 	x = tolower(x)
 	shiny::validate(need(str_detect(x,'[0-9]+(kb|mb)*'),sprintf('%s is not recognized. Try e.g. 100kb.',x)))
 
@@ -110,7 +115,7 @@ get_trait=function(study, conn = locuscompare_pool){
 }
 
 get_study = function(valid_study,study,trait,datapath,coordinate){
-	conn <- do.call(DBI::dbConnect, args)
+	conn = do.call(DBI::dbConnect, args)
 	on.exit(DBI::dbDisconnect(conn))
 	if (str_detect(study,'^eQTL')){
 		res = dbGetQuery(
@@ -512,8 +517,8 @@ shinyServer(function(input, output, session) {
 	    d2_non_empty = d2() %...>% nrow() %...>% `>`(0)
 	    shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you input the correct region?'))
 	    shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
-		merged= promise_all(d1 = d1(), d2= d2()) %...>% {merge(.$d1,.$d2,by='rsid',suffixes=c('1','2'),all=FALSE)}
-		merged= merged %...>% get_position()
+		merged = promise_all(d1 = d1(), d2= d2()) %...>% {merge(.$d1,.$d2,by='rsid',suffixes=c('1','2'),all=FALSE)}
+		merged = merged %...>% get_position()
 		check_overlap = merged %...>% nrow() %...>% `>`(0)
 		shiny::validate(need(check_overlap,'No overlapping SNPs between two studies'))
 		merged = merged %...>% setDT()
@@ -707,7 +712,7 @@ shinyServer(function(input, output, session) {
 	#   return(ld_snps_2)
 	# })
 
-	output$ld_snps = renderTable({
+	output$ld_snps = renderDataTable({
 		ld_snps=ld() %>%
 			dplyr::filter(SNP_A==snp(),R2>=input$r2_threshold) %>%
 			dplyr::select(rsid=SNP_B,r2=R2)
@@ -718,7 +723,7 @@ shinyServer(function(input, output, session) {
 			merge(ld_snps,by='rsid') %...>%
 		    dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value 1` = pval1_disp, `P-value 2` = pval2_disp)
 		return(ld_snps_2)
-	},width = '100%', striped = TRUE, hover = TRUE, bordered = TRUE)
+	})#,width = '100%', striped = TRUE, hover = TRUE, bordered = TRUE)
 	
 	output$file1_example = downloadHandler(
 		filename = function(){return('PHACTR1_Artery_Coronary.tsv')},
@@ -884,22 +889,85 @@ shinyServer(function(input, output, session) {
 	#----------------#
 	# Colocalization #
 	#----------------#
+	get_eCAVIAR = function(coloc_gwas, coloc_trait, coloc_eqtl){
+		conn = do.call(DBI::dbConnect, args)
+		statement = sprintf(
+			"select * 
+			from eCAVIAR
+			where gwas = '%s'
+			and trait = '%s'
+			and eqtl = '%s'",
+			coloc_gwas,
+			coloc_trait,
+			coloc_eqtl
+		)
+		eCAVIAR = dbGetQuery(
+			conn = conn,
+			statement = statement
+			)
+		setDT(eCAVIAR)
+		setnames(eCAVIAR,'chr','chrom')
+		if (!str_detect(eCAVIAR$chrom[1],'chr')){
+			eCAVIAR[,chrom := paste0('chr',chrom)]
+		}
+		return(eCAVIAR)
+	}
+
+	observeEvent(
+		eventExpr = input$coloc_gwas,
+		handlerExpr = {
+			coloc_trait = get_trait(input$coloc_gwas)
+			updateSelectizeInput(session, "coloc_trait", choices = coloc_trait, server = TRUE)
+		}
+	)
+
+	eCAVIAR = eventReactive(
+		eventExpr = input$plot_coloc,
+		valueExpr = {
+			coloc_gwas_ = input$coloc_gwas
+			coloc_trait_ = input$coloc_trait
+			coloc_eqtl_ = input$coloc_eqtl
+			future({get_eCAVIAR(coloc_gwas_, coloc_trait_, coloc_eqtl_)})
+		}
+	)
+
+	build = 'hg19'
+	color1 = 'black'
+	color2 = 'grey'
+	chrom_lengths = manhattan::get_chrom_lengths(build)
+	xmax = manhattan::get_total_length(chrom_lengths)
+	x_breaks = manhattan::get_x_breaks(chrom_lengths)
+	color_map = c(color1,color2)
+	names(color_map) = c(color1,color2)
+
+	coloc_plot_data = reactive({
+		eCAVIAR() %...>% 
+			rename(y = clpp) %...>%
+			manhattan::add_cumulative_pos(.,build) %...>%
+			manhattan::add_color(., color1 = color1, color2 = color2)
+	})
 
 	output$coloc = renderPlot({
-		# p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-		# 	make_locuscatter(
-		# 	merged = .$plot_data,
-		# 	title1 = title1(),
-		# 	title2 = title2(),
-		# 	ld = ld(),
-		# 	color = .$color,
-		# 	shape = .$shape,
-		# 	size = .$size,
-		# 	legend=FALSE
-		# 	)
-		# }
-		p = ggplot() + geom_blank()
+		p = coloc_plot_data() %...>% 
+			{ggplot2::ggplot(.,aes(x=cumulative_pos,y=y,color=color))+
+				geom_point()+
+				theme_classic()+
+				scale_x_continuous(limits=c(0,xmax),expand=c(0.01,0),breaks=x_breaks,
+				                   labels=names(x_breaks),name='Chromosome')+
+				scale_y_continuous(expand=c(0.01,0),name=expression('-log10(P-value)'))+
+				scale_color_manual(values=color_map,guide='none')}
 		return(p)
+	})
+
+	selected_gene = eventReactive(
+		eventExpr = input$coloc_plot_click,
+		valueExpr = {
+			coloc_plot_data() %...>% select_gene(input$coloc_plot_click,.)
+		}
+	)
+
+	output$coloc_gene = renderDataTable({
+		selected_gene()
 	})
 
 	#---------------# 
