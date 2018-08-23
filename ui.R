@@ -50,6 +50,7 @@ shinyUI(fluidPage(
 					
 					# Select study 1:
 					fluidRow(h3('Study 1')),
+					# fluidRow(textOutput(outputId='debug')),
 					fluidRow(
 						column(2,
 								tags$i(h3('Select Published'))
@@ -90,7 +91,11 @@ shinyUI(fluidPage(
 								)
 						)
 					),
-					
+
+					fluidRow(
+						span(textOutput(outputId = 'check_study1'),style='color:gray')
+					),
+
 					# Select study 2:
 					fluidRow(h3('Study 2')),
 					fluidRow(
@@ -133,20 +138,28 @@ shinyUI(fluidPage(
 								)
 						)
 					),
-					hr(),
+
+
+					fluidRow(
+						span(textOutput(outputId = 'check_study2'),style='color:gray')
+					),
+
 					fluidRow(
 						h3('Select a region (maximum 2Mb flanking window)')
 					),
+
 					fluidRow(
 						column(3,tags$i(h3('SNP'))),
 						column(3, textInput(inputId = 'reference_snp', label = 'Reference SNP', placeholder = 'e.g. rs1698683')),
 						column(3, numericInput(inputId = 'snp_window', label = 'Flanking Window (Kb)', value = 100))
 					),
+
 					fluidRow(
 						column(3,tags$i(h3(tags$b('Or'),'Gene'))),
 						column(3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. PHACTR1')),
 						column(3, numericInput(inputId = 'gene_window', label = 'Flanking Window (Kb)', value = 100))
 					),
+
 					fluidRow(
 						column(3, tags$i(h3(tags$b('Or'),'Coordinate'))),
 						column(
@@ -160,7 +173,13 @@ shinyUI(fluidPage(
 						column(3, numericInput(inputId = 'start',label = 'Start', value = NULL, min = 1)),
 						column(3, numericInput(inputId = 'end', label = 'End', value = NULL, min = 1))
 					),
+
+					fluidRow(
+						span(textOutput(outputId = 'check_region'),style = 'color:gray')
+					),
+
 					br(),
+
 					fluidRow(
 						column(
 							12,
@@ -172,19 +191,16 @@ shinyUI(fluidPage(
 							)
 						)
 					),
-					fluidRow(
-						column(
-							12,
-							textOutput(outputId = 'interactive_error')
-						)
-					),
+
 					fluidRow(
 						column(
 							12,
 							shinycssloaders::withSpinner(plotOutput(outputId = 'blank_plot', height = '1px'))
 						)
 					),
+
 					br(),
+
 					fluidRow(
 						column(
 							4,
@@ -459,6 +475,13 @@ shinyUI(fluidPage(
 								)
 							)
 						)
+					),
+
+					fluidRow(
+						column(
+							12,
+							shinycssloaders::withSpinner(plotOutput(outputId = 'blank_plot_coloc', height = '1px'))
+						)
 					)
 				),
 
@@ -712,21 +735,20 @@ shinyUI(fluidPage(
 						)
 				),
 
-				##############
-				# Share page #
-				##############
+				###################
+				# Contribute page #
+				###################
 
 				tabPanel(
-					title = 'Share',
+					title = 'Contribute',
 					div(id = 'form',
 						fluidRow(
 							column(
 								width = 12,
 								h3('Share your study'),
-								p('Making a dataset publically available increases the visibility of your research. Current 
-								  GWAS datasets are distributed across various websites, making them difficult to find 
+								p('Current GWAS datasets are distributed across various websites, making them difficult to find 
 								  and download. LocusCompare provides a platform for sharing GWAS and QTL datasets. If you would like
-								  to host your data on LocusCompare, please fill out the following form. 
+								  to contribute your data to LocusCompare, please fill out the following form. 
 								  Alternatively, you can email', tags$a(href="mailto:bliu2@stanford.edu", "Boxiang Liu"), 'or', 
 								  tags$a(href="mailto:mgloud@stanford.edu", "Mike Gloudemans"),
 								  'to add your study.',tags$b('(* = mandatory)'))
