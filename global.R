@@ -20,6 +20,7 @@ plan(multiprocess)
 library(mailR)
 library(shinycssloaders)
 library(googledrive)
+library(manhattan)
 
 # Variables:
 locuscompare_pool = dbPool(

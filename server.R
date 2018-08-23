@@ -4,14 +4,21 @@
 
 options(shiny.maxRequestSize=100*1024^2) 
 
-# Functions:
-select_snp=function(click,merged){
-	merged_subset=nearPoints(merged,click,maxpoints=1)
-	snp=merged_subset %>% dplyr::select(rsid) %>% unlist()
+#############
+# Functions #
+#############
+select_snp = function(click,merged){
+	merged_subset = nearPoints(merged,click,maxpoints=1)
+	snp = merged_subset %>% dplyr::select(rsid) %>% unlist()
 	return(snp)
 }
 
-convert_unit=function(x){
+select_row = function(click,x){
+	subset = nearPoints(x, click, maxpoints = 1)
+	return(subset)
+}
+
+convert_unit = function(x){
 	x = tolower(x)
 	shiny::validate(need(str_detect(x,'[0-9]+(kb|mb)*'),sprintf('%s is not recognized. Try e.g. 100kb.',x)))
 
@@ -107,37 +114,41 @@ get_trait=function(study, conn = locuscompare_pool){
 	return(trait)
 }
 
-get_study = function(valid_study,study,trait,datapath,coordinate){
-	conn <- do.call(DBI::dbConnect, args)
+get_study = function(selected_published,study,trait,datapath,coordinate){
+	conn = do.call(DBI::dbConnect, args)
 	on.exit(DBI::dbDisconnect(conn))
 	if (str_detect(study,'^eQTL')){
+		if (str_detect(trait,'ENSG')){
+			res = trait
+		} else {
+			res = dbGetQuery(
+				conn = conn,
+				statement = sprintf(
+					"select gene_id 
+					from gencode_v19_gtex_v6p
+					where gene_name = '%s'",
+					trait
+					)
+				)
+			trait = res$gene_id[1]
+		}
+	}
+	
+	if (str_detect(study,'^GWAS')){
 		res = dbGetQuery(
 			conn = conn,
 			statement = sprintf(
-				"select gene_id 
-				from gencode_v19_gtex_v6p
-				where gene_name = '%s'",
+				"select trait
+				from %s_trait
+				where display_trait = '%s'",
+				study,
 				trait
-				)
 			)
-		trait = res$gene_id[1]
-	}
-    
-	if (str_detect(study,'^GWAS')){
-	    res = dbGetQuery(
-	        conn = conn,
-	        statement = sprintf(
-	            "select trait
-	            from %s_trait
-	            where display_trait = '%s'",
-	            study,
-	            trait
-	        )
-	    )
-	    trait = res$trait[1]
+		)
+		trait = res$trait[1]
 	}
 	
-	if (valid_study){
+	if (selected_published){
 		res=dbGetQuery(
 			conn = conn,
 			statement = sprintf(
@@ -177,6 +188,30 @@ get_study = function(valid_study,study,trait,datapath,coordinate){
 	}
 	setDT(res)
 	return(res)
+}
+
+get_eCAVIAR = function(gwas, trait, eqtl){
+	conn = do.call(DBI::dbConnect, args)
+	statement = sprintf(
+		"select * 
+		from eCAVIAR
+		where gwas = '%s'
+		and trait = '%s'
+		and eqtl = '%s'",
+		gwas,
+		trait,
+		eqtl
+	)
+	eCAVIAR = dbGetQuery(
+		conn = conn,
+		statement = statement
+		)
+	setDT(eCAVIAR)
+	setnames(eCAVIAR,'chr','chrom')
+	if (!str_detect(eCAVIAR$chrom[1],'chr')){
+		eCAVIAR[,chrom := paste0('chr',chrom)]
+	}
+	return(eCAVIAR)
 }
 
 get_batch_study = function(valid_study,study,datapath,coordinate){
@@ -224,12 +259,12 @@ epochTime = function() {
 	as.integer(Sys.time())
 }
 
-humanTime <- function() {
+humanTime = function() {
 	format(Sys.time(), "%Y%m%d-%H%M%OS")
 }
 
-saveData <- function(data,dir,name) {
-	fileName <- sprintf("%s_%s_info.csv",
+saveData = function(data,dir,name) {
+	fileName = sprintf("%s_%s_info.csv",
 		name,
 		humanTime())
 
@@ -365,27 +400,32 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 	return(tar_fn)
 }
 
-
 fwrite_return = function(x,file,sep){
-    fwrite(x=x,file=file,sep=sep)
-    return(file)
+	fwrite(x=x,file=file,sep=sep)
+	return(file)
 }
 
 ggsave_return = function(filename,plot,width,height){
-    ggsave(filename=filename,plot=plot,width=width,height=height)
-    return(filename)
+	ggsave(filename=filename,plot=plot,width=width,height=height)
+	return(filename)
 }
 
 shinyServer(function(input, output, session) {
-	# Session-specific variables:
+
+	#----------------------------#
+	# Session-specific variables #
+	#----------------------------#
+
 	tmp_dir = paste0(tempdir(),'/',session$token,'/')
 	dir.create(tmp_dir,recursive = TRUE)
 	Sys.chmod(tmp_dir, mode="0777")
 	hide(id = "loading-content", anim = TRUE, animType = "fade")    
-	show("app-content")
+	show(id = "app-content")
+
 	#---------------------#
 	#   Interactive mode  #
 	#---------------------#
+
 	observeEvent(input$study1,{
 		trait1=get_trait(input$study1)
 		updateSelectizeInput(session, "trait1", choices = trait1, server = TRUE)
@@ -396,150 +436,305 @@ shinyServer(function(input, output, session) {
 		updateSelectizeInput(session, "trait2", choices = trait2, server = TRUE)
 	})
 
-	valid_study1 = eventReactive(input$visualize,{isTruthy(input$study1) & isTruthy(input$trait1)})
-	valid_study2 = eventReactive(input$visualize,{isTruthy(input$study2) & isTruthy(input$trait2)})
+	selected_published_1 = reactive({isTruthy(input$study1) & isTruthy(input$trait1)})
+	selected_published_2 = reactive({isTruthy(input$study2) & isTruthy(input$trait2)})
 
-	valid_file1 = eventReactive(input$visualize,{isTruthy(input$file1)})
-	valid_file2 = eventReactive(input$visualize,{isTruthy(input$file2)})
-
-	valid_snp_region = eventReactive(input$visualize,{isTruthy(input$reference_snp) & isTruthy(input$snp_window)})
-	valid_gene_region = eventReactive(input$visualize,{isTruthy(input$reference_gene) & isTruthy(input$gene_window)})
-	valid_coordinate = eventReactive(input$visualize,{isTruthy(input$chr) & isTruthy(input$start) & isTruthy(input$end)})
-	
-	output$interactive_error = renderText({
-		shiny::validate(need(valid_study1() | valid_file1(),'Please provide study 1!'))
-		shiny::validate(need(!(valid_study1() & valid_file1()),'Please select or upload study 1, but not both!'))
-		
-		shiny::validate(need(valid_study2() | valid_file2(),'Please provide study 2!'))
-		shiny::validate(need(!(valid_study2() & valid_file2()),'Please select or upload study 2, but not both!'))
-
-		shiny::validate(need(any(valid_snp_region(),valid_gene_region(),valid_coordinate()),'Please provide a region!'))
-		shiny::validate(need({valid_snp_region()+valid_gene_region()+valid_coordinate()==1},'Please only provide one of SNP, gene, or coordinate!'))
-		
+	study1_total = reactive({
+		uploaded_new = isTruthy(input$file1) & isTruthy(input$file1_trait)
+		return(selected_published_1() + uploaded_new)
 	})
 
-	observeEvent(input$visualize, {
-		shiny::validate(need(valid_study1() | valid_file1(),'Please provide study 1!'))
-		shiny::validate(need(!(valid_study1() & valid_file1()),'Please select or upload study 1, but not both!'))
-		
-		shiny::validate(need(valid_study2() | valid_file2(),'Please provide study 2!'))
-		shiny::validate(need(!(valid_study2() & valid_file2()),'Please select or upload study 2, but not both!'))
+	output$check_study1 = renderText({
+		if (study1_total() == 0){
+			return('Please either select or upload Study 1.')
+		} else if (study1_total() == 1){
+			return('Study 1 has a valid input.')
+		} else if (study1_total() == 2){
+			return('Please either select or upload a study, but not both.')
+		} else {
+			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
+		}
+	})
 
-		shiny::validate(need(any(valid_snp_region(),valid_gene_region(),valid_coordinate()),'Please provide a region!'))
-		shiny::validate(need({valid_snp_region()+valid_gene_region()+valid_coordinate()==1},'Please only provide one of SNP, gene, or coordinate!'))
+	study2_total = reactive({
+		uploaded_new = isTruthy(input$file2) & isTruthy(input$file2_trait)
+		return(selected_published_2() + uploaded_new)
+	})
+
+	output$check_study2 = renderText({
+		if (study2_total() == 0){
+			return('Please either select or upload Study 2.')
+		} else if (study2_total() == 1){
+			return('Study 2 has a valid input.')
+		} else if (study2_total() == 2){
+			return('Please either select or upload a study, but not both.')
+		} else {
+			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
+		}
+	})
+
+	selected_snp_region = reactive({isTruthy(input$reference_snp) & isTruthy(input$snp_window)})
+	selected_gene_region = reactive({isTruthy(input$reference_gene) & isTruthy(input$gene_window)})
+	selected_coordinate = reactive({isTruthy(input$chr) & isTruthy(input$start) & isTruthy(input$end)})
+
+	region_total = reactive({
+		return(selected_snp_region() + selected_gene_region() + selected_coordinate())
+	})
+
+	output$check_region = renderText({
+		if (region_total() == 0){
+			return('Please either type in a SNP, a gene, or a coordinate.')
+		} else if (region_total() == 1){
+			return('Region has a valid input.')
+		} else if (region_total() > 1){
+			return('Please select only one of SNP, gene, or coordinate.')
+		} else {
+			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
+		}
+	})
+
+	interactive_to_locuscompare_ready = reactive({
+		study1_total() == 1 & study2_total() == 1 & region_total() == 1
+	})
+
+	coloc_to_locuscompare_ready = reactive({
+		isTruthy(input$coloc_gwas) & isTruthy(input$coloc_trait) & isTruthy(input$coloc_eqtl)
+	})
+
+	either_to_locuscompare_ready = reactive({
+		interactive_to_locuscompare_ready() | coloc_to_locuscompare_ready()
+	})
+
+	observe({
+		shinyjs::toggleState('interactive_to_locuscompare', interactive_to_locuscompare_ready())
+	})
+
+	counter = reactiveVal(list(count = 0, from = ''))
+
+	observeEvent(
+		eventExpr = {input$interactive_to_locuscompare},
+		handlerExpr = {
+			new_count = counter()[['count']] + 1
+			new_from = 'interactive_to_locuscompare'
+			counter(list(count = new_count, from = new_from))
+		}
+	)
+
+	observeEvent(
+		eventExpr = {input$coloc_to_locuscompare},
+		handlerExpr = {
+			new_count = counter()[['count']] + 1
+			new_from = 'coloc_to_locuscompare'
+			counter(list(count = new_count, from = new_from))
+		}
+	)
+
+	observe({
+		print(counter())
+	})
+
+	observeEvent(counter(), {
+		shiny::req(either_to_locuscompare_ready())
 		showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
 	})
 
 	observeEvent(input$back,{
+		print(counter())
+		if (counter()[['from']] == 'interactive_to_locuscompare'){
+			print('going to interactive')
+			showTab(inputId = 'navbarPage', target = 'Interactive Plot', select = TRUE)
+		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+			print('going to coloc')
+			showTab(inputId = 'navbarPage', target = 'Colocalization', select = TRUE)
+		} 
 		hideTab(inputId = "navbarPage", target = "Plots")
-	    shinyjs::reset('Plots')
+		shinyjs::reset('Plots')
 	})
 
-	coordinate = eventReactive(input$visualize,{
-		shiny::validate(need(any(valid_snp_region(),valid_gene_region(),valid_coordinate()),'Please provide a region!'))
-		shiny::validate(need({valid_snp_region()+valid_gene_region()+valid_coordinate()==1},'Please only provide one of SNP, gene, or coordinate!'))
+	coordinate = eventReactive(counter(),{
+		if (counter()[['from']] == 'interactive_to_locuscompare'){
 
-		if (valid_snp_region()){
-			chr_pos=dbGetQuery(
+			if (selected_snp_region()){
+
+				chr_pos=dbGetQuery(
+					conn = locuscompare_pool,
+					statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s";',input$reference_snp)
+					)
+				shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',input$reference_snp)))
+				shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',input$reference_snp)))
+
+				res=list(
+					chr = chr_pos$chr,
+					start = chr_pos$pos - input$snp_window*1e3,
+					end = chr_pos$pos + input$snp_window*1e3
+					)
+
+			} else if (selected_gene_region()){
+
+				chr_start_end=dbGetQuery(
+					conn = locuscompare_pool,
+					statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s";',input$reference_gene)
+					)
+				shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',input$reference_gene)))
+				shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',input$reference_gene)))
+
+				res=list(
+					chr = chr_start_end$chr,
+					start = chr_start_end$start - input$gene_window*1e3,
+					end = chr_start_end$start + input$gene_window*1e3
+					)
+
+			} else if (selected_coordinate()){
+
+				res=list(
+					chr = input$chr,
+					start = input$start,
+					end = input$end
+					)
+
+			} else {
+
+				res = NULL
+
+			}
+
+		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+
+			shiny::validate(need(coloc_gene_id(), label = 'coloc_gene_id'))
+
+			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_id = "%s";',coloc_gene_id())
+
+			chr_start_end = dbGetQuery(
 				conn = locuscompare_pool,
-				statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s";',input$reference_snp)
+				statement = statement
 				)
-			shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',input$reference_snp)))
-			shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',input$reference_snp)))
 
-			res=list(
-				chr = chr_pos$chr,
-				start = chr_pos$pos - input$snp_window*1e3,
-				end = chr_pos$pos + input$snp_window*1e3
-				)
-		}
-		if (valid_gene_region()){
-			chr_start_end=dbGetQuery(
-				conn = locuscompare_pool,
-				statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s";',input$reference_gene)
-				)
-			shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',input$reference_gene)))
-			shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',input$reference_gene)))
+			# shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',coloc_gene_id())))
+			# shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',coloc_gene_id())))
 
-			res=list(
+			res = list(
 				chr = chr_start_end$chr,
-				start = chr_start_end$start - input$gene_window*1e3,
-				end = chr_start_end$start + input$gene_window*1e3
+				start = chr_start_end$start - 1e6,
+				end = chr_start_end$start + 1e6
 				)
+
+
+		} else {
+
+			shiny::req(FALSE)
+
 		}
-		if (valid_coordinate()){
-			res=list(
-				chr = input$chr,
-				start = input$start,
-				end = input$end
-				)
-		}
+
 		return(res)
 	})
 
+	d1 = eventReactive(counter(),{
 
-	d1 = eventReactive(input$visualize,{
-		shiny::validate(need(valid_study1() | valid_file1(),'Please provide study 1!'))
-		shiny::validate(need(!(valid_study1() & valid_file1()),'Please select or upload study 1, but not both!'))
-		valid_study1_ = valid_study1()
-		input_study1_ = input$study1
-		input_trait1_ = input$trait1
-		input_file1_datapath_ = input$file1$datapath
-		coordinate_ = coordinate()
-		future({get_study(valid_study1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)})
+		shiny::req(either_to_locuscompare_ready())
+
+		if (counter()[['from']] == 'interactive_to_locuscompare'){
+
+			selected_published_1_ = selected_published_1()
+			input_study1_ = input$study1
+			input_trait1_ = input$trait1
+			input_file1_datapath_ = input$file1$datapath
+			coordinate_ = coordinate()
+
+		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+
+			selected_published_1_ = TRUE
+			input_study1_ = input$coloc_gwas
+			input_trait1_ = input$coloc_trait
+			input_file1_datapath_ = ''
+			coordinate_ = coordinate()
+
+		} else {
+
+			shiny::req(FALSE)
+
+		}
+
+		future({get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)})
+
 	})
 
-	d2 = eventReactive(input$visualize,{
-		shiny::validate(need(valid_study2() | valid_file2(),'Please provide study 2!'))
-		shiny::validate(need(!(valid_study2() & valid_file2()),'Please select or upload study 2, but not both!'))
-		valid_study2_ = valid_study2()
-		input_study2_ = input$study2
-		input_trait2_ = input$trait2
-		input_file2_datapath_ = input$file2$datapath
-		coordinate_ = coordinate()
-		future({get_study(valid_study2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)})
+	d2 = eventReactive(counter(),{
+
+		shiny::req(either_to_locuscompare_ready())
+
+		if (counter()[['from']] == 'interactive_to_locuscompare'){
+			
+			selected_published_2_ = selected_published_2()
+			input_study2_ = input$study2
+			input_trait2_ = input$trait2
+			input_file2_datapath_ = input$file2$datapath
+			coordinate_ = coordinate()
+
+		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+
+			selected_published_2_ = TRUE
+			input_study2_ = input$coloc_eqtl
+			input_trait2_ = coloc_gene_id()
+			input_file2_datapath_ = ''
+			coordinate_ = coordinate()
+			
+
+		} else {
+
+			shiny::req(FALSE)
+
+		}
+
+		future({get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)})
+
 	})
 
 	merged=reactive({
-	    d1_non_empty = d1() %...>% nrow() %...>% `>`(0)
-	    d2_non_empty = d2() %...>% nrow() %...>% `>`(0)
-	    shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you input the correct region?'))
-	    shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
-		merged= promise_all(d1 = d1(), d2= d2()) %...>% {merge(.$d1,.$d2,by='rsid',suffixes=c('1','2'),all=FALSE)}
-		merged= merged %...>% get_position()
+		shiny::req(either_to_locuscompare_ready())
+
+		d1_non_empty = d1() %...>% nrow() %...>% `>`(0)
+		d2_non_empty = d2() %...>% nrow() %...>% `>`(0)
+		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you input the correct region?'))
+		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
+
+		merged = promise_all(d1 = d1(), d2= d2()) %...>% {merge(.$d1,.$d2,by='rsid',suffixes=c('1','2'),all=FALSE)}
+		merged = merged %...>% get_position()
+
 		check_overlap = merged %...>% nrow() %...>% `>`(0)
 		shiny::validate(need(check_overlap,'No overlapping SNPs between two studies'))
+
 		merged = merged %...>% setDT()
 		merged = merged %...>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval2))
+
 		return(merged)
 	})
 
 	snp=reactiveVal(value='',label='snp')
 	
 	observeEvent(merged(),{
-		# updateSelectizeInput(session, "snp", choices = merged()$rsid, server = TRUE)
 		merged() %...>% 
 			select(rsid) %...>% 
 			unname () %...>%
 			unlist() %...>% 
 			updateSelectizeInput(session, "snp", choices = ., server = TRUE)
 	})
-	
-	observeEvent(input$visualize,{
-	    non_empty_merge = merged() %...>% nrow() %...>% `>`(0)
-	    non_empty_merge %...>% (
-	        function(non_empty_merge){
-	            if (non_empty_merge){
-	                merged() %...>% 
-	                    dplyr::slice(which.min(pval1*pval2)) %...>% 
-	                    dplyr::select(rsid) %...>% 
-	                    unlist() %...>% 
-	                    snp()
-	            } else {
-	                snp('')
-	            }
-	        }
-	    )
+
+	observeEvent(counter(),{
+		shiny::req(either_to_locuscompare_ready())
+		non_empty_merge = merged() %...>% nrow() %...>% `>`(0)
+		non_empty_merge %...>% (
+			function(non_empty_merge){
+				if (non_empty_merge){
+					merged() %...>% 
+						dplyr::slice(which.min(pval1*pval2)) %...>% 
+						dplyr::select(rsid) %...>% 
+						unlist() %...>% 
+						snp()
+				} else {
+					snp('')
+				}
+			}
+		)
 	})
 
 	observeEvent(input$snp,{
@@ -559,9 +754,11 @@ shinyServer(function(input, output, session) {
 	color=reactive({
 		merged() %...>% dplyr::select(rsid) %...>% assign_color(snp(),ld())
 	})
+
 	shape=reactive({
 		merged() %...>% assign_shape(snp())
 	})
+
 	size=reactive({
 		merged() %...>% assign_size(snp())
 	})
@@ -581,14 +778,14 @@ shinyServer(function(input, output, session) {
 	range=reactiveValues(xmin=NULL,xmax=NULL)
 
 	observeEvent(input$plot_brush,{
-	    brush = input$plot_brush
-        range$xmin=brush$xmin
-        range$xmax=brush$xmax
+		brush = input$plot_brush
+		range$xmin=brush$xmin
+		range$xmax=brush$xmax
 	})
 	
 	observeEvent(input$plot_dblclick,{
-        range$xmin=NULL
-        range$xmax=NULL
+		range$xmin=NULL
+		range$xmax=NULL
 	})
 	
 	plot_data=reactive({
@@ -620,14 +817,14 @@ shinyServer(function(input, output, session) {
 	output$locuscompare = renderPlot({
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuscatter(
-			merged = .$plot_data,
-			title1 = title1(),
-			title2 = title2(),
-			ld = ld(),
-			color = .$color,
-			shape = .$shape,
-			size = .$size,
-			legend=FALSE
+				merged = .$plot_data,
+				title1 = title1(),
+				title2 = title2(),
+				ld = ld(),
+				color = .$color,
+				shape = .$shape,
+				size = .$size,
+				legend=FALSE
 			)
 		}
 		return(p)
@@ -636,13 +833,14 @@ shinyServer(function(input, output, session) {
 	output$locuszoom1 = renderPlot({
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
-			metal = .$plot_data,
-			title = title1(),
-			ld = ld(),
-			color = .$color,
-			shape = .$shape,
-			size = .$size,
-			y_string='logp1')
+				metal = .$plot_data,
+				title = title1(),
+				ld = ld(),
+				color = .$color,
+				shape = .$shape,
+				size = .$size,
+				y_string='logp1'
+			)
 		}
 		return(p)
 	})
@@ -650,13 +848,14 @@ shinyServer(function(input, output, session) {
 	output$locuszoom2 = renderPlot({
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
-			metal = .$plot_data,
-			title = title2(),
-			ld = ld(),
-			color = .$color,
-			shape = .$shape,
-			size = .$size,
-			y_string='logp2')
+				metal = .$plot_data,
+				title = title2(),
+				ld = ld(),
+				color = .$color,
+				shape = .$shape,
+				size = .$size,
+				y_string='logp2'
+			)
 		}
 		return(p)
 	})
@@ -670,6 +869,7 @@ shinyServer(function(input, output, session) {
 		res = dbGetQuery(
 			conn = locuscompare_pool,
 			statement = sprintf('select * from tkg_p3v5a where rsid = "%s";',snp()))
+
 		sprintf(
 			'Chromosome: %s\nPosition: %s\nrs ID: %s\nReference SNP: %s\nAlternate SNP: %s\nAllele Frequency: %s\nAFR Frequency: %s\nAMR Frequency: %s\nEAS Frequency: %s\nEUR Frequency: %s\nSAS Frequency: %s',
 			res$chr,
@@ -685,31 +885,19 @@ shinyServer(function(input, output, session) {
 			res$SAS_AF
 			)
 	})
-	
-	# TODO: Use this code when DT is compatible with async.
-	# output$ld_snps = DT::renderDataTable({
-	# 	ld_snps=ld() %>%
-	# 		dplyr::filter(SNP_A==snp(),R2>=input$r2_threshold) %>%
-	# 		dplyr::select(rsid=SNP_B,r2=R2)
-	# 	ld_snps=rbind(data.frame(rsid=snp(),r2=1),ld_snps)
-	# 	ld_snps_2 = merged() %...>%
-	# 		dplyr::select(rsid,chr,pos,pval1,pval2) %...>%
-	# 		merge(ld_snps,by='rsid')
-	#   return(ld_snps_2)
-	# })
 
-	output$ld_snps = renderTable({
+	output$ld_snps = renderDataTable({
 		ld_snps=ld() %>%
 			dplyr::filter(SNP_A==snp(),R2>=input$r2_threshold) %>%
 			dplyr::select(rsid=SNP_B,r2=R2)
 		ld_snps=rbind(data.frame(rsid=snp(),r2=1),ld_snps)
 		ld_snps_2 = merged() %...>%
-		    dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %...>%
+			dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %...>%
 			dplyr::select(rsid,chr,pos,pval1_disp,pval2_disp) %...>%
 			merge(ld_snps,by='rsid') %...>%
-		    dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value 1` = pval1_disp, `P-value 2` = pval2_disp)
+			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value 1` = pval1_disp, `P-value 2` = pval2_disp)
 		return(ld_snps_2)
-	},width = '100%', striped = TRUE, hover = TRUE, bordered = TRUE)
+	})
 	
 	output$file1_example = downloadHandler(
 		filename = function(){return('PHACTR1_Artery_Coronary.tsv')},
@@ -728,35 +916,35 @@ shinyServer(function(input, output, session) {
 			fwrite(ld(),paste0(tmp_dir,'/ld.tsv'),sep='\t')
 
 			locuscompare = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			    make_locuscatter(
-			        merged = .$plot_data,
-			        title1 = title1(),
-			        title2 = title2(),
-			        ld = ld(),
-			        color = .$color,
-			        shape = .$shape,
-			        size = .$size,
-			        legend=FALSE)}
+				make_locuscatter(
+					merged = .$plot_data,
+					title1 = title1(),
+					title2 = title2(),
+					ld = ld(),
+					color = .$color,
+					shape = .$shape,
+					size = .$size,
+					legend=FALSE)}
 			
 			locuszoom1 = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			    make_locuszoom(
-			        metal = .$plot_data,
-			        title = title1(),
-			        ld = ld(),
-			        color = .$color,
-			        shape = .$shape,
-			        size = .$size,
-			        y_string='logp1')}
-			    
+				make_locuszoom(
+					metal = .$plot_data,
+					title = title1(),
+					ld = ld(),
+					color = .$color,
+					shape = .$shape,
+					size = .$size,
+					y_string='logp1')}
+				
 			locuszoom2 = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			    make_locuszoom(
-			        metal = .$plot_data,
-			        title = title2(),
-			        ld = ld(),
-			        color = .$color,
-			        shape = .$shape,
-			        size = .$size,
-			        y_string='logp2')}
+				make_locuszoom(
+					metal = .$plot_data,
+					title = title2(),
+					ld = ld(),
+					color = .$color,
+					shape = .$shape,
+					size = .$size,
+					y_string='logp2')}
 
 			
 			length_ = input$locuscompare_length
@@ -765,16 +953,111 @@ shinyServer(function(input, output, session) {
 			locuscompare_fn = locuscompare %...>% ggsave_return(paste0(tmp_dir,'/locuscompare.jpg'),.,width=length_,height=length_)
 			locuszoom1_fn = locuszoom1 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom1.jpg'),.,width=width_,height=height_)
 			locuszoom2_fn = locuszoom2 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom2.jpg'),.,width=width_,height=height_)
-			browser()
 			promise_all(data_fn = data_fn, locuscompare_fn = locuscompare_fn, locuszoom1_fn = locuszoom1_fn, locuszoom2_fn = locuszoom2_fn) %...>% {
-			    c(.$data_fn,paste0(tmp_dir,'/ld.tsv'),.$locuscompare_fn,.$locuszoom1_fn,.$locuszoom2_fn) %>% utils::zip(file,.,flags = '-j')}
+				c(.$data_fn,paste0(tmp_dir,'/ld.tsv'),.$locuscompare_fn,.$locuszoom1_fn,.$locuszoom2_fn) %>% utils::zip(file,.,flags = '-j')}
 		}
 		
 	)
 
+	#----------------#
+	# Colocalization #
+	#----------------#
+
+	observeEvent(
+		eventExpr = input$coloc_gwas,
+		handlerExpr = {
+			coloc_trait = get_trait(input$coloc_gwas)
+			updateSelectizeInput(session, "coloc_trait", choices = coloc_trait, server = TRUE)
+		}
+	)
+
+	eCAVIAR = eventReactive(
+		eventExpr = input$plot_coloc,
+		valueExpr = {
+			gwas_ = input$coloc_gwas
+			trait_ = input$coloc_trait
+			eqtl_ = input$coloc_eqtl
+			get_eCAVIAR(gwas_, trait_, eqtl_)
+		}
+	)
+
+
+	build = 'hg19'
+	color1 = 'black'
+	color2 = 'grey'
+	chrom_lengths = manhattan::get_chrom_lengths(build)
+	xmax = manhattan::get_total_length(chrom_lengths)
+	x_breaks = manhattan::get_x_breaks(chrom_lengths)
+	color_map = c(color1,color2)
+	names(color_map) = c(color1,color2)
+
+	coloc_plot_data = reactive({
+		eCAVIAR() %>% 
+			rename(y = clpp) %>%
+			manhattan::add_cumulative_pos(.,build) %>%
+			manhattan::add_color(., color1 = color1, color2 = color2)
+	})
+
+	output$coloc = renderPlot({
+		p = coloc_plot_data() %>% 
+			{ggplot2::ggplot(.,aes(x=cumulative_pos,y=y,color=color))+
+				geom_point()+
+				theme_classic()+
+				scale_x_continuous(limits=c(0,xmax),expand=c(0.01,0),breaks=x_breaks,
+								labels=names(x_breaks),name='Chromosome')+
+				scale_y_continuous(expand=c(0.01,0),name=expression('-log10(P-value)'))+
+				scale_color_manual(values=color_map,guide='none')}
+		return(p)
+	})
+
+	selected_row = eventReactive(
+		eventExpr = input$coloc_plot_click,
+		valueExpr = {
+			coloc_plot_data() %>% select_row(input$coloc_plot_click,.)
+		}
+	)
+
+	coloc_gene_id = reactive({
+		selected_row() %>% select(gene_id) %>% unlist() %>% unname()
+	})
+
+	output$coloc_gene = renderDataTable({
+		selected_row() %>% 
+			select(Gene = gene_id, 
+				Chromosome = chrom, 
+				Position = pos,
+				`Coloc. Prob.` = y)
+	})
+
+	observe({
+		selected_row() %>% (
+			function(x){
+				if (nrow(x) > 0) {
+					shinyjs::show(id = "plot_locuscompare_button")
+				} else {
+					shinyjs::hide(id = "plot_locuscompare_button")
+				}
+			}
+		)
+	})
+
+	observeEvent(
+		eventExpr = input$plot_coloc,
+		handlerExpr = {
+			shinyjs::hide(id = "plot_locuscompare_button")
+		}
+	)
+
+	output$blank_plot_coloc = renderPlot({
+		p = plot_data() %...>% {ggplot() + geom_blank()}
+		return(p)
+	})
+
+
 	#----------------# 
 	#   Batch mode   #
 	#----------------#
+
 	output$batch_file1_example = downloadHandler(
 		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015_batch.tsv')},
 		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015_batch.tsv',home_dir),file)},
@@ -811,7 +1094,7 @@ shinyServer(function(input, output, session) {
 
 		shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
 		shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
-        
+		
 		shiny::validate(need(isTruthy(input$batch_job_name),'Please provide job name!'))
 		shiny::validate(need(isTruthy(input$batch_job_email),'Please provide an email!'))
 
@@ -843,20 +1126,20 @@ shinyServer(function(input, output, session) {
 		tar_fn = future({batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_,token_)})
 
 		link = tar_fn %...>% 
-		    googledrive::drive_upload(media = ., path = paste0('LocusCompare/Download/',basename(.))) %...>%
-		    googledrive::drive_share(role = 'reader', type = 'anyone') %...>%
-		    googledrive::drive_link()
+			googledrive::drive_upload(media = ., path = paste0('LocusCompare/Download/',basename(.))) %...>%
+			googledrive::drive_share(role = 'reader', type = 'anyone') %...>%
+			googledrive::drive_link()
 		
 		subject = sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())
 		msg = link %...>% sprintf('LocusCompare job %s was completed on %s. Download via this link: %s',input$batch_job_name,Sys.time(),.)
 		
 		msg %...>% send.mail(from = email_username,
-          	to = input$batch_job_email,
-          	subject = subject,
-          	body = .,
-          	smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
-          	authenticate = TRUE,
-          	send = TRUE)
+			to = input$batch_job_email,
+			subject = subject,
+			body = .,
+			smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
+			authenticate = TRUE,
+			send = TRUE)
 	})
 	
 	observeEvent(input$submit,{
@@ -870,10 +1153,11 @@ shinyServer(function(input, output, session) {
 		shinyjs::show('batch_query')
 		shinyjs::hide('batch_query_success')
 	})
-	
+
 	#---------------# 
 	# Download page #
 	#---------------#
+
 	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE)
 	list_of_studies = googlesheets::gs_read(sheet_key)
 	output$study_info = renderDataTable({
@@ -883,6 +1167,7 @@ shinyServer(function(input, output, session) {
 	#-------#
 	# Share #
 	#-------#
+
 	mandatory_fields = c('form_trait','form_author','form_year','form_journal','form_link')
 	observe({
 		mandatory_filled = vapply(
@@ -909,14 +1194,14 @@ shinyServer(function(input, output, session) {
 		file_name = sprintf('%s_%s_%s_%s',input$form_trait,input$form_author,input$form_year,input$form_journal)
 		saveData(formData(),contrib_dir,file_name)
 		if (isTruthy(input$form_file)) {
-		    file_path = paste0(contrib_dir,'/',file_name,'_',humanTime(),'_',input$form_file$name)
-		    file.rename(input$form_file$datapath,file_path)}
+			file_path = paste0(contrib_dir,'/',file_name,'_',humanTime(),'_',input$form_file$name)
+			file.rename(input$form_file$datapath,file_path)}
 		send.mail(from = email_username,
-		          to = bosh_email,
-		          subject = 'New study uploaded to LocusCompare', 
-		          body = sprintf('Path: %s/%s',contrib_dir,file_name), 
-		          smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
-		          authenticate = TRUE, 
-		          send = TRUE)
+				  to = bosh_email,
+				  subject = 'New study uploaded to LocusCompare', 
+				  body = sprintf('Path: %s/%s',contrib_dir,file_name), 
+				  smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
+				  authenticate = TRUE, 
+				  send = TRUE)
 	})
 })
