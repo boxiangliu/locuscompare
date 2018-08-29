@@ -542,7 +542,7 @@ shinyServer(function(input, output, session) {
 		print(counter())
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
 			print('going to interactive')
-			showTab(inputId = 'navbarPage', target = 'Interactive Plot', select = TRUE)
+			showTab(inputId = 'navbarPage', target = 'Single Locus', select = TRUE)
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
 			print('going to coloc')
 			showTab(inputId = 'navbarPage', target = 'Colocalization', select = TRUE)
