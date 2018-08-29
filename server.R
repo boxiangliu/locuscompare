@@ -410,6 +410,32 @@ ggsave_return = function(filename,plot,width,height){
 	return(filename)
 }
 
+get_coloc_trait = function(gwas, conn = locuscompare_pool){
+
+	statement = sprintf("select distinct trait from eCAVIAR where gwas = '%s';", gwas)
+	
+	result = dbGetQuery(
+		conn = conn,
+		statement = statement
+	)
+
+	return(result$trait)
+
+}
+
+get_coloc_eqtl = function(gwas, trait, conn = locuscompare_pool){
+
+	statement = sprintf("select distinct eqtl from eCAVIAR where gwas = '%s' and trait = '%s';", gwas, trait)
+	
+	result = dbGetQuery(
+		conn = conn,
+		statement = statement
+	)
+
+	return(result$eqtl)
+
+}
+
 shinyServer(function(input, output, session) {
 
 	#----------------------------#
@@ -529,22 +555,15 @@ shinyServer(function(input, output, session) {
 		}
 	)
 
-	observe({
-		print(counter())
-	})
-
 	observeEvent(counter(), {
 		shiny::req(either_to_locuscompare_ready())
 		showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
 	})
 
 	observeEvent(input$back,{
-		print(counter())
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
-			print('going to interactive')
 			showTab(inputId = 'navbarPage', target = 'Single Locus', select = TRUE)
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
-			print('going to coloc')
 			showTab(inputId = 'navbarPage', target = 'Colocalization', select = TRUE)
 		} 
 		hideTab(inputId = "navbarPage", target = "Plots")
@@ -966,8 +985,16 @@ shinyServer(function(input, output, session) {
 	observeEvent(
 		eventExpr = input$coloc_gwas,
 		handlerExpr = {
-			coloc_trait = get_trait(input$coloc_gwas)
+			coloc_trait = get_coloc_trait(input$coloc_gwas)
 			updateSelectizeInput(session, "coloc_trait", choices = coloc_trait, server = TRUE)
+		}
+	)
+
+	observeEvent(
+		eventExpr = input$coloc_trait,
+		handlerExpr = {
+			coloc_eqtl = get_coloc_eqtl(input$coloc_gwas, input$coloc_trait)
+			updateSelectizeInput(session, "coloc_eqtl", choices = coloc_eqtl, server = TRUE)
 		}
 	)
 
