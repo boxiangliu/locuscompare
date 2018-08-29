@@ -1,4 +1,4 @@
-get_gwas = function(coordinate,mysql_table='GWAS_Type_2_Diabetes_Zhao_2017',mysql_trait='GWAS_Type-2-Diabetes_Zhao_2017'){
+get_gwas = function(coordinate,mysql_table='GWAS_Type_2_Diabetes_Zhao_2017',mysql_trait='Type-2-Diabetes'){
 	gwas=dbGetQuery(
 		conn = locuscompare_pool,
 		statement = sprintf(
