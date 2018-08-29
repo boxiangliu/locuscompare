@@ -40,17 +40,128 @@ shinyUI(fluidPage(
 				title = 'LocusCompare',
 				id = 'navbarPage',
 
-				###########################
-				# Interactive input panel #
-				###########################
+				########################
+				# Colocalization panel #
+				########################
+				
+				tabPanel(
+					title = 'Colocalization',
+					fluidRow(h3('Select Studies')),
+
+					fluidRow(
+						column(
+							width = 2,
+							tags$i(h3('Select GWAS'))
+						),
+						column(
+							width = 5,
+							selectInput(
+								inputId = 'coloc_gwas',
+								label = 'GWAS study',
+								choices = c('Choose' = '', gwas_list),
+								width = '100%'
+							)
+						),
+						column(
+							width = 5,
+							selectizeInput(
+								inputId = 'coloc_trait',
+								label = 'Trait',
+								choices = c('Choose' = ''),
+								width = '100%'
+							)
+						)
+					),
+
+					fluidRow(
+						column(
+							width = 2,
+							tags$i(h3('Select eQTL'))
+						),
+						column(
+							width = 10,
+							selectizeInput(
+								inputId = 'coloc_eqtl',
+								label = 'eQTL',
+								choices = c('Choose' = '', eqtl_list),
+								width = '100%'
+							)
+						)
+					),
+
+					br(),
+
+					fluidRow(
+						column(
+							width = 12,
+							actionButton(
+								inputId = 'plot_coloc',
+								label = 'Plot colocalization', 
+								width = '100%',
+								class = "btn-primary"
+							)
+						)
+					),
+
+					br(),
+
+					fluidRow(
+						column(
+							width = 12,
+							shinycssloaders::withSpinner(
+								plotOutput(
+									outputId = 'coloc',
+									click = 'coloc_plot_click',
+									dblclick = 'coloc_plot_dblclick',
+									brush = brushOpts(id = 'coloc_plot_brush', direction = 'x'),
+									height = '250px'
+								)
+							)
+						)
+					),
+
+					fluidRow(
+						dataTableOutput(outputId = 'coloc_gene')
+					),
+
+					br(),
+
+					hidden(
+						div(
+							id = "plot_locuscompare_button",
+							fluidRow(
+								column(
+									width = 12,
+									actionButton(
+										inputId = 'coloc_to_locuscompare',
+										label = 'Plot LocusCompare', 
+										width = '100%',
+										class = "btn-primary"
+									)
+								)
+							)
+						)
+					),
+
+					fluidRow(
+						column(
+							12,
+							shinycssloaders::withSpinner(plotOutput(outputId = 'blank_plot_coloc', height = '1px'))
+						)
+					)
+				),
+
+				#####################
+				# Single loci panel #
+				#####################
 
 				tabPanel(
-					title = 'Interactive Plot',
+					title = 'Single Locus',
 					fluidRow(h3('Select Studies')),
 					
 					# Select study 1:
 					fluidRow(h3('Study 1')),
-					# fluidRow(textOutput(outputId='debug')),
+
 					fluidRow(
 						column(2,
 								tags$i(h3('Select Published'))
@@ -370,117 +481,6 @@ shinyUI(fluidPage(
 							fluidRow(
 								dataTableOutput('ld_snps')
 							)
-						)
-					)
-				),
-
-				########################
-				# Colocalization panel #
-				########################
-				
-				tabPanel(
-					title = 'Colocalization',
-					fluidRow(h3('Select Studies')),
-
-					fluidRow(
-						column(
-							width = 2,
-							tags$i(h3('Select GWAS'))
-						),
-						column(
-							width = 5,
-							selectInput(
-								inputId = 'coloc_gwas',
-								label = 'GWAS study',
-								choices = c('Choose' = '', gwas_list),
-								width = '100%'
-							)
-						),
-						column(
-							width = 5,
-							selectizeInput(
-								inputId = 'coloc_trait',
-								label = 'Trait',
-								choices = c('Choose' = ''),
-								width = '100%'
-							)
-						)
-					),
-
-					fluidRow(
-						column(
-							width = 2,
-							tags$i(h3('Select eQTL'))
-						),
-						column(
-							width = 10,
-							selectizeInput(
-								inputId = 'coloc_eqtl',
-								label = 'eQTL',
-								choices = c('Choose' = '', eqtl_list),
-								width = '100%'
-							)
-						)
-					),
-
-					br(),
-
-					fluidRow(
-						column(
-							width = 12,
-							actionButton(
-								inputId = 'plot_coloc',
-								label = 'Plot colocalization', 
-								width = '100%',
-								class = "btn-primary"
-							)
-						)
-					),
-
-					br(),
-
-					fluidRow(
-						column(
-							width = 12,
-							shinycssloaders::withSpinner(
-								plotOutput(
-									outputId = 'coloc',
-									click = 'coloc_plot_click',
-									dblclick = 'coloc_plot_dblclick',
-									brush = brushOpts(id = 'coloc_plot_brush', direction = 'x'),
-									height = '250px'
-								)
-							)
-						)
-					),
-
-					fluidRow(
-						dataTableOutput(outputId = 'coloc_gene')
-					),
-
-					br(),
-
-					hidden(
-						div(
-							id = "plot_locuscompare_button",
-							fluidRow(
-								column(
-									width = 12,
-									actionButton(
-										inputId = 'coloc_to_locuscompare',
-										label = 'Plot LocusCompare', 
-										width = '100%',
-										class = "btn-primary"
-									)
-								)
-							)
-						)
-					),
-
-					fluidRow(
-						column(
-							12,
-							shinycssloaders::withSpinner(plotOutput(outputId = 'blank_plot_coloc', height = '1px'))
 						)
 					)
 				),
