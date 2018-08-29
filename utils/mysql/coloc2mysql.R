@@ -5,7 +5,7 @@ library(pool)
 library(DBI)
 source('config/config.R')
 
-in_fn = '/srv/persistent/bliu2/rpe/processed_data/finemap/manhattan/2018-06-23_21-47-08_rpe_amd_gtex/Fritsche_sorted_txt_gz_finemap_clpp_status.txt'
+in_fn = 'processed_data/mysql/coloc2mysql/all_finemap_results_sorted.txt'
 
 
 read_colocalization = function(fn){
@@ -14,16 +14,28 @@ read_colocalization = function(fn){
 }
 
 munge_colocalization = function(x){
-	y = x[,list(gwas = base_gwas_file,
-				trait = gwas_trait,
-				eqtl = eqtl_file,
-				gene_id = feature,
-				clpp = clpp)]
-	# update once Mike provides new format:
-	y[,gwas := 'GWAS_Age_Related_Macular_Degeneration_Fritsche_2013']
-	y[,trait := 'Advanced-vs-Controls']
-	y[,eqtl := sprintf('eQTL_%s_GTEx_v6p',str_replace(eqtl,'_allpairs_txt_gz',''))]
-	return(y)
+	split_snp = str_split_fixed(x$ref_snp,'_',2)
+	x$chr = split_snp[,1]
+	x$pos = as.integer(split_snp[,2])
+	x$ref_snp = NULL
+
+	setnames(x, 
+		c('base_gwas_file','gwas_trait','eqtl_file','feature','-log_gwas_pval','-log_eqtl_pval'),
+		c('gwas','trait','eqtl','gene_id','logp_gwas','logp_eqtl'))
+
+	base_trait = basename(x$trait)
+	split_trait = str_split_fixed(base_trait,'_',4)
+	x$trait = ifelse(split_trait[,2]=='',split_trait[,1],split_trait[,2])
+
+	x$gwas = str_replace_all(x$gwas,'-','_')
+	x$gwas = str_replace(x$gwas,'_txt_gz','')
+
+	x$eqtl = str_replace(x$eqtl,'_allpairs_txt_gz','')
+	x$eqtl = paste0('eQTL_',x$eqtl,'_GTEx_v6p')
+	
+	x = x[!is.na(clpp),]
+
+	return(x[,list(gwas,trait,eqtl,gene_id,logp_gwas,logp_eqtl,clpp)])
 }
 
 get_gencode = function(){
@@ -38,7 +50,7 @@ get_gencode = function(){
 merge_with_gencode = function(colocalization){
 	colocalization = merge(colocalization,gencode,by='gene_id')
 	setnames(colocalization,'start','pos')
-	setcolorder(colocalization,c('gwas','trait','eqtl','gene_id','chr','pos','clpp'))
+	setcolorder(colocalization,c('gwas','trait','eqtl','gene_id','chr','pos','logp_gwas','logp_eqtl','clpp'))
 	return(colocalization)
 }
 
@@ -58,6 +70,8 @@ create_table = function(table_name){
 		gene_id varchar(20),
 		chr varchar(5),
 		pos integer,
+		logp_gwas double,
+		logp_eqtl double,
 		clpp double);",table_name,table_name)
 		)
 }
@@ -79,7 +93,7 @@ upload_table = function(colocalization,table_name){
 			fields terminated by ','
 			lines terminated by '\n'
 			ignore 1 lines
-			(gwas, trait, eqtl, gene_id, chr, pos, clpp);",table_name)
+			(gwas, trait, eqtl, gene_id, chr, pos, logp_gwas, logp_eqtl, clpp);",table_name)
 			)
 
 		unlink('coloc_tmp.csv')
@@ -108,9 +122,10 @@ locuscompare_pool = dbPool(
 
 colocalization = read_colocalization(in_fn)
 colocalization = munge_colocalization(colocalization)
+
 gencode = get_gencode()
 colocalization = merge_with_gencode(colocalization)
-colocalization
+
 
 table_name = 'eCAVIAR'
 create_table(table_name)
