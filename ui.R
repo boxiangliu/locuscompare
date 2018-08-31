@@ -16,10 +16,20 @@ get_study_list = function(locuscompare_pool,pattern = 'eQTL|GWAS') {
 	return(study_list)
 }
 
-
 study_list = get_study_list(locuscompare_pool, pattern = 'eQTL|GWAS')
-gwas_list = get_study_list(locuscompare_pool, pattern = 'GWAS')
-eqtl_list = get_study_list(locuscompare_pool, pattern = 'eQTL')
+
+get_coloc_gwas_list = function(locuscompare_pool){
+
+	gwas = dbGetQuery(
+		conn = locuscompare_pool,
+		statement = 'select distinct gwas from eCAVIAR;'
+	)
+
+	return(gwas)
+
+}
+
+coloc_gwas_list = get_coloc_gwas_list(locuscompare_pool)
 
 shinyUI(fluidPage(
 	useShinyjs(),
@@ -58,7 +68,7 @@ shinyUI(fluidPage(
 							selectInput(
 								inputId = 'coloc_gwas',
 								label = 'GWAS study',
-								choices = c('Choose' = '', gwas_list),
+								choices = c('Choose' = '', coloc_gwas_list),
 								width = '100%'
 							)
 						),
@@ -83,7 +93,7 @@ shinyUI(fluidPage(
 							selectizeInput(
 								inputId = 'coloc_eqtl',
 								label = 'eQTL',
-								choices = c('Choose' = '', eqtl_list),
+								choices = c('Choose' = ''),
 								width = '100%'
 							)
 						)
