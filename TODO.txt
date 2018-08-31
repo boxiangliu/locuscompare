@@ -1,0 +1,2 @@
+1) Upload GWAS_Blood_Cell_Traits_Astle_2016 to MYSQL
+2) Upload GWAS_Circulating_Metabolites_Kettunen_2016 to MYSQL

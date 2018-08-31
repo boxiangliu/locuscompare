@@ -204,4 +204,6 @@ for (gwas_fn in gwas_fn_list[c(134:length(gwas_fn_list))]){
 
 # Two large tables:
 upload_large_table('GWAS_Blood-Cell-Traits_Astle_2016.txt.gz')
+index_table('GWAS_Blood_Cell_Traits_Astle_2016')
 upload_large_table('GWAS_Circulating-Metabolites_Kettunen_2016.txt.gz')
+index_table('GWAS_Circulating_Metabolites_Kettunen_2016')

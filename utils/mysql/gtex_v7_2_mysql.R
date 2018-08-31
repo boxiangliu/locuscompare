@@ -48,10 +48,10 @@ tkg = tkg[rsid!='.'&!str_detect(rsid,';')]
 # 	"Brain_Putamen_basal_ganglia","Brain_Spinal_cord_cervical_c-1","Brain_Substantia_nigra",
 # 	"Breast_Mammary_Tissue","Cells_EBV-transformed_lymphocytes","Cells_Transformed_fibroblasts",
 # 	"Colon_Sigmoid","Colon_Transverse","Esophagus_Gastroesophageal_Junction","Esophagus_Mucosa",
-# 	"Esophagus_Muscularis","Heart_Atrial_Appendage")
+# 	"Esophagus_Muscularis","Heart_Atrial_Appendage","Heart_Left_Ventricle","Liver","Lung",
+#	"Minor_Salivary_Gland","Muscle_Skeletal","Nerve_Tibial","Ovary")
 
-for (tissue_id in c("Heart_Left_Ventricle","Liver","Lung",
-	"Minor_Salivary_Gland","Muscle_Skeletal","Nerve_Tibial","Ovary","Pancreas","Pituitary","Prostate",
+for (tissue_id in c("Pancreas","Pituitary","Prostate",
 	"Skin_Not_Sun_Exposed_Suprapubic","Skin_Sun_Exposed_Lower_leg","Small_Intestine_Terminal_Ileum","Spleen",
 	"Stomach","Testis","Thyroid","Uterus","Vagina","Whole_Blood")){
 

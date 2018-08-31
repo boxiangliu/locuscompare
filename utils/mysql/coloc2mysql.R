@@ -122,6 +122,7 @@ locuscompare_pool = dbPool(
 
 colocalization = read_colocalization(in_fn)
 colocalization = munge_colocalization(colocalization)
+colocalization = colocalization[gwas != 'GWAS_Circulating_Metabolites_Kettunen_2016'] # temporarily remove before this table is uploaded.
 
 gencode = get_gencode()
 colocalization = merge_with_gencode(colocalization)
