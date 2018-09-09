@@ -1052,8 +1052,11 @@ shinyServer(function(input, output, session) {
 		selected_row() %>% 
 			select(Gene = gene_id, 
 				Chromosome = chrom, 
-				Position = pos,
-				`Coloc. Prob.` = y)
+				TSS = pos,
+				`GWAS -log10(P)` = logp_gwas,
+				`eQTL -log10(P)` = logp_eqtl,
+				`Coloc. Prob.` = y) %>% 
+			datatable(.,rownames = FALSE, options = list(dom = 't'))
 	})
 
 	observe({

@@ -21,6 +21,7 @@ library(mailR)
 library(shinycssloaders)
 library(googledrive)
 library(manhattan)
+library(shinythemes)
 
 # Variables:
 locuscompare_pool = dbPool(

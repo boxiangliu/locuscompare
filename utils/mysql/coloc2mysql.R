@@ -31,7 +31,7 @@ munge_colocalization = function(x){
 	x$gwas = str_replace(x$gwas,'_txt_gz','')
 
 	x$eqtl = str_replace(x$eqtl,'_allpairs_txt_gz','')
-	x$eqtl = paste0('eQTL_',x$eqtl,'_GTEx_v6p')
+	x$eqtl = paste0('eQTL_',x$eqtl,'_GTEx_v7')
 	
 	x = x[!is.na(clpp),]
 

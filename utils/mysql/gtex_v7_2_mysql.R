@@ -41,7 +41,6 @@ locuscompare_pool = dbPool(
 tkg = read_1kg()
 tkg = tkg[rsid!='.'&!str_detect(rsid,';')]
 
-
 for (tissue_id in c("Adipose_Subcutaneous","Adipose_Visceral_Omentum","Adrenal_Gland","Artery_Aorta",
 	"Artery_Coronary","Artery_Tibial","Brain_Amygdala","Brain_Anterior_cingulate_cortex_BA24",
 	"Brain_Caudate_basal_ganglia","Brain_Cerebellar_Hemisphere","Brain_Cerebellum","Brain_Cortex",
