@@ -127,7 +127,6 @@ colocalization = colocalization[gwas != 'GWAS_Circulating_Metabolites_Kettunen_2
 gencode = get_gencode()
 colocalization = merge_with_gencode(colocalization)
 
-
 table_name = 'eCAVIAR'
 create_table(table_name)
 upload_table(colocalization,table_name)
