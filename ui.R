@@ -49,7 +49,8 @@ shinyUI(fluidPage(
 			navbarPage(
 				title = 'LocusCompare',
 				id = 'navbarPage',
-
+				theme = shinytheme('spacelab'),
+				
 				########################
 				# Colocalization panel #
 				########################
@@ -329,7 +330,7 @@ shinyUI(fluidPage(
 								inputId = 'faq',
 								label = 'Frequently Asked Questions',
 								width = '100%',
-								onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki/1.-FAQ', '_blank')"
+								onclick = "window.open('https://github.com/boxiangliu/locuscompare/wiki/FAQ', '_blank')"
 							)
 						),
 						column(
@@ -793,6 +794,26 @@ shinyUI(fluidPage(
 						div(id = 'thankyou_msg',
 							h3('Thank you! Your response has been submitted succesfully.'),
 							actionLink('submit_another','Share another dataset')
+						)
+					)
+				),
+
+				#############
+				# Help page #
+				#############
+
+				tabPanel(
+					title = 'Help',
+					fluidRow(
+						column(
+							width = 1
+						),
+						column(
+							width = 10,
+							includeMarkdown('help.md')
+						),
+						column(
+							width = 1
 						)
 					)
 				)
