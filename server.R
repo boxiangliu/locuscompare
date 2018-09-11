@@ -524,11 +524,11 @@ shinyServer(function(input, output, session) {
 	})
 
 	coloc_to_locuscompare_ready = reactive({
-		isTruthy(input$coloc_gwas) & isTruthy(input$coloc_trait) & isTruthy(input$coloc_eqtl) & isTruthy(coloc_gene_id())
+		isTruthy(input$coloc_gwas) & isTruthy(input$coloc_trait) & isTruthy(input$coloc_eqtl) 
 	})
 
 	either_to_locuscompare_ready = reactive({
-		interactive_to_locuscompare_ready() | coloc_to_locuscompare_ready()
+		interactive_to_locuscompare_ready() || coloc_to_locuscompare_ready()
 	})
 
 	observe({
@@ -556,8 +556,15 @@ shinyServer(function(input, output, session) {
 	)
 
 	observeEvent(counter(), {
-		shiny::req(either_to_locuscompare_ready())
-		showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
+
+		if (interactive_to_locuscompare_ready()){
+			showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
+		}
+
+		if (coloc_to_locuscompare_ready()){
+			shiny::req(coloc_gene_id())
+			showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
+		} 
 	})
 
 	observeEvent(input$back,{
@@ -660,6 +667,7 @@ shinyServer(function(input, output, session) {
 			coordinate_ = coordinate()
 
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+			shiny::req(coloc_gene_id())
 
 			selected_published_1_ = TRUE
 			input_study1_ = input$coloc_gwas
@@ -691,12 +699,12 @@ shinyServer(function(input, output, session) {
 
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
 
+			shiny::req(coloc_gene_id())
 			selected_published_2_ = TRUE
 			input_study2_ = input$coloc_eqtl
 			input_trait2_ = coloc_gene_id()
 			input_file2_datapath_ = ''
 			coordinate_ = coordinate()
-			
 
 		} else {
 
