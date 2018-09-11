@@ -713,7 +713,7 @@ shinyServer(function(input, output, session) {
 
 	})
 
-	merged=reactive({
+	merged = reactive({
 		shiny::req(either_to_locuscompare_ready())
 
 		d1_non_empty = d1() %...>% nrow() %...>% `>`(0)
@@ -776,7 +776,10 @@ shinyServer(function(input, output, session) {
 	})
 
 	color=reactive({
-		merged() %...>% dplyr::select(rsid) %...>% assign_color(snp(),ld())
+		merged() %...>% 
+	        dplyr::select(rsid) %...>% 
+	        unlist() %...>% unname() %...>% 
+	        assign_color(snp(),ld())
 	})
 
 	shape=reactive({
@@ -873,8 +876,18 @@ shinyServer(function(input, output, session) {
 
 
 	})
-
+	msg = reactive({
+	    sprintf('%s and %s has no overlapping SNP in %s:%s-%s!',
+	            title1(), 
+	            title2(), 
+	            coordinate()$chr, 
+	            coordinate()$start, 
+	            coordinate()$end
+	   )
+	})
 	output$locuscompare = renderPlot({
+	    
+	    shiny::validate(need(nrow(plot_data()) > 0,msg()))
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuscatter(
 				merged = .$plot_data,
@@ -891,6 +904,8 @@ shinyServer(function(input, output, session) {
 	})
 	
 	output$locuszoom1 = renderPlot({
+
+	    shiny::validate(need(nrow(plot_data()) > 0,msg()))
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
 				metal = .$plot_data,
@@ -906,7 +921,9 @@ shinyServer(function(input, output, session) {
 	})
 	
 	output$locuszoom2 = renderPlot({
-		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
+	    
+	    shiny::validate(need(nrow(plot_data()) > 0,msg()))
+	    p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
 				metal = .$plot_data,
 				title = title2(),
