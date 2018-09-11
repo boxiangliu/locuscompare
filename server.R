@@ -43,7 +43,7 @@ parse_coordinate=function(coordinate){
 
 		chr_pos=dbGetQuery(
 			conn = locuscompare_pool,
-			statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s";',reference_snp)
+			statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s" limit 1;',reference_snp)
 			)
 		shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',reference_snp)))
 		shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',reference_snp)))
@@ -75,7 +75,7 @@ parse_coordinate=function(coordinate){
 
 		chr_start_end=dbGetQuery(
 			conn = locuscompare_pool,
-			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s";',reference_gene)
+			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s" limit 1;',reference_gene) # TODO: add more elegant handling for duplicate gene names.
 			)
 
 		shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',reference_gene)))
@@ -584,7 +584,7 @@ shinyServer(function(input, output, session) {
 
 				chr_pos=dbGetQuery(
 					conn = locuscompare_pool,
-					statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s";',input$reference_snp)
+					statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s" limit 1;',input$reference_snp)
 					)
 				shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',input$reference_snp)))
 				shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',input$reference_snp)))
@@ -599,7 +599,7 @@ shinyServer(function(input, output, session) {
 
 				chr_start_end=dbGetQuery(
 					conn = locuscompare_pool,
-					statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s";',input$reference_gene)
+					statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s" limit 1;',input$reference_gene)
 					)
 				shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',input$reference_gene)))
 				shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',input$reference_gene)))
@@ -634,9 +634,6 @@ shinyServer(function(input, output, session) {
 				conn = locuscompare_pool,
 				statement = statement
 				)
-
-			# shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',coloc_gene_id())))
-			# shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',coloc_gene_id())))
 
 			res = list(
 				chr = chr_start_end$chr,
