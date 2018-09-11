@@ -49,7 +49,7 @@ shinyUI(fluidPage(
 			navbarPage(
 				title = 'LocusCompare',
 				id = 'navbarPage',
-				theme = shinytheme('spacelab'),
+				theme = shinytheme('cerulean'),
 				
 				########################
 				# Colocalization panel #
@@ -70,7 +70,8 @@ shinyUI(fluidPage(
 								inputId = 'coloc_gwas',
 								label = 'GWAS study',
 								choices = c('Choose' = '', coloc_gwas_list),
-								width = '100%'
+								width = '100%',
+								selected = 'GWAS_Coronary_Artery_Disease_Nelson_2017'
 							)
 						),
 						column(
@@ -78,7 +79,7 @@ shinyUI(fluidPage(
 							selectizeInput(
 								inputId = 'coloc_trait',
 								label = 'Trait',
-								choices = c('Choose' = ''),
+								choices = c(Choices = 'Coronary-Artery-Disease'),
 								width = '100%'
 							)
 						)
@@ -94,7 +95,7 @@ shinyUI(fluidPage(
 							selectizeInput(
 								inputId = 'coloc_eqtl',
 								label = 'eQTL',
-								choices = c('Choose' = ''),
+								choices = c(Choices = ''),
 								width = '100%'
 							)
 						)
@@ -119,12 +120,23 @@ shinyUI(fluidPage(
 					fluidRow(
 						column(
 							width = 12,
+							textOutput(
+								outputId = 'coloc_text'
+							)
+						)
+					),
+
+					br(),
+
+					fluidRow(
+						column(
+							width = 12,
 							shinycssloaders::withSpinner(
 								plotOutput(
 									outputId = 'coloc',
 									click = 'coloc_plot_click',
 									dblclick = 'coloc_plot_dblclick',
-									brush = brushOpts(id = 'coloc_plot_brush', direction = 'x'),
+									brush = brushOpts(id = 'coloc_plot_brush', direction = 'x', resetOnNew = TRUE),
 									height = '250px'
 								)
 							)
@@ -414,7 +426,7 @@ shinyUI(fluidPage(
 											outputId = 'locuszoom1',
 											click = 'plot_click',
 											dblclick = 'plot_dblclick',
-											brush = brushOpts(id = 'plot_brush', direction = 'x'),
+											brush = brushOpts(id = 'plot_brush', direction = 'x', resetOnNew = TRUE),
 											height = '250px'
 										)
 									)
@@ -427,7 +439,7 @@ shinyUI(fluidPage(
 											outputId = 'locuszoom2',
 											click = 'plot_click',
 											dblclick = 'plot_dblclick',
-											brush = brushOpts(id = 'plot_brush', direction = 'x'),
+											brush = brushOpts(id = 'plot_brush', direction = 'x', resetOnNew = TRUE),
 											height = '250px'
 										)
 									)
@@ -474,19 +486,8 @@ shinyUI(fluidPage(
 						column(
 							8,
 							fluidRow(
-								column(6,
+								column(12,
 										h3('LD SNPs')
-								),
-								column(6,
-										numericInput(
-											inputId = "r2_threshold",
-											label = "LD threshold (r2)",
-											value = 0.8,
-											min = 0.2,
-											max = 1,
-											step = 0.1,
-											width = '100%'
-										)
 								)
 							),
 							fluidRow(

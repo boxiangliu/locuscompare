@@ -8,7 +8,7 @@ options(shiny.maxRequestSize=100*1024^2)
 # Functions #
 #############
 select_snp = function(click,merged){
-	merged_subset = nearPoints(merged,click,maxpoints=1)
+	merged_subset = nearPoints(merged,click,maxpoints=1,threshold = 10)
 	snp = merged_subset %>% dplyr::select(rsid) %>% unlist()
 	return(snp)
 }
@@ -524,7 +524,7 @@ shinyServer(function(input, output, session) {
 	})
 
 	coloc_to_locuscompare_ready = reactive({
-		isTruthy(input$coloc_gwas) & isTruthy(input$coloc_trait) & isTruthy(input$coloc_eqtl)
+		isTruthy(input$coloc_gwas) & isTruthy(input$coloc_trait) & isTruthy(input$coloc_eqtl) & isTruthy(coloc_gene_id())
 	})
 
 	either_to_locuscompare_ready = reactive({
@@ -796,15 +796,22 @@ shinyServer(function(input, output, session) {
 
 	range=reactiveValues(xmin=NULL,xmax=NULL)
 
-	observeEvent(input$plot_brush,{
-		brush = input$plot_brush
-		range$xmin=brush$xmin
-		range$xmax=brush$xmax
-	})
-	
 	observeEvent(input$plot_dblclick,{
-		range$xmin=NULL
-		range$xmax=NULL
+
+		brush = input$plot_brush
+
+		if (!is.null(brush)) {
+		
+			range$xmin = brush$xmin
+			range$xmax = brush$xmax
+
+		} else {
+		
+			range$xmin=NULL
+			range$xmax=NULL
+		
+		}
+
 	})
 	
 	plot_data=reactive({
@@ -818,19 +825,48 @@ shinyServer(function(input, output, session) {
 	})
 	
 	title1=reactive({
-		if (isTruthy(input$trait1)){
-			return(input$trait1)
+
+		if (counter()[['from']] == 'interactive_to_locuscompare'){
+
+			if (isTruthy(input$trait1)){
+				return(input$trait1)
+			} else {
+				return(input$file1_trait)
+			}
+
+		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+
+			return(input$coloc_trait)
+
 		} else {
-			return(input$file1_trait)
+
+			shiny::req(FALSE)
+
 		}
+
 	})
 
 	title2=reactive({
-		if (isTruthy(input$trait2)){
-			return(input$trait2)
+
+		if (counter()[['from']] == 'interactive_to_locuscompare'){
+
+			if (isTruthy(input$trait2)){
+				return(input$trait2)
+			} else {
+				return(input$file2_trait)
+			}
+
+		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+
+			return(coloc_gene_id())
+
 		} else {
-			return(input$file2_trait)
+
+			shiny::req(FALSE)
+
 		}
+
+
 	})
 
 	output$locuscompare = renderPlot({
@@ -906,15 +942,20 @@ shinyServer(function(input, output, session) {
 	})
 
 	output$ld_snps = renderDataTable({
+	    
 		ld_snps=ld() %>%
-			dplyr::filter(SNP_A==snp(),R2>=input$r2_threshold) %>%
+			dplyr::filter(SNP_A==snp()) %>%
 			dplyr::select(rsid=SNP_B,r2=R2)
+		
 		ld_snps=rbind(data.frame(rsid=snp(),r2=1),ld_snps)
+		
 		ld_snps_2 = merged() %...>%
 			dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %...>%
 			dplyr::select(rsid,chr,pos,pval1_disp,pval2_disp) %...>%
 			merge(ld_snps,by='rsid') %...>%
-			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value 1` = pval1_disp, `P-value 2` = pval2_disp)
+			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value 1` = pval1_disp, `P-value 2` = pval2_disp) %...>%
+		    datatable(., selection='none')
+
 		return(ld_snps_2)
 	})
 	
@@ -986,7 +1027,7 @@ shinyServer(function(input, output, session) {
 		eventExpr = input$coloc_gwas,
 		handlerExpr = {
 			coloc_trait = get_coloc_trait(input$coloc_gwas)
-			updateSelectizeInput(session, "coloc_trait", choices = coloc_trait, server = TRUE)
+			updateSelectizeInput(session, "coloc_trait", choices = coloc_trait, server = FALSE)
 		}
 	)
 
@@ -994,7 +1035,7 @@ shinyServer(function(input, output, session) {
 		eventExpr = input$coloc_trait,
 		handlerExpr = {
 			coloc_eqtl = get_coloc_eqtl(input$coloc_gwas, input$coloc_trait)
-			updateSelectizeInput(session, "coloc_eqtl", choices = coloc_eqtl, server = TRUE)
+			updateSelectizeInput(session, "coloc_eqtl", choices = coloc_eqtl, server = FALSE)
 		}
 	)
 
@@ -1008,33 +1049,59 @@ shinyServer(function(input, output, session) {
 		}
 	)
 
+	output$coloc_text = renderText({
+		sprintf('%s loci passed the threshold (GWAS and eQTL lead SNP p-value < 5e-5)',nrow(eCAVIAR()))
+	})
 
 	build = 'hg19'
 	color1 = 'black'
-	color2 = 'grey'
+	color2 = 'black'
 	chrom_lengths = manhattan::get_chrom_lengths(build)
 	xmax = manhattan::get_total_length(chrom_lengths)
 	x_breaks = manhattan::get_x_breaks(chrom_lengths)
 	color_map = c(color1,color2)
 	names(color_map) = c(color1,color2)
 
+	coloc_range=reactiveValues(x=NULL)
+
+	observeEvent(input$coloc_plot_dblclick, {
+
+		brush = input$coloc_plot_brush
+
+		if (!is.null(brush)) {
+		
+			coloc_range$x = c(brush$xmin, brush$xmax)
+
+		} else {
+		
+			coloc_range$x = NULL
+		
+		}
+	
+	})
+
 	coloc_plot_data = reactive({
+
 		eCAVIAR() %>% 
 			rename(y = clpp) %>%
 			manhattan::add_cumulative_pos(.,build) %>%
 			manhattan::add_color(., color1 = color1, color2 = color2)
+
 	})
 
 	output$coloc = renderPlot({
+
 		p = coloc_plot_data() %>% 
 			{ggplot2::ggplot(.,aes(x=cumulative_pos,y=y,color=color))+
-				geom_point()+
+				geom_point(size=5)+
 				theme_classic()+
-				scale_x_continuous(limits=c(0,xmax),expand=c(0.01,0),breaks=x_breaks,
-								labels=names(x_breaks),name='Chromosome')+
-				scale_y_continuous(expand=c(0.01,0),name=expression('-log10(P-value)'))+
-				scale_color_manual(values=color_map,guide='none')}
+				theme(axis.title = element_text(size=20),axis.text = element_text(size=15)) +
+				scale_x_continuous(expand=c(0.01,0),limits=c(0,xmax),breaks=x_breaks,labels=names(x_breaks),name='Chromosome')+
+				scale_y_continuous(name='Coloc. Prob.', limits = c(0,NA))+
+				scale_color_manual(values=color_map,guide='none')+
+				coord_cartesian(xlim = coloc_range$x)}
 		return(p)
+
 	})
 
 	selected_row = eventReactive(
