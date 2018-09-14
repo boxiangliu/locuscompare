@@ -51,6 +51,26 @@ shinyUI(fluidPage(
 				id = 'navbarPage',
 				theme = shinytheme('cerulean'),
 				
+				#############
+				# Help page #
+				#############
+
+				tabPanel(
+					title = 'About',
+					fluidRow(
+						column(
+							width = 1
+						),
+						column(
+							width = 10,
+							includeMarkdown('about.md')
+						),
+						column(
+							width = 1
+						)
+					)
+				),
+
 				########################
 				# Colocalization panel #
 				########################
@@ -795,26 +815,6 @@ shinyUI(fluidPage(
 						div(id = 'thankyou_msg',
 							h3('Thank you! Your response has been submitted succesfully.'),
 							actionLink('submit_another','Share another dataset')
-						)
-					)
-				),
-
-				#############
-				# Help page #
-				#############
-
-				tabPanel(
-					title = 'Help',
-					fluidRow(
-						column(
-							width = 1
-						),
-						column(
-							width = 10,
-							includeMarkdown('help.md')
-						),
-						column(
-							width = 1
 						)
 					)
 				)

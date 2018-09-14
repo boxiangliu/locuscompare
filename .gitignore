@@ -1,5 +1,6 @@
 contrib/
 *.pdf
+*.ai
 *.xlsx
 processed_data/
 *test*

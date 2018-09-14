@@ -886,8 +886,9 @@ shinyServer(function(input, output, session) {
 	   )
 	})
 	output$locuscompare = renderPlot({
+	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+	    shiny::validate(need(nonempty,msg()))
 	    
-	    shiny::validate(need(nrow(plot_data()) > 0,msg()))
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuscatter(
 				merged = .$plot_data,
@@ -904,8 +905,9 @@ shinyServer(function(input, output, session) {
 	})
 	
 	output$locuszoom1 = renderPlot({
-
-	    shiny::validate(need(nrow(plot_data()) > 0,msg()))
+	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+	    shiny::validate(need(nonempty,msg()))
+	    
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
 				metal = .$plot_data,
@@ -921,8 +923,9 @@ shinyServer(function(input, output, session) {
 	})
 	
 	output$locuszoom2 = renderPlot({
+	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+	    shiny::validate(need(nonempty,msg()))
 	    
-	    shiny::validate(need(nrow(plot_data()) > 0,msg()))
 	    p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
 				metal = .$plot_data,
@@ -1032,9 +1035,9 @@ shinyServer(function(input, output, session) {
 			length_ = input$locuscompare_length
 			width_ = input$locuszoom_width
 			height_ = input$locuszoom_height
-			locuscompare_fn = locuscompare %...>% ggsave_return(paste0(tmp_dir,'/locuscompare.jpg'),.,width=length_,height=length_)
-			locuszoom1_fn = locuszoom1 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom1.jpg'),.,width=width_,height=height_)
-			locuszoom2_fn = locuszoom2 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom2.jpg'),.,width=width_,height=height_)
+			locuscompare_fn = locuscompare %...>% ggsave_return(paste0(tmp_dir,'/locuscompare.pdf'),.,width=length_,height=length_)
+			locuszoom1_fn = locuszoom1 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom1.pdf'),.,width=width_,height=height_)
+			locuszoom2_fn = locuszoom2 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom2.pdf'),.,width=width_,height=height_)
 			promise_all(data_fn = data_fn, locuscompare_fn = locuscompare_fn, locuszoom1_fn = locuszoom1_fn, locuszoom2_fn = locuszoom2_fn) %...>% {
 				c(.$data_fn,paste0(tmp_dir,'/ld.tsv'),.$locuscompare_fn,.$locuszoom1_fn,.$locuszoom2_fn) %>% utils::zip(file,.,flags = '-j')}
 		}
