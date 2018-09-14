@@ -641,28 +641,40 @@ shinyUI(fluidPage(
 						),
 						# Genomic coordinates:
 						fluidRow(h3('Genomic regions (maximum 25 regions)')),
+
 						fluidRow(
 							column(2,tags$i(h3('Input'))),
-							column(10,
-									textAreaInput(
-										inputId = 'batch_input',
-										label = 'Genomic regions',
-										width = '100%',
-										resize = 'vertical',
-										placeholder = 'e.g.\nIL18R1:100kb\nchr9:5215926-7194036\nrs2284033:100kb'
-									)
+							column(
+								width = 10,
+								textAreaInput(
+									inputId = 'batch_region_input',
+									label = 'Genomic regions',
+									width = '100%',
+									resize = 'vertical',
+									placeholder = 'e.g.\nIL18R1:100kb\nchr9:5215926-7194036\nrs2284033:100kb'
+								)
 							)
 						),
+
 						fluidRow(
 							column(2,tags$i(h3(tags$b('Or'),'Upload'))),
-							column(10,
-									fileInput(
-										inputId = 'batch_region', 
-										label = downloadLink(outputId = 'batch_region_example', label = 'Example file'),
-										width = "100%"
-									)
+							column(
+								width = 10,
+								fileInput(
+									inputId = 'batch_region_upload', 
+									label = downloadLink(outputId = 'batch_region_example', label = 'Example file'),
+									width = "100%"
+								)
 							)
 						),
+
+						fluidRow(
+							column(
+								width = 12,
+								textOutput(outputId = 'check_batch_region')
+							)
+						),
+
 						fluidRow(h3('Job metadata')),
 						fluidRow(
 							column(2,tags$i(h3('Job name'))),
@@ -728,7 +740,7 @@ shinyUI(fluidPage(
 						fluidRow(
 							column(12,
 									actionButton(
-										inputId = 'submit', 
+										inputId = 'batch_submit', 
 										label = 'Submit',
 										width = '100%',
 										class = "btn-primary"

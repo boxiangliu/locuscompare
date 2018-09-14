@@ -1198,24 +1198,18 @@ shinyServer(function(input, output, session) {
 		contentType = 'text/txt'
 		)
 
-	batch_file_observer = reactiveValues(batch_file1 = NULL, batch_file2 = NULL)
+	batch_observer = reactiveValues(batch_file1 = NULL, batch_file2 = NULL, batch_region_upload = NULL)
 
+	# Check batch study 1 is valid:
 	observeEvent(
 		eventExpr = input$batch_file1,
 		handlerExpr = {
-			batch_file_observer$batch_file1 = TRUE
-		}
-	)
-
-	observeEvent(
-		eventExpr = input$batch_file2,
-		handlerExpr = {
-			batch_file_observer$batch_file2 = TRUE
+			batch_observer$batch_file1 = TRUE
 		}
 	)
 
 	batch_study1_total = reactive({
-		return(isTruthy(input$batch_study1) + isTruthy(batch_file_observer$batch_file1))
+		return(isTruthy(input$batch_study1) + isTruthy(batch_observer$batch_file1))
 	})
 
 	output$check_batch_study1 = renderText({
@@ -1234,12 +1228,20 @@ shinyServer(function(input, output, session) {
 		eventExpr = input$batch_file1_reset,
 		handlerExpr = {
 			reset('batch_file1')
-			batch_file_observer$batch_file1 = FALSE 
+			batch_observer$batch_file1 = FALSE 
+		}
+	)
+
+	# Check batch study 2 is valid:
+	observeEvent(
+		eventExpr = input$batch_file2,
+		handlerExpr = {
+			batch_observer$batch_file2 = TRUE
 		}
 	)
 
 	batch_study2_total = reactive({
-		return(isTruthy(input$batch_study2) + isTruthy(batch_file_observer$batch_file2))
+		return(isTruthy(input$batch_study2) + isTruthy(batch_observer$batch_file2))
 	})
 
 	output$check_batch_study2 = renderText({
@@ -1258,45 +1260,87 @@ shinyServer(function(input, output, session) {
 		eventExpr = input$batch_file2_reset,
 		handlerExpr = {
 			reset('batch_file2')
-			batch_file_observer$batch_file2 = FALSE
+			batch_observer$batch_file2 = FALSE
 		}
 	)
 
-	valid_batch_study1 = eventReactive(input$submit,{isTruthy(input$batch_study1)})
-	valid_batch_study2 = eventReactive(input$submit,{isTruthy(input$batch_study2)})
-	
-	valid_batch_file1 = eventReactive(input$submit,{isTruthy(input$batch_file1)})
-	valid_batch_file2 = eventReactive(input$submit,{isTruthy(input$batch_file2)})
-	
-	valid_batch_input = eventReactive(input$submit,{isTruthy(input$batch_input)})
-	valid_batch_region = eventReactive(input$submit,{isTruthy(input$batch_region)})
+	# Check batch region is valid:
+	observeEvent(
+		eventExpr = input$batch_region_upload,
+		handlerExpr = {
+			batch_observer$batch_region_upload = TRUE
+		}
+	)
 
-	output$batch_error = renderText({
-		shiny::validate(need(valid_batch_study1() | valid_batch_file1(),'Please provide study 1!'))
-		shiny::validate(need(!(valid_batch_study1() & valid_batch_file1()),'Please select or upload study 1, but not both!'))
-		
-		shiny::validate(need(valid_batch_study2() | valid_batch_file2(),'Please provide study 2!'))
-		shiny::validate(need(!(valid_batch_study2() & valid_batch_file2()),'Please select or upload study 2, but not both!'))
 
-		shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
-		shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
-		
-		shiny::validate(need(isTruthy(input$batch_job_name),'Please provide job name!'))
-		shiny::validate(need(isTruthy(input$batch_job_email),'Please provide an email!'))
-
-		return('All inputs are given. Ready to submit!')
+	batch_region_total = reactive({
+		return(isTruthy(input$batch_region_input) + isTruthy(batch_observer$batch_region_upload))
 	})
 
-	observeEvent(input$submit,{
-		shiny::validate(need(valid_batch_study1() | valid_batch_file1(),'Please provide study 1!'))
-		shiny::validate(need(!(valid_batch_study1() & valid_batch_file1()),'Please select or upload study 1, but not both!'))
-		
-		shiny::validate(need(valid_batch_study2() | valid_batch_file2(),'Please provide study 2!'))
-		shiny::validate(need(!(valid_batch_study2() & valid_batch_file2()),'Please select or upload study 2, but not both!'))
+	output$check_batch_region = renderText({
+		if (batch_region_total() == 0){
+			return('Please either select or upload genomic regions.')
+		} else if (batch_region_total() == 1){
+			return('Genomic regions have a valid input.')
+		} else if (batch_region_total() == 2){
+			return('Please either select or upload genomic regions, but not both.')
+		} else {
+			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
+		}
+	})
 
-		shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
-		shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
+	observeEvent(
+		eventExpr = input$batch_region_reset,
+		handlerExpr = {
+			reset('batch_region_upload')
+			batch_observer$batch_region_upload = FALSE
+		}
+	)
+
+
+	batch_submit_ready = reactive({
+		batch_study1_total() == 1 & batch_study2_total() == 1 & batch_region_total() == 1 # TODO: & job metadata
+	})
+
+	observe({
+		shinyjs::toggleState('batch_submit', batch_submit_ready())
+	})
+
+	# valid_batch_study1 = eventReactive(input$submit,{isTruthy(input$batch_study1)})
+	# valid_batch_study2 = eventReactive(input$submit,{isTruthy(input$batch_study2)})
+	
+	# valid_batch_file1 = eventReactive(input$submit,{isTruthy(input$batch_file1)})
+	# valid_batch_file2 = eventReactive(input$submit,{isTruthy(input$batch_file2)})
+	
+	# valid_batch_input = eventReactive(input$submit,{isTruthy(input$batch_input)})
+	# valid_batch_region = eventReactive(input$submit,{isTruthy(input$batch_region)})
+
+	# output$batch_error = renderText({
+	# 	shiny::validate(need(valid_batch_study1() | valid_batch_file1(),'Please provide study 1!'))
+	# 	shiny::validate(need(!(valid_batch_study1() & valid_batch_file1()),'Please select or upload study 1, but not both!'))
 		
+	# 	shiny::validate(need(valid_batch_study2() | valid_batch_file2(),'Please provide study 2!'))
+	# 	shiny::validate(need(!(valid_batch_study2() & valid_batch_file2()),'Please select or upload study 2, but not both!'))
+
+	# 	shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
+	# 	shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
+		
+	# 	shiny::validate(need(isTruthy(input$batch_job_name),'Please provide job name!'))
+	# 	shiny::validate(need(isTruthy(input$batch_job_email),'Please provide an email!'))
+
+	# 	return('All inputs are given. Ready to submit!')
+	# })
+
+	observeEvent(input$batch_submit,{
+		# shiny::validate(need(valid_batch_study1() | valid_batch_file1(),'Please provide study 1!'))
+		# shiny::validate(need(!(valid_batch_study1() & valid_batch_file1()),'Please select or upload study 1, but not both!'))
+		
+		# shiny::validate(need(valid_batch_study2() | valid_batch_file2(),'Please provide study 2!'))
+		# shiny::validate(need(!(valid_batch_study2() & valid_batch_file2()),'Please select or upload study 2, but not both!'))
+
+		# shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
+		# shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
+
 		if (valid_batch_input()){
 			coordinate_list = str_split(trimws(input$batch_input),'\n')[[1]]
 		} else {
@@ -1328,7 +1372,7 @@ shinyServer(function(input, output, session) {
 			send = TRUE)
 	})
 	
-	observeEvent(input$submit,{
+	observeEvent(input$batch_submit,{
 		shinyjs::hide('batch_query')
 		shinyjs::show('batch_query_success')
 	})
