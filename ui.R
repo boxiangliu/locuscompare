@@ -526,8 +526,10 @@ shinyUI(fluidPage(
 					div(
 						id = 'batch_query',
 						fluidRow(h3('Select Studies')),
+
 						# Select study 1:
 						fluidRow(h3('Study 1')),
+
 						fluidRow(
 							column(2,
 									tags$i(h3('Select Published'))
@@ -541,20 +543,42 @@ shinyUI(fluidPage(
 									)
 							)
 						),
+
 						fluidRow(
-							column(2,
-								   tags$i(h3(tags$b('Or'),'Upload'))
+							column(
+								width = 2,
+								tags$i(h3(tags$b('Or'),'Upload'))
 							),
-							column(10,
-									fileInput(
-										inputId = 'batch_file1', 
-										label = downloadLink(outputId = 'batch_file1_example', label = 'Example file'),
-										width = "100%"
-									)
+
+							column(
+								width = 8,
+								fileInput(
+									inputId = 'batch_file1', 
+									label = downloadLink(outputId = 'batch_file1_example', label = 'Example file'),
+									width = "100%"
+								)
+							),
+
+							column(
+								width = 2,
+								actionButton(
+									inputId = 'batch_file1_reset',
+									label = 'Reset',
+									width = '100%',
+									style = 'margin-top:25px')
 							)
 						),
+
+						fluidRow(
+							column(
+								width = 12,
+								textOutput(outputId = 'check_batch_study1')
+							)
+						),
+
 						# Select study 2:
 						fluidRow(h3('Study 2')),
+
 						fluidRow(
 							column(2,
 									tags$i(h3('Published'))
@@ -568,18 +592,39 @@ shinyUI(fluidPage(
 									)
 							)
 						),
+
 						fluidRow(
-							column(2,
-								   tags$i(h3(tags$b('Or'),'Upload'))
+							column(
+								width = 2,
+								tags$i(h3(tags$b('Or'),'Upload'))
 							),
-							column(10,
-									fileInput(
-										inputId = 'batch_file2', 
-										label = downloadLink(outputId = 'batch_file2_example', label = 'Example file'),
-										width = "100%"
-									)
+
+							column(
+								width = 8,
+								fileInput(
+									inputId = 'batch_file2', 
+									label = downloadLink(outputId = 'batch_file2_example', label = 'Example file'),
+									width = "100%"
+								)
+							),
+
+							column(
+								width = 2,
+								actionButton(
+									inputId = 'batch_file2_reset',
+									label = 'Reset',
+									width = '100%',
+									style = 'margin-top:25px')
 							)
 						),
+
+						fluidRow(
+							column(
+								width = 12,
+								textOutput(outputId = 'check_batch_study2')
+							)
+						),
+
 						# Reference population:
 						fluidRow(h3('LD calculation')),
 						fluidRow(

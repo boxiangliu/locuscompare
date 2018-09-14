@@ -1198,6 +1198,70 @@ shinyServer(function(input, output, session) {
 		contentType = 'text/txt'
 		)
 
+	batch_file_observer = reactiveValues(batch_file1 = NULL, batch_file2 = NULL)
+
+	observeEvent(
+		eventExpr = input$batch_file1,
+		handlerExpr = {
+			batch_file_observer$batch_file1 = TRUE
+		}
+	)
+
+	observeEvent(
+		eventExpr = input$batch_file2,
+		handlerExpr = {
+			batch_file_observer$batch_file2 = TRUE
+		}
+	)
+
+	batch_study1_total = reactive({
+		return(isTruthy(input$batch_study1) + isTruthy(batch_file_observer$batch_file1))
+	})
+
+	output$check_batch_study1 = renderText({
+		if (batch_study1_total() == 0){
+			return('Please either select or upload Study 1.')
+		} else if (batch_study1_total() == 1){
+			return('Study 1 has a valid input.')
+		} else if (batch_study1_total() == 2){
+			return('Please either select or upload a study, but not both.')
+		} else {
+			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
+		}
+	})
+
+	observeEvent(
+		eventExpr = input$batch_file1_reset,
+		handlerExpr = {
+			reset('batch_file1')
+			batch_file_observer$batch_file1 = FALSE 
+		}
+	)
+
+	batch_study2_total = reactive({
+		return(isTruthy(input$batch_study2) + isTruthy(batch_file_observer$batch_file2))
+	})
+
+	output$check_batch_study2 = renderText({
+		if (batch_study2_total() == 0){
+			return('Please either select or upload Study 2.')
+		} else if (batch_study2_total() == 1){
+			return('Study 2 has a valid input.')
+		} else if (batch_study2_total() == 2){
+			return('Please either select or upload a study, but not both.')
+		} else {
+			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
+		}
+	})
+
+	observeEvent(
+		eventExpr = input$batch_file2_reset,
+		handlerExpr = {
+			reset('batch_file2')
+			batch_file_observer$batch_file2 = FALSE
+		}
+	)
+
 	valid_batch_study1 = eventReactive(input$submit,{isTruthy(input$batch_study1)})
 	valid_batch_study2 = eventReactive(input$submit,{isTruthy(input$batch_study2)})
 	
