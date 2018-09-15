@@ -282,14 +282,14 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 
 
 		d1 = get_batch_study(
-			valid_study = valid_batch_study1(),
+			valid_study = valid_batch_study1,
 			study = input$batch_study1,
 			datapath = input$batch_file1$datapath,
 			coordinate = parsed_coordinate
 			)
 
 		d2 = get_batch_study(
-			valid_study = valid_batch_study2(),
+			valid_study = valid_batch_study2,
 			study = input$batch_study2,
 			datapath = input$batch_file2$datapath,
 			coordinate = parsed_coordinate
@@ -363,20 +363,20 @@ batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_st
 				cowplot::save_plot(
 					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuscompare.pdf'),
 					plot = p1,
-					base_height = input$batch_locuscompare_length,
-					base_width = input$batch_locuscompare_length)
+					base_height = 8,
+					base_width = 8)
 				
 				cowplot::save_plot(
 					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuszoom1.pdf'),
 					plot = p2,
-					base_height = input$batch_locuszoom_height,
-					base_width = input$batch_locuszoom_width)
+					base_height = 4,
+					base_width = 8)
 				
 				cowplot::save_plot(
 					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuszoom2.pdf'),
 					plot = p3,
-					base_height = input$batch_locuszoom_height,
-					base_width = input$batch_locuszoom_width)
+					base_height = 4,
+					base_width = 8)
 				
 				data.table::fwrite(
 					x = merged,
@@ -1290,77 +1290,80 @@ shinyServer(function(input, output, session) {
 	})
 
 	observeEvent(
-		eventExpr = input$batch_region_reset,
+		eventExpr = input$batch_region_upload_reset,
 		handlerExpr = {
 			reset('batch_region_upload')
 			batch_observer$batch_region_upload = FALSE
 		}
 	)
 
+	output$check_batch_job_name = renderText({
+		if (isTruthy(input$batch_job_name)){
+			return('Valid job name.')
+		} else {
+			return('Please enter a job name.')
+		}
+	})
+
+	output$check_batch_job_email = renderText({
+
+		if (isTruthy(input$batch_job_email)){
+		
+			if (str_detect(input$batch_job_email,'.+@.+')){
+
+				return('Valid email.')
+
+			} else {
+
+				return('Invalid email.')
+			}
+
+		} else {
+
+			return('Please enter an email')
+
+		}
+	})
 
 	batch_submit_ready = reactive({
-		batch_study1_total() == 1 & batch_study2_total() == 1 & batch_region_total() == 1 # TODO: & job metadata
+		batch_study1_total() == 1 & 
+			batch_study2_total() == 1 & 
+			batch_region_total() == 1 & 
+			isTruthy(input$batch_job_name) & 
+			isTruthy(str_detect(input$batch_job_email,'.+@.+'))
 	})
 
 	observe({
 		shinyjs::toggleState('batch_submit', batch_submit_ready())
 	})
 
-	# valid_batch_study1 = eventReactive(input$submit,{isTruthy(input$batch_study1)})
-	# valid_batch_study2 = eventReactive(input$submit,{isTruthy(input$batch_study2)})
-	
-	# valid_batch_file1 = eventReactive(input$submit,{isTruthy(input$batch_file1)})
-	# valid_batch_file2 = eventReactive(input$submit,{isTruthy(input$batch_file2)})
-	
-	# valid_batch_input = eventReactive(input$submit,{isTruthy(input$batch_input)})
-	# valid_batch_region = eventReactive(input$submit,{isTruthy(input$batch_region)})
-
-	# output$batch_error = renderText({
-	# 	shiny::validate(need(valid_batch_study1() | valid_batch_file1(),'Please provide study 1!'))
-	# 	shiny::validate(need(!(valid_batch_study1() & valid_batch_file1()),'Please select or upload study 1, but not both!'))
-		
-	# 	shiny::validate(need(valid_batch_study2() | valid_batch_file2(),'Please provide study 2!'))
-	# 	shiny::validate(need(!(valid_batch_study2() & valid_batch_file2()),'Please select or upload study 2, but not both!'))
-
-	# 	shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
-	# 	shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
-		
-	# 	shiny::validate(need(isTruthy(input$batch_job_name),'Please provide job name!'))
-	# 	shiny::validate(need(isTruthy(input$batch_job_email),'Please provide an email!'))
-
-	# 	return('All inputs are given. Ready to submit!')
-	# })
-
 	observeEvent(input$batch_submit,{
-		# shiny::validate(need(valid_batch_study1() | valid_batch_file1(),'Please provide study 1!'))
-		# shiny::validate(need(!(valid_batch_study1() & valid_batch_file1()),'Please select or upload study 1, but not both!'))
-		
-		# shiny::validate(need(valid_batch_study2() | valid_batch_file2(),'Please provide study 2!'))
-		# shiny::validate(need(!(valid_batch_study2() & valid_batch_file2()),'Please select or upload study 2, but not both!'))
 
-		# shiny::validate(need(any(valid_batch_input(),valid_batch_region()),'Please provide a list of regions!'))
-		# shiny::validate(need({valid_batch_input()+valid_batch_region()==1},'Please either input or upload a list of regions, but not both!'))
-
-		if (valid_batch_input()){
-			coordinate_list = str_split(trimws(input$batch_input),'\n')[[1]]
+		if (isTruthy(input$batch_region_input)){
+			coordinate_list = str_split(trimws(input$batch_region_input),'\n')[[1]]
 		} else {
-			coordinate_list = unlist(fread(input$batch_region$datapath,header=FALSE,sep='\t'))
+			coordinate_list = unlist(fread(input$batch_region_upload$datapath,header=FALSE,sep='\t'))
 		}
 
 		coordinate_list = coordinate_list[1:min(25,length(coordinate_list))] # Subset to first 25 because of gmail size limit.
 		
-		valid_batch_study1_ = function() {valid_batch_study1()}
-		valid_batch_study2_ = function() {valid_batch_study2()}
+		valid_batch_study1_ = isTruthy(input$batch_study1)
+		valid_batch_study2_ = isTruthy(input$batch_study2)
 		input_ = reactiveValuesToList(input)
 		token_ = session$token
 		tar_fn = future({batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_,token_)})
 
+
+		# Unhandled promise error: Reactive context was created in one process and accessed from another
 		link = tar_fn %...>% 
 			googledrive::drive_upload(media = ., path = paste0('LocusCompare/Download/',basename(.))) %...>%
 			googledrive::drive_share(role = 'reader', type = 'anyone') %...>%
 			googledrive::drive_link()
-		
+
 		subject = sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())
+		# The line below is the culprint for 
+		# ctx$onInvalidate: Reactive context was created in one process and accessed from another
+
 		msg = link %...>% sprintf('LocusCompare job %s was completed on %s. Download via this link: %s',input$batch_job_name,Sys.time(),.)
 		
 		msg %...>% send.mail(from = email_username,

@@ -539,7 +539,8 @@ shinyUI(fluidPage(
 										inputId = 'batch_study1',
 										label = 'Study Name',
 										choices = c('Choose' = '', study_list),
-										width = "100%"
+										width = "100%",
+										selected = 'eQTL_Lung_GTEx_v7'
 									)
 							)
 						),
@@ -588,7 +589,8 @@ shinyUI(fluidPage(
 										inputId = 'batch_study2',
 										label = 'Study Name',
 										choices = c('Choose' = '', study_list),
-										width = "100%"
+										width = "100%",
+										selected = 'GWAS_2_Hour_Glucose_Saxena_2010'
 									)
 							)
 						),
@@ -639,19 +641,33 @@ shinyUI(fluidPage(
 									)
 							)
 						),
+
 						# Genomic coordinates:
 						fluidRow(h3('Genomic regions (maximum 25 regions)')),
 
 						fluidRow(
 							column(2,tags$i(h3('Input'))),
 							column(
-								width = 10,
+								width = 4,
 								textAreaInput(
 									inputId = 'batch_region_input',
 									label = 'Genomic regions',
 									width = '100%',
 									resize = 'vertical',
-									placeholder = 'e.g.\nIL18R1:100kb\nchr9:5215926-7194036\nrs2284033:100kb'
+									placeholder = 'e.g.\nIL18R1:1000000\nchr9:5215926-7194036\nrs2284033:1000000',
+									value = 'chr1:1000000-2000000\nchr1:2000000-3000000\nchr1:3000000-4000000\nchr1:1000000-2000000\nchr1:2000000-3000000\nchr1:3000000-4000000\nchr1:1000000-2000000\nchr1:2000000-3000000\nchr1:3000000-4000000\nchr1:1000000-2000000\nchr1:2000000-3000000\nchr1:3000000-4000000\nchr1:1000000-2000000\nchr1:2000000-3000000\nchr1:3000000-4000000\nchr1:1000000-2000000\nchr1:2000000-3000000\nchr1:3000000-4000000\nchr1:1000000-2000000\nchr1:2000000-3000000\nchr1:3000000-4000000\nchr1:1000000-2000000\nchr1:2000000-3000000\nchr1:3000000-4000000\n'
+								)
+							),
+							column(
+								width = 6,
+								helpText(
+									"Valid input formats:",
+									br(),
+									"1. chr<i>:<start>-<end>",
+									br(),
+									"2. <gene symbol>:<window>",
+									br(),
+									"3. <rsid>:<window>"
 								)
 							)
 						),
@@ -659,12 +675,20 @@ shinyUI(fluidPage(
 						fluidRow(
 							column(2,tags$i(h3(tags$b('Or'),'Upload'))),
 							column(
-								width = 10,
+								width = 8,
 								fileInput(
 									inputId = 'batch_region_upload', 
 									label = downloadLink(outputId = 'batch_region_example', label = 'Example file'),
 									width = "100%"
 								)
+							),
+							column(
+								width = 2,
+								actionButton(
+									inputId = 'batch_region_upload_reset',
+									label = 'Reset',
+									width = '100%',
+									style = 'margin-top:25px')
 							)
 						),
 
@@ -683,10 +707,19 @@ shinyUI(fluidPage(
 									inputId = 'batch_job_name', 
 									label = 'Job name', 
 									placeholder = 'myjob', 
-									width = '100%'
+									width = '100%',
+									value = 'test'
 								)
 							)
 						),
+
+						fluidRow(
+							column(
+								width = 12,
+								textOutput(outputId = 'check_batch_job_name')
+							)
+						),
+
 						fluidRow(
 							column(2,tags$i(h3('Email'))),
 							column(10,
@@ -694,49 +727,19 @@ shinyUI(fluidPage(
     								inputId = 'batch_job_email',
     								label = 'Email',
     								placeholder = 'e.g. me@domain.com',
-    								width = '100%'
+    								width = '100%',
+    								value = 'jollier.liu@gmail.com'
     							)
 							)
 						),
+
 						fluidRow(
-						    column(2,tags$i(h3('LocusCompare'))),
-						    column(10,
-						        numericInput(
-    						        inputId = 'batch_locuscompare_length',
-    						        label = 'LocusCompare side length (inches)',
-    						        value = 8,
-    						        min = 1,
-    						        step = 1,
-    						        width = '100%'
-						        )
-						    )
+							column(
+								width = 12,
+								textOutput(outputId = 'check_batch_job_email')
+							)
 						),
-						fluidRow(
-						    column(2,tags$i(h3('LocusZoom'))),
-						    column(10,
-						        numericInput(
-    						        inputId = 'batch_locuszoom_height',
-    						        label = 'LocusZoom height (inches)',
-    						        value = 4,
-    						        min = 1,
-    						        step = 1,
-    						        width = '100%'
-						        )
-						     )
-						),
-						fluidRow(
-						    column(2,''),
-						    column(10,
-						        numericInput(
-    						        inputId = 'batch_locuszoom_width',
-    						        label = 'LocusZoom width (inches)',
-    						        value = 8,
-    						        min = 1,
-    						        step = 1,
-    						        width = '100%'
-						        )
-						    )
-						),
+
 						fluidRow(
 							column(12,
 									actionButton(
@@ -786,7 +789,12 @@ shinyUI(fluidPage(
 					),
 					shinyjs::hidden(
 						div(id = 'batch_query_success',
-							h3('Your query has been submitted succesfully!')
+							h3('Your query has been submitted successfully!'),
+							actionLink(
+								inputId = 'submit_another_query',
+								label = 'Submit another query.',
+								width = '100%'
+							)
 						)
 					)
 				),
