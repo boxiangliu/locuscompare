@@ -967,7 +967,8 @@ shinyServer(function(input, output, session) {
 	})
 
 	output$ld_snps = renderDataTable({
-	    
+		shiny::req(coordinate())
+
 		ld_snps=ld() %>%
 			dplyr::filter(SNP_A==snp()) %>%
 			dplyr::select(rsid=SNP_B,r2=R2)
