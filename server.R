@@ -1353,16 +1353,12 @@ shinyServer(function(input, output, session) {
 		token_ = session$token
 		tar_fn = future({batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_,token_)})
 
-
-		# Unhandled promise error: Reactive context was created in one process and accessed from another
 		link = tar_fn %...>% 
 			googledrive::drive_upload(media = ., path = paste0('LocusCompare/Download/',basename(.))) %...>%
 			googledrive::drive_share(role = 'reader', type = 'anyone') %...>%
 			googledrive::drive_link()
 
 		subject = sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())
-		# The line below is the culprint for 
-		# ctx$onInvalidate: Reactive context was created in one process and accessed from another
 
 		msg = link %...>% sprintf('LocusCompare job %s was completed on %s. Download via this link: %s',input$batch_job_name,Sys.time(),.)
 		

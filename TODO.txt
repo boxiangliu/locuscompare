@@ -1,2 +1,7 @@
 1) Upload GWAS_Blood_Cell_Traits_Astle_2016 to MYSQL
 2) Upload GWAS_Circulating_Metabolites_Kettunen_2016 to MYSQL
+3) Update the batch mode
+The current selection is too flexible. 
+It would make more sense to let the user select GWAS and eQTL datasets, and then select genes.
+Also need to farm out processes to other servers, the webserver only has 2 cores, so even with 
+async processes, the server will have to wait when N > 2 users are submiting batch queries. 
