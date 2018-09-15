@@ -1,0 +1,37 @@
+Title: Batch Query
+
+# Overview
+
+Batch query allows you to input a set of regions. Within each region, LocusCompare will plot all pairs of traits in study 1 and 2. 
+
+# Usage 
+
+1. Select a published study using the `Study Name` drop-down menu. 
+
+2. You can also upload your own study by clicking the `Browse` button. You file should have three columns: `trait`, `rsid`, and `pval`. An example file can be downloaded via the `Example file` link above the `Browser` button. 
+
+  _**Note: Either choose a published study or upload your own study, but not both.**_
+
+3. Repeat **Steps 1-2** for study 2. 
+
+4. Choose a reference population. EUR = European. EAS = East Asian, AFR = African, SAS = South Asian, AMR = Native American. 
+
+5. Type in genomic regions. Each line should contain one region. The three formats below are valid. 
+    * `gene name`:`flanking window size`. 
+    * `SNP`:`flanking window size`.
+    * `chr`:`start`-`end`
+
+    _**Note: because of constraints in file size, a maximum of 25 regions are allowed. If you provide more than 25 regions, the first 25 will be used.**_
+
+6. You can also upload a file of regions. Each line of the file should contain one region. Use the same format above to specify each region. 
+
+7. Choose an informative job name. 
+
+8. Enter a valid email. 
+
+9. Select plot dimensions. 
+
+10. Click `Submit`.
+
+You will get an email shortly about the result. 
+
