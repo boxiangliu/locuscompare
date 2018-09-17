@@ -1076,7 +1076,12 @@ shinyServer(function(input, output, session) {
 	)
 
 	output$coloc_text = renderText({
-		sprintf('%s loci passed the threshold (GWAS and eQTL lead SNP p-value < 5e-5)',nrow(eCAVIAR()))
+		sprintf('%s loci passed the threshold (GWAS lead SNP p-value < 5e-8 and eQTL lead SNP p-value < 1e-6).',nrow(eCAVIAR()))
+	})
+	
+	output$coloc_helper_text = renderText({
+	    eCAVIAR()
+	    'Click on a point to see more (drag and double-click to zoom in and double-click again to zoom out).'
 	})
 
 	build = 'hg19'

@@ -1,4 +1,4 @@
-# LocusCompare: Visualization the colocalization of association summary statistics 
+# LocusCompare: Visualizing the colocalization of association summary statistics 
 
 ---
 

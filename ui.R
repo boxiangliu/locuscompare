@@ -134,7 +134,7 @@ shinyUI(fluidPage(
 							)
 						)
 					),
-
+                    
 					br(),
 
 					fluidRow(
@@ -145,7 +145,16 @@ shinyUI(fluidPage(
 							)
 						)
 					),
-
+                    
+					fluidRow(
+					    column(
+					        width = 12,
+					        textOutput(
+					            outputId = 'coloc_helper_text'
+					        )
+					    )
+					),
+					
 					br(),
 
 					fluidRow(
@@ -809,11 +818,9 @@ shinyUI(fluidPage(
 						column(
 							width = 12,
 							h3('Downloading GWAS and QTL datasets'),
-							p('LocusCompare current hosts 50 (TODO: add automatic update) 
-							  GWAS datasets and 44 (TODO: add automatic update) eQTL datasets.
-							  We have spent a large amount of time finding and curating these 
-							  datasets, and make little sense for anyone else to repeat the work.
-							  Therefore, we wrote a convenient bash script for you to download 
+							p('LocusCompare current hosts more than 200
+							  GWAS datasets and 48 eQTL datasets.
+							  We provide a convenient bash script for you to download 
 							  these data.'),
 							p('Link to bash script: ',a('https://github.com/mikegloudemans/gwas-download',href='https://github.com/mikegloudemans/gwas-download'))
 							)
