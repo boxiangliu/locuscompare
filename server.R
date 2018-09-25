@@ -190,6 +190,27 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 	return(res)
 }
 
+preview_eCAVIAR = function(gwas, trait){
+	conn = do.call(DBI::dbConnect, args)
+	statement = sprintf(
+		"select eqtl, gene_name, clpp
+		from eCAVIAR
+		where gwas = '%s'
+		and trait = '%s'",
+		gwas,
+		trait
+	)
+	eCAVIAR_preview = dbGetQuery(
+		conn = conn,
+		statement = statement
+		)
+	setDT(eCAVIAR_preview)
+	setorder(eCAVIAR_preview, -clpp)
+	eCAVIAR_preview_2 = eCAVIAR_preview[,list(Tested = .N, Genes = paste(gene_name, collapse = ',')), by = 'eqtl']
+	setnames(eCAVIAR_preview_2,'eqtl','eQTL')
+	return(eCAVIAR_preview_2)
+}
+
 get_eCAVIAR = function(gwas, trait, eqtl){
 	conn = do.call(DBI::dbConnect, args)
 	statement = sprintf(
@@ -1065,15 +1086,26 @@ shinyServer(function(input, output, session) {
 		}
 	)
 
+	eCAVIAR_preview = eventReactive(
+		eventExpr = input$preview_coloc,
+		valueExpr = {
+			preview_eCAVIAR(input$coloc_gwas, input$coloc_trait)
+		}
+	)
+
+	output$coloc_table = renderDataTable(
+		expr = eCAVIAR_preview() %>% datatable(., selection='none'),
+		options = list(scrollX = TRUE)
+	)
+
 	eCAVIAR = eventReactive(
 		eventExpr = input$plot_coloc,
 		valueExpr = {
-			gwas_ = input$coloc_gwas
-			trait_ = input$coloc_trait
-			eqtl_ = input$coloc_eqtl
-			get_eCAVIAR(gwas_, trait_, eqtl_)
+			get_eCAVIAR(input$coloc_gwas, input$coloc_trait, input$coloc_eqtl)
 		}
 	)
+	
+
 
 	output$coloc_text = renderText({
 		sprintf('%s loci passed the threshold (GWAS lead SNP p-value < 5e-8 and eQTL lead SNP p-value < 1e-6).',nrow(eCAVIAR()))
@@ -1148,7 +1180,8 @@ shinyServer(function(input, output, session) {
 
 	output$coloc_gene = renderDataTable({
 		selected_row() %>% 
-			select(Gene = gene_id, 
+			select(`Gene ID` = gene_id,
+				`Gene Symbol` = gene_name, 
 				Chromosome = chrom, 
 				TSS = pos,
 				`GWAS -log10(P)` = logp_gwas,

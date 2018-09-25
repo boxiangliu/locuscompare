@@ -104,6 +104,26 @@ shinyUI(fluidPage(
 							)
 						)
 					),
+					
+					fluidRow(
+						column(
+							width = 12,
+							actionButton(
+								inputId = 'preview_coloc',
+								label = 'Preview colocalization', 
+								width = '100%',
+								class = "btn-primary")
+						)
+					),
+
+					br(),
+					
+					fluidRow(
+						column(
+							width = 12,
+							dataTableOutput(outputId = 'coloc_table')
+						)
+					),
 
 					fluidRow(
 						column(
