@@ -1094,7 +1094,7 @@ shinyServer(function(input, output, session) {
 	)
 
 	output$coloc_table = renderDataTable(
-		expr = eCAVIAR_preview() %>% datatable(., selection='none'),
+		expr = eCAVIAR_preview() %>% datatable(.,rownames = FALSE, selection='none'),
 		options = list(scrollX = TRUE)
 	)
 
