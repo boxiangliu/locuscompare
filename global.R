@@ -12,7 +12,6 @@ source('locuscompare.R')
 source('config/config.R')
 library(digest)
 library(utils)
-library(googledrive)
 library(googlesheets)
 library(promises)
 library(future)
@@ -34,6 +33,10 @@ locuscompare_pool = dbPool(
     maxSize = Inf,
     idleTimeout = 3600000
 )
+
+onStop(function() {
+  poolClose(pool)
+})
 
 args = list(
     drv = RMySQL::MySQL(),
