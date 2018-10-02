@@ -4,7 +4,7 @@
 
 options(shiny.maxRequestSize=100*1024^2) 
 logs = reactiveValues(user_count = 0, conn_count = 0)
-
+pool_info = dbGetInfo(locuscompare_pool)
 message('###############')
 message('# APP STARTED #')
 message('###############')
@@ -463,7 +463,12 @@ get_coloc_eqtl = function(gwas, trait, conn = locuscompare_pool){
 
 shinyServer(function(input, output, session) {
 	
+	
 	message('SESSION STARTED.')
+
+	message('Number of free connections:', pool_info$numberFreeObjects)
+	message('Number of taken connections:', pool_info$numberTakenObjects)
+
     onSessionStart = isolate({
         logs$user_count = logs$user_count + 1
         message('Number of users: ',logs$user_count)

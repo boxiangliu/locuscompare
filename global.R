@@ -29,13 +29,11 @@ locuscompare_pool = dbPool(
     host = aws_host,
     username = aws_username,
     password = aws_password,
-    minSize = 4,
-    maxSize = Inf,
-    idleTimeout = 3600000
+    minSize = 4
 )
 
 onStop(function() {
-  poolClose(pool)
+  poolClose(locuscompare_pool)
 })
 
 args = list(
