@@ -465,9 +465,14 @@ shinyServer(function(input, output, session) {
 	
 	
 	message('SESSION STARTED.')
-
-	message('Number of free connections:', pool_info$numberFreeObjects)
-	message('Number of taken connections:', pool_info$numberTakenObjects)
+	observe({
+		input$preview_coloc
+		input$plot_coloc
+		input$coloc_to_locuscompare
+		input$interactive_to_locuscompare
+		message('Number of free connections:', pool_info$numberFreeObjects)
+		message('Number of taken connections:', pool_info$numberTakenObjects)
+	})
 
     onSessionStart = isolate({
         logs$user_count = logs$user_count + 1
