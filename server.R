@@ -4,6 +4,10 @@
 
 options(shiny.maxRequestSize=100*1024^2) 
 
+message('###############')
+message('# APP STARTED #')
+message('###############')
+
 #############
 # Functions #
 #############
@@ -114,9 +118,8 @@ get_trait=function(study, conn = locuscompare_pool){
 	return(trait)
 }
 
-get_study = function(selected_published,study,trait,datapath,coordinate){
-	conn = do.call(DBI::dbConnect, args)
-	on.exit(DBI::dbDisconnect(conn))
+get_study = function(selected_published,study,trait,datapath,coordinate, conn = locuscompare_pool){
+
 	if (str_detect(study,'^eQTL')){
 		if (str_detect(trait,'ENSG')){
 			res = trait
@@ -190,8 +193,8 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 	return(res)
 }
 
-preview_eCAVIAR = function(gwas, trait){
-	conn = do.call(DBI::dbConnect, args)
+preview_eCAVIAR = function(gwas, trait, conn = locuscompare_pool){
+
 	statement = sprintf(
 		"select eqtl, gene_name, clpp
 		from eCAVIAR
@@ -211,8 +214,8 @@ preview_eCAVIAR = function(gwas, trait){
 	return(eCAVIAR_preview_2)
 }
 
-get_eCAVIAR = function(gwas, trait, eqtl){
-	conn = do.call(DBI::dbConnect, args)
+get_eCAVIAR = function(gwas, trait, eqtl, conn = locuscompare_pool){
+
 	statement = sprintf(
 		"select * 
 		from eCAVIAR
@@ -458,7 +461,7 @@ get_coloc_eqtl = function(gwas, trait, conn = locuscompare_pool){
 }
 
 shinyServer(function(input, output, session) {
-
+	
 	#----------------------------#
 	# Session-specific variables #
 	#----------------------------#
