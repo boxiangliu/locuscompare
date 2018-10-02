@@ -1,6 +1,7 @@
 # LocusCompare: Visualizing the colocalization of association summary statistics 
 
 ---
+**Warning**: due to a high volume of visitors, you might be seeing "Error: an error has occurred, check your logs or contact the app author for clarification". This message will disappear automatically after some visitors close their browser connections, so wait a few minutes and check again. In the meantime, we are in the process of increasing the bandwidth of the website.
 
 <img src="logo.png" width="600"/>
 
