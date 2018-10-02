@@ -3,6 +3,7 @@
 # 2018-01-01
 
 options(shiny.maxRequestSize=100*1024^2) 
+logs = reactiveValues(user_count = 0, conn_count = 0)
 
 message('###############')
 message('# APP STARTED #')
@@ -462,6 +463,20 @@ get_coloc_eqtl = function(gwas, trait, conn = locuscompare_pool){
 
 shinyServer(function(input, output, session) {
 	
+	message('SESSION STARTED.')
+    onSessionStart = isolate({
+        logs$user_count = logs$user_count + 1
+        message('Number of users: ',logs$user_count)
+    })
+    
+    onSessionEnded(function(){
+        isolate({
+            logs$user_count = logs$user_count - 1
+            message('SESSION ENDED.')
+            message('Number of users: ',logs$user_count)
+        })
+    })
+
 	#----------------------------#
 	# Session-specific variables #
 	#----------------------------#
@@ -1097,8 +1112,7 @@ shinyServer(function(input, output, session) {
 	)
 
 	output$coloc_table = renderDataTable(
-		expr = eCAVIAR_preview() %>% datatable(.,rownames = FALSE, selection='none'),
-		options = list(scrollX = TRUE)
+		expr = eCAVIAR_preview() %>% datatable(.,rownames = FALSE, selection='none',options = list(scrollX = TRUE)),
 	)
 
 	eCAVIAR = eventReactive(
@@ -1429,8 +1443,8 @@ shinyServer(function(input, output, session) {
 	# Download page #
 	#---------------#
 
-	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE)
-	list_of_studies = googlesheets::gs_read(sheet_key)
+	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE, verbose = FALSE)
+	list_of_studies = googlesheets::gs_read(sheet_key, verbose = FALSE, col_types = readr::cols())
 	output$study_info = renderDataTable({
 		DT::datatable(list_of_studies)
 	})
