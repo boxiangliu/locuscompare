@@ -1028,7 +1028,7 @@ shinyServer(function(input, output, session) {
 			dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %...>%
 			dplyr::select(rsid,chr,pos,pval1_disp,pval2_disp) %...>%
 			merge(ld_snps,by='rsid') %...>%
-			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value 1` = pval1_disp, `P-value 2` = pval2_disp) %...>%
+			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value (x-axis)` = pval1_disp, `P-value (y-axis)` = pval2_disp, `LD (r2)` = r2) %...>%
 		    datatable(., selection='none')
 
 		return(ld_snps_2)
