@@ -9,6 +9,7 @@ message('###############')
 message('# APP STARTED #')
 message('###############')
 
+
 #############
 # Functions #
 #############
@@ -686,8 +687,8 @@ shinyServer(function(input, output, session) {
 
 			res = list(
 				chr = chr_start_end$chr,
-				start = chr_start_end$start - 1e6,
-				end = chr_start_end$start + 1e6
+				start = chr_start_end$start - 1e5,
+				end = chr_start_end$start + 1e5
 				)
 
 
