@@ -1,12 +1,6 @@
 # LocusCompare: Visualizing the colocalization of association summary statistics 
 
 ---
-**Warning**: We are currently experiencing connection issues with Amazon MySQL databases. You occasionally will see an error when clicking on "Plot LocusCompare" on the colocalization page:
-
-<img src='error.png' width='250'/>
-
-Our recommendation is to open a new browser tab and re-run the query. We also recommend waiting at least a minute between browser sessions to MySQL server sufficient time to establish a new connection. 
-
 ## Introduction
 <img src="logo.png" width="600"/>
 
