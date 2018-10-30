@@ -739,7 +739,7 @@ shinyServer(function(input, output, session) {
 
 		}
 
-		future({get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)})
+		get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)
 
 	})
 
@@ -771,7 +771,7 @@ shinyServer(function(input, output, session) {
 
 		}
 
-		future({get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)})
+		get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)
 
 	})
 
@@ -779,19 +779,19 @@ shinyServer(function(input, output, session) {
 		shiny::req(either_to_locuscompare_ready())
 		message('Merging studies')
 
-		d1_non_empty = d1() %...>% nrow() %...>% `>`(0)
-		d2_non_empty = d2() %...>% nrow() %...>% `>`(0)
+		d1_non_empty = d1() %>% nrow() %>% `>`(0)
+		d2_non_empty = d2() %>% nrow() %>% `>`(0)
 		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you input the correct region?'))
 		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
 
-		merged = promise_all(d1 = d1(), d2= d2()) %...>% {merge(.$d1,.$d2,by='rsid',suffixes=c('1','2'),all=FALSE)}
-		merged = merged %...>% get_position()
+		merged = merge(d1(),d2(),by='rsid',suffixes=c('1','2'),all=FALSE)
+		merged = merged %>% get_position()
 
-		check_overlap = merged %...>% nrow() %...>% `>`(0)
+		check_overlap = merged %>% nrow() %>% `>`(0)
 		shiny::validate(need(check_overlap,'No overlapping SNPs between two studies'))
 
-		merged = merged %...>% setDT()
-		merged = merged %...>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval2))
+		merged = merged %>% setDT()
+		merged = merged %>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval2))
 		message('Finished merging')
 		return(merged)
 	})
@@ -800,24 +800,24 @@ shinyServer(function(input, output, session) {
 	
 	observeEvent(merged(),{
 		message('Populating SNP field')
-		merged() %...>% 
-			select(rsid) %...>% 
-			unname () %...>%
-			unlist() %...>% 
+		merged() %>% 
+			select(rsid) %>% 
+			unname () %>%
+			unlist() %>% 
 			updateSelectizeInput(session, "snp", choices = ., server = TRUE)
 	})
 
 	observeEvent(counter(),{
 		shiny::req(either_to_locuscompare_ready())
-		non_empty_merge = merged() %...>% nrow() %...>% `>`(0)
-		non_empty_merge %...>% (
+		non_empty_merge = merged() %>% nrow() %>% `>`(0)
+		non_empty_merge %>% (
 			function(non_empty_merge){
 				if (non_empty_merge){
 					message('Update selected SNP')
-					merged() %...>% 
-						dplyr::slice(which.min(pval1*pval2)) %...>% 
-						dplyr::select(rsid) %...>% 
-						unlist() %...>% 
+					merged() %>% 
+						dplyr::slice(which.min(pval1*pval2)) %>% 
+						dplyr::select(rsid) %>% 
+						unlist() %>% 
 						snp()
 				} else {
 					snp('')
@@ -845,32 +845,29 @@ shinyServer(function(input, output, session) {
 
 	color=reactive({
 		message('Updating color')
-		merged() %...>% 
-			dplyr::select(rsid) %...>% 
-			unlist() %...>% unname() %...>% 
+		merged() %>% 
+			dplyr::select(rsid) %>% 
+			unlist() %>% unname() %>% 
 			assign_color(snp(),ld())
 	})
 
 	shape=reactive({
 		message('Updating shape')
-		merged() %...>% assign_shape(snp())
+		merged() %>% assign_shape(snp())
 	})
 
 	size=reactive({
 		message('Updating size')
-		merged() %...>% assign_size(snp())
+		merged() %>% assign_size(snp())
 	})
 
 	observeEvent(input$plot_click,{
-		selected_snp = merged() %...>% select_snp(input$plot_click,.)
-		nonempty_snp = selected_snp %...>% identical(character(0)) %...>% `!`
-		nonempty_snp %...>% (
-			function(nonempty_snp){
-				if (nonempty_snp){
-					selected_snp %...>% snp() 
-				}
-			}
-		)
+		selected_snp = merged() %>% select_snp(input$plot_click,.)
+		nonempty_snp = selected_snp %>% identical(character(0)) %>% `!`
+		if (nonempty_snp){
+			selected_snp %>% snp() 
+		}
+
 	})
 
 	range=reactiveValues(xmin=NULL,xmax=NULL)
@@ -898,9 +895,9 @@ shinyServer(function(input, output, session) {
 		if (is.null(range$xmin)){
 			plot_data = merged()
 		} else {
-			plot_data = merged() %...>% dplyr::filter(pos<=range$xmax,pos>=range$xmin)
+			plot_data = merged() %>% dplyr::filter(pos<=range$xmax,pos>=range$xmin)
 		}
-		plot_data = plot_data %...>% mutate(label=ifelse(rsid==snp(),rsid,''))
+		plot_data = plot_data %>% mutate(label=ifelse(rsid==snp(),rsid,''))
 		return(plot_data)
 		message('Finished making plot_data')
 	})
@@ -959,62 +956,56 @@ shinyServer(function(input, output, session) {
 	   )
 	})
 	output$locuscompare = renderPlot({
-		nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+		nonempty = plot_data() %>% nrow() %>% `>`(0)
 		shiny::validate(need(nonempty,msg()))
 		message('Making LocusCompare plot')
-		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			make_locuscatter(
-				merged = .$plot_data,
+		p = make_locuscatter(
+				merged = plot_data(),
 				title1 = title1(),
 				title2 = title2(),
 				ld = ld(),
-				color = .$color,
-				shape = .$shape,
-				size = .$size,
+				color = color(),
+				shape = shape(),
+				size = size(),
 				legend=FALSE
 			)
-		}
 		return(p)
 	})
 	
 	output$locuszoom1 = renderPlot({
-		nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+		nonempty = plot_data() %>% nrow() %>% `>`(0)
 		shiny::validate(need(nonempty,msg()))
 		message('Making locuszoom plot 1')
-		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			make_locuszoom(
-				metal = .$plot_data,
+		p = make_locuszoom(
+				metal = plot_data(),
 				title = title1(),
 				ld = ld(),
-				color = .$color,
-				shape = .$shape,
-				size = .$size,
+				color = color(),
+				shape = shape(),
+				size = size(),
 				y_string='logp1'
 			)
-		}
 		return(p)
 	})
 	
 	output$locuszoom2 = renderPlot({
-		nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+		nonempty = plot_data() %>% nrow() %>% `>`(0)
 		shiny::validate(need(nonempty,msg()))
 		message('Making locuszoom plot 2')
-		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			make_locuszoom(
-				metal = .$plot_data,
+		p = make_locuszoom(
+				metal = plot_data(),
 				title = title2(),
 				ld = ld(),
-				color = .$color,
-				shape = .$shape,
-				size = .$size,
+				color = color(),
+				shape = shape(),
+				size = size(),
 				y_string='logp2'
 			)
-		}
 		return(p)
 	})
 	
 	output$blank_plot = renderPlot({
-		p = plot_data() %...>% {ggplot() + geom_blank()}
+		p = plot_data() %>% {ggplot() + geom_blank()}
 		return(p)
 	})
 	
@@ -1048,11 +1039,11 @@ shinyServer(function(input, output, session) {
 		
 		ld_snps=rbind(data.frame(rsid=snp(),r2=1),ld_snps)
 		
-		ld_snps_2 = merged() %...>%
-			dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %...>%
-			dplyr::select(rsid,chr,pos,pval1_disp,pval2_disp) %...>%
-			merge(ld_snps,by='rsid') %...>%
-			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value (x-axis)` = pval1_disp, `P-value (y-axis)` = pval2_disp, `LD (r2)` = r2) %...>%
+		ld_snps_2 = merged() %>%
+			dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %>%
+			dplyr::select(rsid,chr,pos,pval1_disp,pval2_disp) %>%
+			merge(ld_snps,by='rsid') %>%
+			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value (x-axis)` = pval1_disp, `P-value (y-axis)` = pval2_disp, `LD (r2)` = r2) %>%
 		    datatable(., selection='none')
 
 		return(ld_snps_2)
@@ -1071,49 +1062,46 @@ shinyServer(function(input, output, session) {
 	output$single_download = downloadHandler(
 		filename=function(){return('results.zip')},
 		content=function(file){
-			data_fn = merged() %...>% fwrite_return(paste0(tmp_dir,'/data.tsv'),sep='\t')
+			data_fn = merged() %>% fwrite_return(paste0(tmp_dir,'/data.tsv'),sep='\t')
 			fwrite(ld(),paste0(tmp_dir,'/ld.tsv'),sep='\t')
 
-			locuscompare = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-				make_locuscatter(
-					merged = .$plot_data,
+			locuscompare = make_locuscatter(
+					merged = plot_data(),
 					title1 = title1(),
 					title2 = title2(),
 					ld = ld(),
-					color = .$color,
-					shape = .$shape,
-					size = .$size,
-					legend=FALSE)}
+					color = color(),
+					shape = shape(),
+					size = size(),
+					legend=FALSE)
 			
-			locuszoom1 = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-				make_locuszoom(
-					metal = .$plot_data,
+			locuszoom1 = make_locuszoom(
+					metal = plot_data(),
 					title = title1(),
 					ld = ld(),
-					color = .$color,
-					shape = .$shape,
-					size = .$size,
-					y_string='logp1')}
+					color = color(),
+					shape = shape(),
+					size = size(),
+					y_string='logp1')
 				
-			locuszoom2 = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-				make_locuszoom(
-					metal = .$plot_data,
+			locuszoom2 = make_locuszoom(
+					metal = plot_data(),
 					title = title2(),
 					ld = ld(),
-					color = .$color,
-					shape = .$shape,
-					size = .$size,
-					y_string='logp2')}
+					color = color(),
+					shape = shape(),
+					size = size(),
+					y_string='logp2')
 
 			
 			length_ = input$locuscompare_length
 			width_ = input$locuszoom_width
 			height_ = input$locuszoom_height
-			locuscompare_fn = locuscompare %...>% ggsave_return(paste0(tmp_dir,'/locuscompare.pdf'),.,width=length_,height=length_)
-			locuszoom1_fn = locuszoom1 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom1.pdf'),.,width=width_,height=height_)
-			locuszoom2_fn = locuszoom2 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom2.pdf'),.,width=width_,height=height_)
-			promise_all(data_fn = data_fn, locuscompare_fn = locuscompare_fn, locuszoom1_fn = locuszoom1_fn, locuszoom2_fn = locuszoom2_fn) %...>% {
-				c(.$data_fn,paste0(tmp_dir,'/ld.tsv'),.$locuscompare_fn,.$locuszoom1_fn,.$locuszoom2_fn) %>% utils::zip(file,.,flags = '-j')}
+			locuscompare_fn = locuscompare %>% ggsave_return(paste0(tmp_dir,'/locuscompare.pdf'),.,width=length_,height=length_)
+			locuszoom1_fn = locuszoom1 %>% ggsave_return(paste0(tmp_dir,'/locuszoom1.pdf'),.,width=width_,height=height_)
+			locuszoom2_fn = locuszoom2 %>% ggsave_return(paste0(tmp_dir,'/locuszoom2.pdf'),.,width=width_,height=height_)
+			c(data_fn,paste0(tmp_dir,'/ld.tsv'),locuscompare_fn,locuszoom1_fn,locuszoom2_fn) %>% utils::zip(file,.,flags = '-j')
+
 		}
 		
 	)
@@ -1261,7 +1249,7 @@ shinyServer(function(input, output, session) {
 	)
 
 	output$blank_plot_coloc = renderPlot({
-		p = plot_data() %...>% {ggplot() + geom_blank()}
+		p = plot_data() %>% {ggplot() + geom_blank()}
 		return(p)
 	})
 
