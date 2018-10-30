@@ -120,7 +120,9 @@ get_trait=function(study, conn = locuscompare_pool){
 	return(trait)
 }
 
-get_study = function(selected_published,study,trait,datapath,coordinate, conn = locuscompare_pool){
+get_study = function(selected_published,study,trait,datapath,coordinate){
+	conn = do.call(dbConnect, args)
+	on.exit(dbDisconnect(conn))
 
 	if (str_detect(study,'^eQTL')){
 		if (str_detect(trait,'ENSG')){
@@ -463,17 +465,17 @@ get_coloc_eqtl = function(gwas, trait, conn = locuscompare_pool){
 }
 
 shinyServer(function(input, output, session) {
-	
-	
+
+
 	message('SESSION STARTED.')
-	observe({
-		input$preview_coloc
-		input$plot_coloc
-		input$coloc_to_locuscompare
-		input$interactive_to_locuscompare
-		message('Number of free connections:', pool_info$numberFreeObjects)
-		message('Number of taken connections:', pool_info$numberTakenObjects)
-	})
+	# observe({
+	# 	input$preview_coloc
+	# 	input$plot_coloc
+	# 	input$coloc_to_locuscompare
+	# 	input$interactive_to_locuscompare
+	# 	message('Number of free connections:', pool_info$numberFreeObjects)
+	# 	message('Number of taken connections:', pool_info$numberTakenObjects)
+	# })
 
     onSessionStart = isolate({
         logs$user_count = logs$user_count + 1
@@ -578,6 +580,8 @@ shinyServer(function(input, output, session) {
 	})
 
 	either_to_locuscompare_ready = reactive({
+		message(sprintf('Interactive ready? %s',interactive_to_locuscompare_ready()))
+		message(sprintf('Colocalization ready? %s',coloc_to_locuscompare_ready()))
 		interactive_to_locuscompare_ready() || coloc_to_locuscompare_ready()
 	})
 
@@ -602,25 +606,31 @@ shinyServer(function(input, output, session) {
 			new_count = counter()[['count']] + 1
 			new_from = 'coloc_to_locuscompare'
 			counter(list(count = new_count, from = new_from))
+			message(sprintf('Click count: %s',new_count))
+			message(sprintf('Click from: %s',new_from))
 		}
 	)
 
 	observeEvent(counter(), {
-
 		if (interactive_to_locuscompare_ready()){
+			message('Interactive -> LocusCompare')
 			showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
 		}
 
 		if (coloc_to_locuscompare_ready()){
 			shiny::req(coloc_gene_id())
+			message('Colocalization -> LocusCompare')
 			showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
 		} 
 	})
 
 	observeEvent(input$back,{
+
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
+			message('Back to Interactive')
 			showTab(inputId = 'navbarPage', target = 'Single Locus', select = TRUE)
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+			message('Back to Colocalization')
 			showTab(inputId = 'navbarPage', target = 'Colocalization', select = TRUE)
 		} 
 		hideTab(inputId = "navbarPage", target = "Plots")
@@ -629,7 +639,7 @@ shinyServer(function(input, output, session) {
 
 	coordinate = eventReactive(counter(),{
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
-
+			message('Interactive -> Retrieving coordinates')
 			if (selected_snp_region()){
 
 				chr_pos=dbGetQuery(
@@ -675,7 +685,7 @@ shinyServer(function(input, output, session) {
 			}
 
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
-
+			message('Colocalization -> Retrieving coordinates')
 			shiny::validate(need(coloc_gene_id(), label = 'coloc_gene_id'))
 
 			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_id = "%s";',coloc_gene_id())
@@ -704,6 +714,7 @@ shinyServer(function(input, output, session) {
 	d1 = eventReactive(counter(),{
 
 		shiny::req(either_to_locuscompare_ready())
+		message('Getting study 1')
 
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
 
@@ -733,8 +744,9 @@ shinyServer(function(input, output, session) {
 	})
 
 	d2 = eventReactive(counter(),{
-
+		
 		shiny::req(either_to_locuscompare_ready())
+		message('Getting study 2')
 
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
 			
@@ -765,6 +777,7 @@ shinyServer(function(input, output, session) {
 
 	merged = reactive({
 		shiny::req(either_to_locuscompare_ready())
+		message('Merging studies')
 
 		d1_non_empty = d1() %...>% nrow() %...>% `>`(0)
 		d2_non_empty = d2() %...>% nrow() %...>% `>`(0)
@@ -779,13 +792,14 @@ shinyServer(function(input, output, session) {
 
 		merged = merged %...>% setDT()
 		merged = merged %...>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval2))
-
+		message('Finished merging')
 		return(merged)
 	})
 
 	snp=reactiveVal(value='',label='snp')
 	
 	observeEvent(merged(),{
+		message('Populating SNP field')
 		merged() %...>% 
 			select(rsid) %...>% 
 			unname () %...>%
@@ -799,6 +813,7 @@ shinyServer(function(input, output, session) {
 		non_empty_merge %...>% (
 			function(non_empty_merge){
 				if (non_empty_merge){
+					message('Update selected SNP')
 					merged() %...>% 
 						dplyr::slice(which.min(pval1*pval2)) %...>% 
 						dplyr::select(rsid) %...>% 
@@ -812,31 +827,37 @@ shinyServer(function(input, output, session) {
 	})
 
 	observeEvent(input$snp,{
+		message('Updating selected SNP')
 		snp(input$snp)
 	})
 
 	chr=reactive({
+		message('Updating chromosome')
 		chr=unique(coordinate()$chr)
 		shiny::validate(need(length(chr)==1,'Studies must only have one chromosome!'))
 		return(chr)
 	})
 
 	ld=reactive({
+		message('Updating LD')
 		retrieve_LD(chr(),snp(),input$population)
 	})
 
 	color=reactive({
+		message('Updating color')
 		merged() %...>% 
-	        dplyr::select(rsid) %...>% 
-	        unlist() %...>% unname() %...>% 
-	        assign_color(snp(),ld())
+			dplyr::select(rsid) %...>% 
+			unlist() %...>% unname() %...>% 
+			assign_color(snp(),ld())
 	})
 
 	shape=reactive({
+		message('Updating shape')
 		merged() %...>% assign_shape(snp())
 	})
 
 	size=reactive({
+		message('Updating size')
 		merged() %...>% assign_size(snp())
 	})
 
@@ -873,6 +894,7 @@ shinyServer(function(input, output, session) {
 	})
 	
 	plot_data=reactive({
+		message('Making plot_data')
 		if (is.null(range$xmin)){
 			plot_data = merged()
 		} else {
@@ -880,6 +902,7 @@ shinyServer(function(input, output, session) {
 		}
 		plot_data = plot_data %...>% mutate(label=ifelse(rsid==snp(),rsid,''))
 		return(plot_data)
+		message('Finished making plot_data')
 	})
 	
 	title1=reactive({
@@ -927,18 +950,18 @@ shinyServer(function(input, output, session) {
 
 	})
 	msg = reactive({
-	    sprintf('%s and %s has no overlapping SNP in %s:%s-%s!',
-	            title1(), 
-	            title2(), 
-	            coordinate()$chr, 
-	            coordinate()$start, 
-	            coordinate()$end
+		sprintf('%s and %s has no overlapping SNP in %s:%s-%s!',
+			title1(), 
+			title2(), 
+			coordinate()$chr, 
+			coordinate()$start, 
+			coordinate()$end
 	   )
 	})
 	output$locuscompare = renderPlot({
-	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
-	    shiny::validate(need(nonempty,msg()))
-	    
+		nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+		shiny::validate(need(nonempty,msg()))
+		message('Making LocusCompare plot')
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuscatter(
 				merged = .$plot_data,
@@ -955,9 +978,9 @@ shinyServer(function(input, output, session) {
 	})
 	
 	output$locuszoom1 = renderPlot({
-	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
-	    shiny::validate(need(nonempty,msg()))
-	    
+		nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+		shiny::validate(need(nonempty,msg()))
+		message('Making locuszoom plot 1')
 		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
 				metal = .$plot_data,
@@ -973,10 +996,10 @@ shinyServer(function(input, output, session) {
 	})
 	
 	output$locuszoom2 = renderPlot({
-	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
-	    shiny::validate(need(nonempty,msg()))
-	    
-	    p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
+		nonempty = plot_data() %...>% nrow() %...>% `>`(0)
+		shiny::validate(need(nonempty,msg()))
+		message('Making locuszoom plot 2')
+		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
 			make_locuszoom(
 				metal = .$plot_data,
 				title = title2(),
