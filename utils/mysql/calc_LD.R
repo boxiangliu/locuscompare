@@ -13,8 +13,10 @@ calc_LD=function(chr,pop,out_dir,vcf_fn,panel=NULL){
 
 
 for (pop in c('EUR','EAS','SAS','AFR','AMR')){
-	for (i in 1:22){
+	message('Population: ', pop)
+	for(i in 1:22){
 		chrom = paste0('chr',i)
+		message('Chromosome: ', chrom)
 		calc_LD(
 			chr = chrom,
 			pop = pop,
@@ -22,7 +24,7 @@ for (pop in c('EUR','EAS','SAS','AFR','AMR')){
 			vcf_fn = sprintf('%s/ALL.%s.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir,chrom)
 		)
 	}
-
+	message('Chromosome: X')
 	calc_LD(
 		chr = 'chrX',
 		pop = pop,

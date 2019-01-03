@@ -12,6 +12,7 @@ data/gencode
 data/gtex
 data/ld
 data/population
+data/qtl
 .DS_Store
 ._*
 .Rproj.user
