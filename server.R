@@ -497,8 +497,12 @@ shinyServer(function(input, output, session) {
 	tmp_dir = paste0(tempdir(),'/',session$token,'/')
 	dir.create(tmp_dir,recursive = TRUE)
 	Sys.chmod(tmp_dir, mode="0777")
-	hide(id = "loading-content", anim = TRUE, animType = "fade")    
-	show(id = "app-content")
+
+	observeEvent(input$go_to_website,{
+		hide(id = "select-genome", anim = TRUE, animType = "fade")    
+		show(id = "app-content")
+	})
+
 
 	#---------------------#
 	#   Interactive mode  #
