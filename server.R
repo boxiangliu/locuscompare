@@ -3,6 +3,12 @@
 # 2018-01-01
 
 options(shiny.maxRequestSize=100*1024^2) 
+logs = reactiveValues(user_count = 0, conn_count = 0)
+pool_info = dbGetInfo(locuscompare_pool)
+message('###############')
+message('# APP STARTED #')
+message('###############')
+
 
 #############
 # Functions #
@@ -115,8 +121,9 @@ get_trait=function(study, conn = locuscompare_pool){
 }
 
 get_study = function(selected_published,study,trait,datapath,coordinate){
-	conn = do.call(DBI::dbConnect, args)
-	on.exit(DBI::dbDisconnect(conn))
+	conn = do.call(dbConnect, args)
+	on.exit(dbDisconnect(conn))
+
 	if (str_detect(study,'^eQTL')){
 		if (str_detect(trait,'ENSG')){
 			res = trait
@@ -190,8 +197,8 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 	return(res)
 }
 
-preview_eCAVIAR = function(gwas, trait){
-	conn = do.call(DBI::dbConnect, args)
+preview_eCAVIAR = function(gwas, trait, conn = locuscompare_pool){
+
 	statement = sprintf(
 		"select eqtl, gene_name, clpp
 		from eCAVIAR
@@ -211,8 +218,8 @@ preview_eCAVIAR = function(gwas, trait){
 	return(eCAVIAR_preview_2)
 }
 
-get_eCAVIAR = function(gwas, trait, eqtl){
-	conn = do.call(DBI::dbConnect, args)
+get_eCAVIAR = function(gwas, trait, eqtl, conn = locuscompare_pool){
+
 	statement = sprintf(
 		"select * 
 		from eCAVIAR
@@ -459,6 +466,30 @@ get_coloc_eqtl = function(gwas, trait, conn = locuscompare_pool){
 
 shinyServer(function(input, output, session) {
 
+
+	message('SESSION STARTED.')
+	# observe({
+	# 	input$preview_coloc
+	# 	input$plot_coloc
+	# 	input$coloc_to_locuscompare
+	# 	input$interactive_to_locuscompare
+	# 	message('Number of free connections:', pool_info$numberFreeObjects)
+	# 	message('Number of taken connections:', pool_info$numberTakenObjects)
+	# })
+
+    onSessionStart = isolate({
+        logs$user_count = logs$user_count + 1
+        message('Number of users: ',logs$user_count)
+    })
+    
+    onSessionEnded(function(){
+        isolate({
+            logs$user_count = logs$user_count - 1
+            message('SESSION ENDED.')
+            message('Number of users: ',logs$user_count)
+        })
+    })
+
 	#----------------------------#
 	# Session-specific variables #
 	#----------------------------#
@@ -549,6 +580,8 @@ shinyServer(function(input, output, session) {
 	})
 
 	either_to_locuscompare_ready = reactive({
+		message(sprintf('Interactive ready? %s',interactive_to_locuscompare_ready()))
+		message(sprintf('Colocalization ready? %s',coloc_to_locuscompare_ready()))
 		interactive_to_locuscompare_ready() || coloc_to_locuscompare_ready()
 	})
 
@@ -573,25 +606,31 @@ shinyServer(function(input, output, session) {
 			new_count = counter()[['count']] + 1
 			new_from = 'coloc_to_locuscompare'
 			counter(list(count = new_count, from = new_from))
+			message(sprintf('Click count: %s',new_count))
+			message(sprintf('Click from: %s',new_from))
 		}
 	)
 
 	observeEvent(counter(), {
-
 		if (interactive_to_locuscompare_ready()){
+			message('Interactive -> LocusCompare')
 			showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
 		}
 
 		if (coloc_to_locuscompare_ready()){
 			shiny::req(coloc_gene_id())
+			message('Colocalization -> LocusCompare')
 			showTab(inputId = "navbarPage", target = "Plots", select = TRUE)
 		} 
 	})
 
 	observeEvent(input$back,{
+
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
+			message('Back to Interactive')
 			showTab(inputId = 'navbarPage', target = 'Single Locus', select = TRUE)
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
+			message('Back to Colocalization')
 			showTab(inputId = 'navbarPage', target = 'Colocalization', select = TRUE)
 		} 
 		hideTab(inputId = "navbarPage", target = "Plots")
@@ -600,7 +639,7 @@ shinyServer(function(input, output, session) {
 
 	coordinate = eventReactive(counter(),{
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
-
+			message('Interactive -> Retrieving coordinates')
 			if (selected_snp_region()){
 
 				chr_pos=dbGetQuery(
@@ -646,7 +685,7 @@ shinyServer(function(input, output, session) {
 			}
 
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
-
+			message('Colocalization -> Retrieving coordinates')
 			shiny::validate(need(coloc_gene_id(), label = 'coloc_gene_id'))
 
 			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_id = "%s";',coloc_gene_id())
@@ -658,8 +697,8 @@ shinyServer(function(input, output, session) {
 
 			res = list(
 				chr = chr_start_end$chr,
-				start = chr_start_end$start - 1e6,
-				end = chr_start_end$start + 1e6
+				start = chr_start_end$start - 1e5,
+				end = chr_start_end$start + 1e5
 				)
 
 
@@ -675,6 +714,7 @@ shinyServer(function(input, output, session) {
 	d1 = eventReactive(counter(),{
 
 		shiny::req(either_to_locuscompare_ready())
+		message('Getting study 1')
 
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
 
@@ -699,13 +739,14 @@ shinyServer(function(input, output, session) {
 
 		}
 
-		future({get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)})
+		get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)
 
 	})
 
 	d2 = eventReactive(counter(),{
-
+		
 		shiny::req(either_to_locuscompare_ready())
+		message('Getting study 2')
 
 		if (counter()[['from']] == 'interactive_to_locuscompare'){
 			
@@ -730,50 +771,53 @@ shinyServer(function(input, output, session) {
 
 		}
 
-		future({get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)})
+		get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)
 
 	})
 
 	merged = reactive({
 		shiny::req(either_to_locuscompare_ready())
+		message('Merging studies')
 
-		d1_non_empty = d1() %...>% nrow() %...>% `>`(0)
-		d2_non_empty = d2() %...>% nrow() %...>% `>`(0)
+		d1_non_empty = d1() %>% nrow() %>% `>`(0)
+		d2_non_empty = d2() %>% nrow() %>% `>`(0)
 		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you input the correct region?'))
 		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
 
-		merged = promise_all(d1 = d1(), d2= d2()) %...>% {merge(.$d1,.$d2,by='rsid',suffixes=c('1','2'),all=FALSE)}
-		merged = merged %...>% get_position()
+		merged = merge(d1(),d2(),by='rsid',suffixes=c('1','2'),all=FALSE)
+		merged = merged %>% get_position()
 
-		check_overlap = merged %...>% nrow() %...>% `>`(0)
+		check_overlap = merged %>% nrow() %>% `>`(0)
 		shiny::validate(need(check_overlap,'No overlapping SNPs between two studies'))
 
-		merged = merged %...>% setDT()
-		merged = merged %...>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval2))
-
+		merged = merged %>% setDT()
+		merged = merged %>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval2))
+		message('Finished merging')
 		return(merged)
 	})
 
 	snp=reactiveVal(value='',label='snp')
 	
 	observeEvent(merged(),{
-		merged() %...>% 
-			select(rsid) %...>% 
-			unname () %...>%
-			unlist() %...>% 
+		message('Populating SNP field')
+		merged() %>% 
+			select(rsid) %>% 
+			unname () %>%
+			unlist() %>% 
 			updateSelectizeInput(session, "snp", choices = ., server = TRUE)
 	})
 
 	observeEvent(counter(),{
 		shiny::req(either_to_locuscompare_ready())
-		non_empty_merge = merged() %...>% nrow() %...>% `>`(0)
-		non_empty_merge %...>% (
+		non_empty_merge = merged() %>% nrow() %>% `>`(0)
+		non_empty_merge %>% (
 			function(non_empty_merge){
 				if (non_empty_merge){
-					merged() %...>% 
-						dplyr::slice(which.min(pval1*pval2)) %...>% 
-						dplyr::select(rsid) %...>% 
-						unlist() %...>% 
+					message('Update selected SNP')
+					merged() %>% 
+						dplyr::slice(which.min(pval1*pval2)) %>% 
+						dplyr::select(rsid) %>% 
+						unlist() %>% 
 						snp()
 				} else {
 					snp('')
@@ -783,44 +827,47 @@ shinyServer(function(input, output, session) {
 	})
 
 	observeEvent(input$snp,{
+		message('Updating selected SNP')
 		snp(input$snp)
 	})
 
 	chr=reactive({
+		message('Updating chromosome')
 		chr=unique(coordinate()$chr)
 		shiny::validate(need(length(chr)==1,'Studies must only have one chromosome!'))
 		return(chr)
 	})
 
 	ld=reactive({
+		message('Updating LD')
 		retrieve_LD(chr(),snp(),input$population)
 	})
 
 	color=reactive({
-		merged() %...>% 
-	        dplyr::select(rsid) %...>% 
-	        unlist() %...>% unname() %...>% 
-	        assign_color(snp(),ld())
+		message('Updating color')
+		merged() %>% 
+			dplyr::select(rsid) %>% 
+			unlist() %>% unname() %>% 
+			assign_color(snp(),ld())
 	})
 
 	shape=reactive({
-		merged() %...>% assign_shape(snp())
+		message('Updating shape')
+		merged() %>% assign_shape(snp())
 	})
 
 	size=reactive({
-		merged() %...>% assign_size(snp())
+		message('Updating size')
+		merged() %>% assign_size(snp())
 	})
 
 	observeEvent(input$plot_click,{
-		selected_snp = merged() %...>% select_snp(input$plot_click,.)
-		nonempty_snp = selected_snp %...>% identical(character(0)) %...>% `!`
-		nonempty_snp %...>% (
-			function(nonempty_snp){
-				if (nonempty_snp){
-					selected_snp %...>% snp() 
-				}
-			}
-		)
+		selected_snp = merged() %>% select_snp(input$plot_click,.)
+		nonempty_snp = selected_snp %>% identical(character(0)) %>% `!`
+		if (nonempty_snp){
+			selected_snp %>% snp() 
+		}
+
 	})
 
 	range=reactiveValues(xmin=NULL,xmax=NULL)
@@ -844,13 +891,15 @@ shinyServer(function(input, output, session) {
 	})
 	
 	plot_data=reactive({
+		message('Making plot_data')
 		if (is.null(range$xmin)){
 			plot_data = merged()
 		} else {
-			plot_data = merged() %...>% dplyr::filter(pos<=range$xmax,pos>=range$xmin)
+			plot_data = merged() %>% dplyr::filter(pos<=range$xmax,pos>=range$xmin)
 		}
-		plot_data = plot_data %...>% mutate(label=ifelse(rsid==snp(),rsid,''))
+		plot_data = plot_data %>% mutate(label=ifelse(rsid==snp(),rsid,''))
 		return(plot_data)
+		message('Finished making plot_data')
 	})
 	
 	title1=reactive({
@@ -898,71 +947,65 @@ shinyServer(function(input, output, session) {
 
 	})
 	msg = reactive({
-	    sprintf('%s and %s has no overlapping SNP in %s:%s-%s!',
-	            title1(), 
-	            title2(), 
-	            coordinate()$chr, 
-	            coordinate()$start, 
-	            coordinate()$end
+		sprintf('%s and %s has no overlapping SNP in %s:%s-%s!',
+			title1(), 
+			title2(), 
+			coordinate()$chr, 
+			coordinate()$start, 
+			coordinate()$end
 	   )
 	})
 	output$locuscompare = renderPlot({
-	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
-	    shiny::validate(need(nonempty,msg()))
-	    
-		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			make_locuscatter(
-				merged = .$plot_data,
+		nonempty = plot_data() %>% nrow() %>% `>`(0)
+		shiny::validate(need(nonempty,msg()))
+		message('Making LocusCompare plot')
+		p = make_locuscatter(
+				merged = plot_data(),
 				title1 = title1(),
 				title2 = title2(),
 				ld = ld(),
-				color = .$color,
-				shape = .$shape,
-				size = .$size,
+				color = color(),
+				shape = shape(),
+				size = size(),
 				legend=FALSE
 			)
-		}
 		return(p)
 	})
 	
 	output$locuszoom1 = renderPlot({
-	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
-	    shiny::validate(need(nonempty,msg()))
-	    
-		p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			make_locuszoom(
-				metal = .$plot_data,
+		nonempty = plot_data() %>% nrow() %>% `>`(0)
+		shiny::validate(need(nonempty,msg()))
+		message('Making locuszoom plot 1')
+		p = make_locuszoom(
+				metal = plot_data(),
 				title = title1(),
 				ld = ld(),
-				color = .$color,
-				shape = .$shape,
-				size = .$size,
+				color = color(),
+				shape = shape(),
+				size = size(),
 				y_string='logp1'
 			)
-		}
 		return(p)
 	})
 	
 	output$locuszoom2 = renderPlot({
-	    nonempty = plot_data() %...>% nrow() %...>% `>`(0)
-	    shiny::validate(need(nonempty,msg()))
-	    
-	    p = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-			make_locuszoom(
-				metal = .$plot_data,
+		nonempty = plot_data() %>% nrow() %>% `>`(0)
+		shiny::validate(need(nonempty,msg()))
+		message('Making locuszoom plot 2')
+		p = make_locuszoom(
+				metal = plot_data(),
 				title = title2(),
 				ld = ld(),
-				color = .$color,
-				shape = .$shape,
-				size = .$size,
+				color = color(),
+				shape = shape(),
+				size = size(),
 				y_string='logp2'
 			)
-		}
 		return(p)
 	})
 	
 	output$blank_plot = renderPlot({
-		p = plot_data() %...>% {ggplot() + geom_blank()}
+		p = plot_data() %>% {ggplot() + geom_blank()}
 		return(p)
 	})
 	
@@ -996,11 +1039,11 @@ shinyServer(function(input, output, session) {
 		
 		ld_snps=rbind(data.frame(rsid=snp(),r2=1),ld_snps)
 		
-		ld_snps_2 = merged() %...>%
-			dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %...>%
-			dplyr::select(rsid,chr,pos,pval1_disp,pval2_disp) %...>%
-			merge(ld_snps,by='rsid') %...>%
-			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value 1` = pval1_disp, `P-value 2` = pval2_disp) %...>%
+		ld_snps_2 = merged() %>%
+			dplyr::mutate(pval1_disp = format.pval(pval1), pval2_disp = format.pval(pval2)) %>%
+			dplyr::select(rsid,chr,pos,pval1_disp,pval2_disp) %>%
+			merge(ld_snps,by='rsid') %>%
+			dplyr::rename(rsID = rsid, Chromosome = chr, Position = pos, `P-value (x-axis)` = pval1_disp, `P-value (y-axis)` = pval2_disp, `LD (r2)` = r2) %>%
 		    datatable(., selection='none')
 
 		return(ld_snps_2)
@@ -1019,49 +1062,46 @@ shinyServer(function(input, output, session) {
 	output$single_download = downloadHandler(
 		filename=function(){return('results.zip')},
 		content=function(file){
-			data_fn = merged() %...>% fwrite_return(paste0(tmp_dir,'/data.tsv'),sep='\t')
+			data_fn = merged() %>% fwrite_return(paste0(tmp_dir,'/data.tsv'),sep='\t')
 			fwrite(ld(),paste0(tmp_dir,'/ld.tsv'),sep='\t')
 
-			locuscompare = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-				make_locuscatter(
-					merged = .$plot_data,
+			locuscompare = make_locuscatter(
+					merged = plot_data(),
 					title1 = title1(),
 					title2 = title2(),
 					ld = ld(),
-					color = .$color,
-					shape = .$shape,
-					size = .$size,
-					legend=FALSE)}
+					color = color(),
+					shape = shape(),
+					size = size(),
+					legend=FALSE)
 			
-			locuszoom1 = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-				make_locuszoom(
-					metal = .$plot_data,
+			locuszoom1 = make_locuszoom(
+					metal = plot_data(),
 					title = title1(),
 					ld = ld(),
-					color = .$color,
-					shape = .$shape,
-					size = .$size,
-					y_string='logp1')}
+					color = color(),
+					shape = shape(),
+					size = size(),
+					y_string='logp1')
 				
-			locuszoom2 = promise_all(plot_data = plot_data(), color = color(),shape = shape(), size = size()) %...>% {
-				make_locuszoom(
-					metal = .$plot_data,
+			locuszoom2 = make_locuszoom(
+					metal = plot_data(),
 					title = title2(),
 					ld = ld(),
-					color = .$color,
-					shape = .$shape,
-					size = .$size,
-					y_string='logp2')}
+					color = color(),
+					shape = shape(),
+					size = size(),
+					y_string='logp2')
 
 			
 			length_ = input$locuscompare_length
 			width_ = input$locuszoom_width
 			height_ = input$locuszoom_height
-			locuscompare_fn = locuscompare %...>% ggsave_return(paste0(tmp_dir,'/locuscompare.pdf'),.,width=length_,height=length_)
-			locuszoom1_fn = locuszoom1 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom1.pdf'),.,width=width_,height=height_)
-			locuszoom2_fn = locuszoom2 %...>% ggsave_return(paste0(tmp_dir,'/locuszoom2.pdf'),.,width=width_,height=height_)
-			promise_all(data_fn = data_fn, locuscompare_fn = locuscompare_fn, locuszoom1_fn = locuszoom1_fn, locuszoom2_fn = locuszoom2_fn) %...>% {
-				c(.$data_fn,paste0(tmp_dir,'/ld.tsv'),.$locuscompare_fn,.$locuszoom1_fn,.$locuszoom2_fn) %>% utils::zip(file,.,flags = '-j')}
+			locuscompare_fn = locuscompare %>% ggsave_return(paste0(tmp_dir,'/locuscompare.pdf'),.,width=length_,height=length_)
+			locuszoom1_fn = locuszoom1 %>% ggsave_return(paste0(tmp_dir,'/locuszoom1.pdf'),.,width=width_,height=height_)
+			locuszoom2_fn = locuszoom2 %>% ggsave_return(paste0(tmp_dir,'/locuszoom2.pdf'),.,width=width_,height=height_)
+			c(data_fn,paste0(tmp_dir,'/ld.tsv'),locuscompare_fn,locuszoom1_fn,locuszoom2_fn) %>% utils::zip(file,.,flags = '-j')
+
 		}
 		
 	)
@@ -1094,8 +1134,7 @@ shinyServer(function(input, output, session) {
 	)
 
 	output$coloc_table = renderDataTable(
-		expr = eCAVIAR_preview() %>% datatable(., selection='none'),
-		options = list(scrollX = TRUE)
+		expr = eCAVIAR_preview() %>% datatable(.,rownames = FALSE, selection='none',options = list(scrollX = TRUE)),
 	)
 
 	eCAVIAR = eventReactive(
@@ -1210,224 +1249,16 @@ shinyServer(function(input, output, session) {
 	)
 
 	output$blank_plot_coloc = renderPlot({
-		p = plot_data() %...>% {ggplot() + geom_blank()}
+		p = plot_data() %>% {ggplot() + geom_blank()}
 		return(p)
-	})
-
-
-	#----------------# 
-	#   Batch mode   #
-	#----------------#
-
-	output$batch_file1_example = downloadHandler(
-		filename = function(){return('PHACTR1_Coronary_Heart_Disease_Nikpay_2015_batch.tsv')},
-		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_Coronary_Heart_Disease_Nikpay_2015_batch.tsv',home_dir),file)},
-		contentType = 'text/txt'
-		)
-
-	output$batch_file2_example = downloadHandler(
-		filename = function(){return('PHACTR1_all_tissues.tsv')},
-		content = function(file){file.copy(sprintf('%s/data/example/PHACTR1_all_tissues.tsv',home_dir),file)},
-		contentType = 'text/txt'
-		)
-
-	output$batch_region_example = downloadHandler(
-		filename = function(){return('batch_region.txt')},
-		content = function(file){file.copy(sprintf('%s/data/example/batch_region.txt',home_dir),file)},
-		contentType = 'text/txt'
-		)
-
-	batch_observer = reactiveValues(batch_file1 = NULL, batch_file2 = NULL, batch_region_upload = NULL)
-
-	# Check batch study 1 is valid:
-	observeEvent(
-		eventExpr = input$batch_file1,
-		handlerExpr = {
-			batch_observer$batch_file1 = TRUE
-		}
-	)
-
-	batch_study1_total = reactive({
-		return(isTruthy(input$batch_study1) + isTruthy(batch_observer$batch_file1))
-	})
-
-	output$check_batch_study1 = renderText({
-		if (batch_study1_total() == 0){
-			return('Please either select or upload Study 1.')
-		} else if (batch_study1_total() == 1){
-			return('Study 1 has a valid input.')
-		} else if (batch_study1_total() == 2){
-			return('Please either select or upload a study, but not both.')
-		} else {
-			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
-		}
-	})
-
-	observeEvent(
-		eventExpr = input$batch_file1_reset,
-		handlerExpr = {
-			reset('batch_file1')
-			batch_observer$batch_file1 = FALSE 
-		}
-	)
-
-	# Check batch study 2 is valid:
-	observeEvent(
-		eventExpr = input$batch_file2,
-		handlerExpr = {
-			batch_observer$batch_file2 = TRUE
-		}
-	)
-
-	batch_study2_total = reactive({
-		return(isTruthy(input$batch_study2) + isTruthy(batch_observer$batch_file2))
-	})
-
-	output$check_batch_study2 = renderText({
-		if (batch_study2_total() == 0){
-			return('Please either select or upload Study 2.')
-		} else if (batch_study2_total() == 1){
-			return('Study 2 has a valid input.')
-		} else if (batch_study2_total() == 2){
-			return('Please either select or upload a study, but not both.')
-		} else {
-			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
-		}
-	})
-
-	observeEvent(
-		eventExpr = input$batch_file2_reset,
-		handlerExpr = {
-			reset('batch_file2')
-			batch_observer$batch_file2 = FALSE
-		}
-	)
-
-	# Check batch region is valid:
-	observeEvent(
-		eventExpr = input$batch_region_upload,
-		handlerExpr = {
-			batch_observer$batch_region_upload = TRUE
-		}
-	)
-
-
-	batch_region_total = reactive({
-		return(isTruthy(input$batch_region_input) + isTruthy(batch_observer$batch_region_upload))
-	})
-
-	output$check_batch_region = renderText({
-		if (batch_region_total() == 0){
-			return('Please either select or upload genomic regions.')
-		} else if (batch_region_total() == 1){
-			return('Genomic regions have a valid input.')
-		} else if (batch_region_total() == 2){
-			return('Please either select or upload genomic regions, but not both.')
-		} else {
-			return('Please contact Boxiang Liu at jollier.liu@gmail.com')
-		}
-	})
-
-	observeEvent(
-		eventExpr = input$batch_region_upload_reset,
-		handlerExpr = {
-			reset('batch_region_upload')
-			batch_observer$batch_region_upload = FALSE
-		}
-	)
-
-	output$check_batch_job_name = renderText({
-		if (isTruthy(input$batch_job_name)){
-			return('Valid job name.')
-		} else {
-			return('Please enter a job name.')
-		}
-	})
-
-	output$check_batch_job_email = renderText({
-
-		if (isTruthy(input$batch_job_email)){
-		
-			if (str_detect(input$batch_job_email,'.+@.+')){
-
-				return('Valid email.')
-
-			} else {
-
-				return('Invalid email.')
-			}
-
-		} else {
-
-			return('Please enter an email')
-
-		}
-	})
-
-	batch_submit_ready = reactive({
-		batch_study1_total() == 1 & 
-			batch_study2_total() == 1 & 
-			batch_region_total() == 1 & 
-			isTruthy(input$batch_job_name) & 
-			isTruthy(str_detect(input$batch_job_email,'.+@.+'))
-	})
-
-	observe({
-		shinyjs::toggleState('batch_submit', batch_submit_ready())
-	})
-
-	observeEvent(input$batch_submit,{
-
-		if (isTruthy(input$batch_region_input)){
-			coordinate_list = str_split(trimws(input$batch_region_input),'\n')[[1]]
-		} else {
-			coordinate_list = unlist(fread(input$batch_region_upload$datapath,header=FALSE,sep='\t'))
-		}
-
-		coordinate_list = coordinate_list[1:min(25,length(coordinate_list))] # Subset to first 25 because of gmail size limit.
-		
-		valid_batch_study1_ = isTruthy(input$batch_study1)
-		valid_batch_study2_ = isTruthy(input$batch_study2)
-		input_ = reactiveValuesToList(input)
-		token_ = session$token
-		tar_fn = future({batch_query(tmp_dir,coordinate_list,valid_batch_study1_,valid_batch_study2_,input_,token_)})
-
-		link = tar_fn %...>% 
-			googledrive::drive_upload(media = ., path = paste0('LocusCompare/Download/',basename(.))) %...>%
-			googledrive::drive_share(role = 'reader', type = 'anyone') %...>%
-			googledrive::drive_link()
-
-		subject = sprintf('LocusCompare job %s completed on %s',input$batch_job_name,Sys.time())
-
-		msg = link %...>% sprintf('LocusCompare job %s was completed on %s. Download via this link: %s',input$batch_job_name,Sys.time(),.)
-		
-		msg %...>% send.mail(from = email_username,
-			to = input$batch_job_email,
-			subject = subject,
-			body = .,
-			smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = email_username, passwd = email_password, ssl = TRUE),
-			authenticate = TRUE,
-			send = TRUE)
-	})
-	
-	observeEvent(input$batch_submit,{
-		shinyjs::hide('batch_query')
-		shinyjs::show('batch_query_success')
-	})
-	
-	
-	observeEvent(input$submit_another_query,{
-		shinyjs::reset('batch_query')
-		shinyjs::show('batch_query')
-		shinyjs::hide('batch_query_success')
 	})
 
 	#---------------# 
 	# Download page #
 	#---------------#
 
-	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE)
-	list_of_studies = googlesheets::gs_read(sheet_key)
+	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE, verbose = FALSE)
+	list_of_studies = googlesheets::gs_read(sheet_key, verbose = FALSE, col_types = readr::cols())
 	output$study_info = renderDataTable({
 		DT::datatable(list_of_studies)
 	})

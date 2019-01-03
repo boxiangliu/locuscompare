@@ -12,7 +12,6 @@ source('locuscompare.R')
 source('config/config.R')
 library(digest)
 library(utils)
-library(googledrive)
 library(googlesheets)
 library(promises)
 library(future)
@@ -30,10 +29,12 @@ locuscompare_pool = dbPool(
     host = aws_host,
     username = aws_username,
     password = aws_password,
-    minSize = 4,
-    maxSize = Inf,
-    idleTimeout = 3600000
+    minSize = 4
 )
+
+onStop(function() {
+  poolClose(locuscompare_pool)
+})
 
 args = list(
     drv = RMySQL::MySQL(),

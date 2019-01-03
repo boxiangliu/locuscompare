@@ -2,6 +2,7 @@ contrib/
 *.pdf
 *.ai
 *.xlsx
+*.html
 processed_data/
 *test*
 *tmp*
