@@ -49,7 +49,7 @@ parse_coordinate=function(coordinate){
 
 		chr_pos=dbGetQuery(
 			conn = locuscompare_pool,
-			statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s" limit 1;',reference_snp)
+			statement = sprintf('select chr,pos from %s where rsid = "%s" limit 1;',genome(),reference_snp)
 			)
 		shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',reference_snp)))
 		shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',reference_snp)))
@@ -161,13 +161,14 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 			statement = sprintf(
 				"select t1.rsid, t1.pval 
 				from %s as t1 
-				join tkg_p3v5a as t2 
+				join %s as t2
 				on t1.rsid = t2.rsid 
 				where t1.trait = '%s' 
 				and t2.chr = '%s' 
 				and t2.pos >= %s 
 				and t2.pos <= %s;",
 				study,
+				genome(),
 				trait,
 				coordinate$chr,
 				coordinate$start,
@@ -182,10 +183,11 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 			conn = conn,
 			statement = sprintf(
 				"select rsid 
-				from tkg_p3v5a 
+				from %s 
 				where chr = '%s' 
 				and pos >= %s 
 				and pos <= %s;",
+				genome(),
 				coordinate$chr,
 				coordinate$start,
 				coordinate$end
@@ -497,8 +499,19 @@ shinyServer(function(input, output, session) {
 	tmp_dir = paste0(tempdir(),'/',session$token,'/')
 	dir.create(tmp_dir,recursive = TRUE)
 	Sys.chmod(tmp_dir, mode="0777")
-	hide(id = "loading-content", anim = TRUE, animType = "fade")    
-	show(id = "app-content")
+
+	observeEvent(input$go_to_website,{
+		hide(id = "select-genome", anim = TRUE, animType = "fade")    
+		show(id = "app-content")
+	})
+
+	genome = reactive({
+		if (input$genome_assembly == 'GRCh37/hg19') {
+			return('tkg_p3v5a_hg19')
+		} else {
+			return('tkg_p3v5a_hg38')
+		}
+	})
 
 	#---------------------#
 	#   Interactive mode  #
@@ -644,7 +657,7 @@ shinyServer(function(input, output, session) {
 
 				chr_pos=dbGetQuery(
 					conn = locuscompare_pool,
-					statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s" limit 1;',input$reference_snp)
+					statement = sprintf('select chr,pos from %s where rsid = "%s" limit 1;',genome(),input$reference_snp)
 					)
 				shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',input$reference_snp)))
 				shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',input$reference_snp)))
@@ -1012,7 +1025,7 @@ shinyServer(function(input, output, session) {
 	output$snp_info = renderText({
 		res = dbGetQuery(
 			conn = locuscompare_pool,
-			statement = sprintf('select * from tkg_p3v5a where rsid = "%s";',snp()))
+			statement = sprintf('select * from %s where rsid = "%s";',genome(),snp()))
 
 		sprintf(
 			'Chromosome: %s\nPosition: %s\nrs ID: %s\nReference SNP: %s\nAlternate SNP: %s\nAllele Frequency: %s\nAFR Frequency: %s\nAMR Frequency: %s\nEAS Frequency: %s\nEUR Frequency: %s\nSAS Frequency: %s',

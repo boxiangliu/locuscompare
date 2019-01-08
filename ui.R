@@ -40,8 +40,29 @@ shinyUI(fluidPage(
 	###################
 
 	div(
-		id = "loading-content",
-		h2("Loading...")
+		id = "select-genome",
+		h2("Select genome"),
+		fluidRow(
+			column(
+				width = 12,
+				selectInput(
+					inputId = 'genome_assembly',
+					label = 'Genomes',
+					choices = c('GRCh37/hg19','GRCh38/hg38'),
+					selected = 'GRCh37/hg19'
+				)
+			)
+		),
+		fluidRow(
+			column(
+				width = 12,
+				actionButton(
+					inputId = 'go_to_website',
+					label = 'Go to website',
+					class = "btn-primary"
+				)
+			)
+		)
 	),
 	hidden(
 		div(
@@ -435,7 +456,7 @@ shinyUI(fluidPage(
 
 					fluidRow(
 						column(
-							6,
+							width = 4,
 							selectizeInput(
 								inputId = 'snp',
 								label = 'SNP',
@@ -444,10 +465,10 @@ shinyUI(fluidPage(
 							)
 						),
 						column(
-							6,
+							width = 4,
 							selectInput(
 								inputId = 'population',
-								label = 'Population:',
+								label = 'Population',
 								choices = c('AFR', 'AMR', 'EAS', 'EUR', 'SAS'),
 								selected = 'EUR',
 								width = '100%'
