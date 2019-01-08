@@ -4,5 +4,5 @@ bcftools query -f \
 -r $i \
 -H \
 /mnt/data/shared/1KG/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz \
-> /srv/persistent/bliu2/locuscompare/data/1KG/chr$i.txt &
+> /srv/persistent/bliu2/locuscompare/data/1KG/GRCh37/chr$i.txt &
 done 

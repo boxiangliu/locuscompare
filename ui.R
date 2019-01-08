@@ -3,7 +3,7 @@
 # 2018-01-01
 
 
-get_study_list = function(locuscompare_pool,pattern = 'eQTL|GWAS') {
+get_study_list = function(locuscompare_pool,pattern = 'QTL|GWAS') {
 	table_names = dbListTables(locuscompare_pool)
 	idx = which(str_detect(table_names, pattern) & !str_detect(table_names,'_trait'))
 	table_names = table_names[idx]
