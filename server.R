@@ -48,7 +48,7 @@ get_trait=function(study, conn = locuscompare_pool){
 	return(trait)
 }
 
-get_study = function(selected_published,study,trait,datapath,coordinate){
+get_study = function(selected_published,study,trait,datapath,coordinate,genome){
 	conn = do.call(dbConnect, args)
 	on.exit(dbDisconnect(conn))
 
@@ -96,7 +96,7 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 				and t2.pos >= %s 
 				and t2.pos <= %s;",
 				study,
-				genome(),
+				genome,
 				trait,
 				coordinate$chr,
 				coordinate$start,
@@ -494,7 +494,6 @@ shinyServer(function(input, output, session) {
 			input_study1_ = input$study1
 			input_trait1_ = input$trait1
 			input_file1_datapath_ = input$file1$datapath
-			coordinate_ = coordinate()
 
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
 			shiny::req(coloc_gene_id())
@@ -503,7 +502,6 @@ shinyServer(function(input, output, session) {
 			input_study1_ = input$coloc_gwas
 			input_trait1_ = input$coloc_trait
 			input_file1_datapath_ = ''
-			coordinate_ = coordinate()
 
 		} else {
 
@@ -511,7 +509,7 @@ shinyServer(function(input, output, session) {
 
 		}
 
-		get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)
+		get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate(),genome())
 
 	})
 
@@ -526,7 +524,6 @@ shinyServer(function(input, output, session) {
 			input_study2_ = input$study2
 			input_trait2_ = input$trait2
 			input_file2_datapath_ = input$file2$datapath
-			coordinate_ = coordinate()
 
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
 
@@ -535,7 +532,6 @@ shinyServer(function(input, output, session) {
 			input_study2_ = input$coloc_eqtl
 			input_trait2_ = coloc_gene_id()
 			input_file2_datapath_ = ''
-			coordinate_ = coordinate()
 
 		} else {
 
@@ -543,7 +539,7 @@ shinyServer(function(input, output, session) {
 
 		}
 
-		get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)
+		get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate(),genome())
 
 	})
 
@@ -557,7 +553,7 @@ shinyServer(function(input, output, session) {
 		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
 
 		merged = merge(d1(),d2(),by='rsid',suffixes=c('1','2'),all=FALSE)
-		merged = merged %>% get_position()
+		merged = merged %>% get_position(.,genome())
 
 		check_overlap = merged %>% nrow() %>% `>`(0)
 		shiny::validate(need(check_overlap,'No overlapping SNPs between two studies'))

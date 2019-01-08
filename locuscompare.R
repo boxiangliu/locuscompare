@@ -30,14 +30,16 @@ get_chr=function(eqtl_fn){
 	as.integer(str_replace(unique(fread(eqtl_fn)$chr),'chr',''))
 }
 
-get_position=function(x){
+get_position=function(x,genome){
     stopifnot('rsid' %in% colnames(x))
     res = dbGetQuery(
-        conn = locuscompare_pool,
-        statement = sprintf(
-        "select rsid, chr, pos 
-		from tkg_p3v5a 
-		where rsid in ('%s')",paste0(x$rsid,collapse="','")
+		conn = locuscompare_pool,
+		statement = sprintf(
+			"select rsid, chr, pos 
+			from %s 
+			where rsid in ('%s')",
+			genome,
+			paste0(x$rsid,collapse="','")
         )
     )
     y=merge(x,res,by='rsid')
