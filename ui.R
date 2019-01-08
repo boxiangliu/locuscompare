@@ -16,7 +16,7 @@ get_study_list = function(locuscompare_pool,pattern = 'QTL|GWAS') {
 	return(study_list)
 }
 
-study_list = get_study_list(locuscompare_pool, pattern = 'eQTL|GWAS')
+study_list = get_study_list(locuscompare_pool, pattern = 'QTL|GWAS')
 
 get_coloc_gwas_list = function(locuscompare_pool){
 

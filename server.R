@@ -34,7 +34,7 @@ get_trait=function(study, conn = locuscompare_pool){
 				"select display_trait 
 				from %s_trait;",study)
 			)
-	} else if (str_detect(study,'^eQTL_')){
+	} else if (str_detect(study,'QTL_')){
 		trait = dbGetQuery(
 			conn = conn,
 			statement = sprintf(
