@@ -13,9 +13,9 @@ LocusCompare is a suite of tools and datasets to visualize the colocalization of
 ## Documentations
 For instructions please follow these links: 
 
-- [Documentation](https://www.github.com/boxiangliu/locuscompare/wiki)
-- [Frequently Asked Questions](https://www.github.com/boxiangliu/locuscompare/wiki/FAQ)
-- [Report a bug](https://www.github.com/boxiangliu/locuscompare/issues)
+- Documentation: <https://www.github.com/boxiangliu/locuscompare/wiki>
+- Frequently Asked Questions: <https://www.github.com/boxiangliu/locuscompare/wiki/FAQ>
+- Bug reports: <https://www.github.com/boxiangliu/locuscompare/issues>
 
 To download stand-alone version:
 
