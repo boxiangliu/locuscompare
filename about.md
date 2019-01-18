@@ -15,6 +15,7 @@ For instructions please follow these links:
 
 - Documentation:
 <a href="http://www.google.com/" target="_blank">Hello, world!</a>
+
 <https://www.github.com/boxiangliu/locuscompare/wiki>
 - Frequently Asked Questions: <https://www.github.com/boxiangliu/locuscompare/wiki/FAQ>
 - Bug reports: <https://www.github.com/boxiangliu/locuscompare/issues>
