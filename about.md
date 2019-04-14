@@ -13,13 +13,14 @@ LocusCompare is a suite of tools and datasets to visualize the colocalization of
 ## Documentations
 For instructions please follow these links: 
 
-- [Documentation](https://github.com/boxiangliu/locuscompare/wiki)
-- [Frequently Asked Questions](https://github.com/boxiangliu/locuscompare/wiki/FAQ)
-- [Report a bug](https://github.com/boxiangliu/locuscompare/issues)
+
+- <a href="https://www.github.com/boxiangliu/locuscompare/wiki" target="_blank">Documentation</a>
+- <a href="https://www.github.com/boxiangliu/locuscompare/wiki/FAQ" target="_blank">Frequently Asked Questions</a>
+- <a href="https://www.github.com/boxiangliu/locuscompare/issues" target="_blank">Bug reports</a>
 
 To download stand-alone version:
 
-- [LocusCompareR](https://github.com/boxiangliu/locuscomparer)
+- <a href="https://www.github.com/boxiangliu/locuscomparer" target="_blank">LocusCompareR</a>
 
 
 ## License
