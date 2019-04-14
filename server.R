@@ -272,6 +272,13 @@ shinyServer(function(input, output, session) {
 		}
 	})
 
+	transcriptome = reactive({
+		if (input$genome_assembly == 'GRCh37/hg19') {
+			return('gencode_v19_gtex_v6p')
+		} else {
+			return('gencode_v19_gtex_v6p_hg38')
+		}
+	})
 	#--------------------#
 	#  Interactive mode  #
 	#--------------------#
@@ -431,7 +438,7 @@ shinyServer(function(input, output, session) {
 
 				chr_start_end=dbGetQuery(
 					conn = locuscompare_pool,
-					statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s" limit 1;',input$reference_gene)
+					statement = sprintf('select chr,start,end from %s where gene_name = "%s" limit 1;', transcriptome(), input$reference_gene)
 					)
 				shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',input$reference_gene)))
 				shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',input$reference_gene)))
@@ -460,7 +467,7 @@ shinyServer(function(input, output, session) {
 			message('Colocalization -> Retrieving coordinates')
 			shiny::validate(need(coloc_gene_id(), label = 'coloc_gene_id'))
 
-			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_id = "%s";',coloc_gene_id())
+			statement = sprintf('select chr,start,end from %s where gene_id = "%s";',transcriptome(), coloc_gene_id())
 
 			chr_start_end = dbGetQuery(
 				conn = locuscompare_pool,
