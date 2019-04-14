@@ -15,7 +15,7 @@ locuscompare_db=connect_database(
 	username = aws_username,
 	password = aws_password)
 
-gencode = read_gene_anno(select = 1:7, col.names = c('chr','start','end','strand','gene_id','gene_name','type'))
+gencode = read_gene_anno(select = 1:7, col.names = c('chr','start','end','strand','gene_id','gene_name','type'), fn = 'data/gencode/gencode.v19.genes.v6p.hg19.bed')
 gencode[,chr:=str_replace(chr,'chr','')]
 
 

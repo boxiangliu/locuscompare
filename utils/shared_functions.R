@@ -8,8 +8,8 @@ read_1kg=function(select=1:3,col.names=c('chr','pos','rsid')){
   return(vcf)
 }
 
-read_gene_anno=function(select=5:7,col.names=c('gene_id','gene_name','type')){
-  anno=fread('/mnt/data/shared/datasets/gtex/GTEx_Analysis_2015-01-12/extra/gencode.v19.genes.v6p.hg19.bed',
+read_gene_anno=function(select=5:7,col.names=c('gene_id','gene_name','type'), fn = 'data/gencode/gencode.v19.genes.v6p.hg19.bed'){
+  anno=fread(fn,
              select = select,
              col.names = col.names)
   return(anno)
