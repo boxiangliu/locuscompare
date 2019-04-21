@@ -115,7 +115,7 @@ get_study = function(selected_published,study,trait,datapath,coordinate,genome){
 				where chr = '%s' 
 				and pos >= %s 
 				and pos <= %s;",
-				genome(),
+				genome,
 				coordinate$chr,
 				coordinate$start,
 				coordinate$end
