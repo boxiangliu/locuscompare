@@ -284,6 +284,7 @@ shinyUI(fluidPage(
 								fileInput(
 									inputId = 'file1', 
 									label = downloadLink(outputId = 'file1_example', label = 'Example file'),
+									placeholder = 'Upload your file (5MB max)',
 									width = "100%"
 								)
 						),
@@ -331,6 +332,7 @@ shinyUI(fluidPage(
 								fileInput(
 									inputId = 'file2', 
 									label = downloadLink(outputId = 'file2_example', label = 'Example file'),
+									placeholder = 'Upload your file (5MB max)',
 									width = "100%"
 								)
 						),
@@ -349,19 +351,19 @@ shinyUI(fluidPage(
 					),
 
 					fluidRow(
-						h3('Select a region (maximum 2Mb flanking window)')
+						h3('Select a region (maximum window = 1Mb)')
 					),
 
 					fluidRow(
 						column(3,tags$i(h3('SNP'))),
 						column(3, textInput(inputId = 'reference_snp', label = 'Reference SNP', placeholder = 'e.g. rs1698683')),
-						column(3, numericInput(inputId = 'snp_window', label = 'Flanking Window (Kb)', value = 100))
+						column(3, numericInput(inputId = 'snp_window', label = 'Flanking Window (Kb)', value = 100, min = 1, max = 1000))
 					),
 
 					fluidRow(
 						column(3,tags$i(h3(tags$b('Or'),'Gene'))),
 						column(3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. PHACTR1')),
-						column(3, numericInput(inputId = 'gene_window', label = 'Flanking Window (Kb)', value = 100))
+						column(3, numericInput(inputId = 'gene_window', label = 'Flanking Window (Kb)', value = 100, min =1, max = 1000))
 					),
 
 					fluidRow(
@@ -473,6 +475,16 @@ shinyUI(fluidPage(
 								selected = 'EUR',
 								width = '100%'
 							)
+						)
+					),
+
+					fluidRow(
+						column(
+							width = 12,
+							helpText('[INSTRUCTIONS]
+	    								1. Click on a point to select the corresponding SNP;
+	    								2. Drag and double-click on plots on the right-hand side to zoom in;
+	    								3. Double-click again to zoom out.')
 						)
 					),
 

@@ -2,7 +2,7 @@
 # Boxiang Liu
 # 2018-01-01
 
-options(shiny.maxRequestSize=100*1024^2) 
+options(shiny.maxRequestSize=5*1024^2) 
 logs = reactiveValues(user_count = 0, conn_count = 0)
 pool_info = dbGetInfo(locuscompare_pool)
 message('###############')
@@ -428,10 +428,13 @@ shinyServer(function(input, output, session) {
 				shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',input$reference_snp)))
 				shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',input$reference_snp)))
 
+				snp_window = min(input$snp_window, 1000) # max window size = 1000kb
+				snp_window = max(snp_window, 1) # min window size = 1kb
+
 				res=list(
 					chr = chr_pos$chr,
-					start = chr_pos$pos - input$snp_window*1e3,
-					end = chr_pos$pos + input$snp_window*1e3
+					start = chr_pos$pos - snp_window*500,
+					end = chr_pos$pos + snp_window*500
 					)
 
 			} else if (selected_gene_region()){
@@ -443,18 +446,26 @@ shinyServer(function(input, output, session) {
 				shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',input$reference_gene)))
 				shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',input$reference_gene)))
 
+				gene_window = min(input$gene_window, 1000) # max window size = 1000kb
+				gene_window = max(gene_window, 1) # min window size = 1kb
+
 				res=list(
 					chr = chr_start_end$chr,
-					start = chr_start_end$start - input$gene_window*1e3,
-					end = chr_start_end$start + input$gene_window*1e3
+					start = chr_start_end$start - gene_window*500,
+					end = chr_start_end$start + gene_window*500
 					)
 
 			} else if (selected_coordinate()){
 
+				start_ = max(1, input$start) # min start position is 1
+
+				end_ = min(input$end, start_ + 1e6) # max end position is start + 2e6
+				end_ = max(start_, end_) # min end position is start
+
 				res=list(
 					chr = input$chr,
-					start = input$start,
-					end = input$end
+					start = start_,
+					end = end_
 					)
 
 			} else {
@@ -556,8 +567,8 @@ shinyServer(function(input, output, session) {
 
 		d1_non_empty = d1() %>% nrow() %>% `>`(0)
 		d2_non_empty = d2() %>% nrow() %>% `>`(0)
-		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you input the correct region?'))
-		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
+		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you specify a correct region?'))
+		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you specify a correct region?'))
 
 		merged = merge(d1(),d2(),by='rsid',suffixes=c('1','2'),all=FALSE)
 		merged = merged %>% get_position(.,genome())
@@ -730,6 +741,7 @@ shinyServer(function(input, output, session) {
 			coordinate()$end
 	   )
 	})
+
 	output$locuscompare = renderPlot({
 		nonempty = plot_data() %>% nrow() %>% `>`(0)
 		shiny::validate(need(nonempty,msg()))
@@ -922,12 +934,15 @@ shinyServer(function(input, output, session) {
 
 
 	output$coloc_text = renderText({
-		sprintf('%s loci passed the threshold (GWAS lead SNP p-value < 5e-8 and eQTL lead SNP p-value < 1e-6).',nrow(eCAVIAR()))
+		sprintf('[SUMMARY] %s loci passed the threshold (GWAS lead SNP p-value < 5e-8 and eQTL lead SNP p-value < 1e-6).',nrow(eCAVIAR()))
 	})
 	
 	output$coloc_helper_text = renderText({
 	    eCAVIAR()
-	    'Click on a point to see more (drag and double-click to zoom in and double-click again to zoom out).'
+	    '[INSTRUCTIONS]
+	    1. Click on a point to see more;
+	    2. Drag and double-click to zoom in;
+	    3. Double-click again to zoom out.'
 	})
 
 	build = 'hg19'

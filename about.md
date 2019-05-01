@@ -29,5 +29,5 @@ GPL v3 or later
 ## Developers
 - Boxiang Liu (author, maintainer)
 - Mike Gloudemans (author, maintainer)
-- Abhibram Rao (author, maintainer)
+- Abhiram Rao (author, maintainer)
 - Stephen Montgomery (author, maintainer)
