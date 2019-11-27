@@ -39,5 +39,5 @@ connect_database=function(dbname,host='localhost',username='root',password='admi
     username = username,
     password = password
   )
-
+}
 
