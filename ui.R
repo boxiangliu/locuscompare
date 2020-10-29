@@ -13,6 +13,13 @@ get_study_list = function(locuscompare_pool,pattern = 'QTL|GWAS') {
 		names(tmp) = i
 		return(tmp)
 	}
+
+	study_list[["other QTL"]] = c(study_list[["apaQTL"]], study_list[["eQTLtr"]], study_list[["eQTLex"]])
+
+	study_list[["apaQTL"]] = NULL
+	study_list[["eQTLtr"]] = NULL
+	study_list[["eQTLex"]] = NULL
+
 	return(study_list)
 }
 

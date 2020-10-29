@@ -34,7 +34,7 @@ get_trait=function(study, conn = locuscompare_pool){
 				"select display_trait 
 				from %s_trait;",study)
 			)
-	} else if (str_detect(study,'QTL_')){
+	} else if (str_detect(study,'QTL')){
 		trait = dbGetQuery(
 			conn = conn,
 			statement = sprintf(
@@ -52,7 +52,7 @@ get_study = function(selected_published,study,trait,datapath,coordinate,genome){
 	conn = do.call(dbConnect, args)
 	on.exit(dbDisconnect(conn))
 
-	if (str_detect(study,'^eQTL')){
+	if (str_detect(study,'^eQTL_')){
 		if (str_detect(trait,'ENSG')){
 			res = trait
 		} else {
@@ -67,20 +67,31 @@ get_study = function(selected_published,study,trait,datapath,coordinate,genome){
 				)
 			trait = res$gene_id[1]
 		}
-	}
-	
-	if (str_detect(study,'^GWAS')){
-		res = dbGetQuery(
-			conn = conn,
-			statement = sprintf(
-				"select trait
-				from %s_trait
-				where display_trait = '%s'",
-				study,
-				trait
-			)
-		)
-		trait = res$trait[1]
+	}  else if (str_detect(study,'QTL'))
+        {
+                res = dbGetQuery(
+                        conn = conn,
+                        statement = sprintf(
+                                "select gene_id
+                                from %s_trait
+                                where gene_name = '%s'",
+                                study,
+                                trait
+                                )
+                        )
+                trait = res$gene_id[1]
+        } else if (str_detect(study,'^GWAS')){
+                res = dbGetQuery(
+                        conn = conn,
+                        statement = sprintf(
+                                "select trait
+                                from %s_trait
+                                where display_trait = '%s'",
+                                study,
+                                trait
+                        )
+                )
+                trait = res$trait[1]
 	}
 	
 	if (selected_published){
