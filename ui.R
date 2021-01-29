@@ -278,7 +278,7 @@ shinyUI(fluidPage(
 								selectizeInput(
 									inputId = 'trait1',
 									label = 'Trait (e.g. phenotype or gene)',
-									choices = c('Choose' = ''),
+									choices = c('Choose or type' = ''),
 									width = "100%"
 								)
 						)
@@ -326,7 +326,7 @@ shinyUI(fluidPage(
 								selectizeInput(
 									inputId = 'trait2',
 									label = 'Trait (e.g. phenotype or gene)',
-									choices = c('Choose' = ''),
+									choices = c('Choose or type' = ''),
 									width = "100%"
 								)
 						)
