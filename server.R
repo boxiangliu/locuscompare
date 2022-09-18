@@ -298,7 +298,7 @@ shinyServer(function(input, output, session) {
 		trait1=get_trait(input$study1)
 		updateSelectizeInput(session, "trait1", choices = trait1, server = TRUE)
 	})
-	
+
 	observeEvent(input$study2,{
 		trait2=get_trait(input$study2)
 		updateSelectizeInput(session, "trait2", choices = trait2, server = TRUE)
@@ -1058,11 +1058,11 @@ shinyServer(function(input, output, session) {
 	# Download page #
 	#---------------#
 
-	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE, verbose = FALSE)
-	list_of_studies = googlesheets::gs_read(sheet_key, verbose = FALSE, col_types = readr::cols())
-	output$study_info = renderDataTable({
-		DT::datatable(list_of_studies)
-	})
+	#sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE, verbose = FALSE)
+	#list_of_studies = googlesheets::gs_read(sheet_key, verbose = FALSE, col_types = readr::cols())
+	#output$study_info = renderDataTable({
+	#	DT::datatable(list_of_studies)
+	#})
 
 	#-------#
 	# Share #
@@ -1104,4 +1104,5 @@ shinyServer(function(input, output, session) {
 				  authenticate = TRUE, 
 				  send = TRUE)
 	})
+
 })

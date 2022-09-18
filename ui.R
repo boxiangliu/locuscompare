@@ -611,8 +611,8 @@ shinyUI(fluidPage(
 							  their data publically available. Below is a list of studies 
 							  we included in LocusCompare. If we missed a reference to your 
 							  study, please email Boxiang Liu <bliu2@stanford.edu> or 
-							  Mike Gloudemans <mgloud@stanford.edu>.'),
-							dataTableOutput(outputId = 'study_info')
+							  Mike Gloudemans <mgloud@stanford.edu>.')
+							#,dataTableOutput(outputId = 'study_info')
 							)
 						)
 				),

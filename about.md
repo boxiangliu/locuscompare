@@ -29,5 +29,10 @@ GPL v3 or later
 ## Developers
 - Boxiang Liu (author, maintainer)
 - Mike Gloudemans (author, maintainer)
-- Abhiram Rao (author, maintainer)
-- Stephen Montgomery (author, maintainer)
+- Abhiram Rao (author)
+- Stephen Montgomery (author)
+
+## Citation
+If you use locuscompare, please cite the following paper: https://www.nature.com/articles/s41588-019-0404-0
+
+Boxiang Liu, Michael J. Gloudemans, Abhiram S. Rao, Erik Ingelsson & Stephen B. Montgomery (2019) Abundant associations with gene expression complicate GWAS follow-up, Nature Genetics
