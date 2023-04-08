@@ -1,8 +1,8 @@
 # Server file for LocusCompare
 # Boxiang Liu
 # 2018-01-01
-
-options(shiny.maxRequestSize=100*1024^2) 
+library(ggplot2)
+options(shiny.maxRequestSize=5*1024^2) 
 logs = reactiveValues(user_count = 0, conn_count = 0)
 pool_info = dbGetInfo(locuscompare_pool)
 message('###############')
@@ -24,78 +24,6 @@ select_row = function(click,x){
 	return(subset)
 }
 
-convert_unit = function(x){
-	x = tolower(x)
-	shiny::validate(need(str_detect(x,'[0-9]+(kb|mb)*'),sprintf('%s is not recognized. Try e.g. 100kb.',x)))
-
-	if (str_detect(x,'kb')){
-		y = as.integer(str_replace(x,'kb',''))*1e3
-	} else if (str_detect(x,'mb')){
-		y = as.integer(str_replace(x,'mb',''))*1e6
-	} else {
-		y= as.integer(x)
-	}
-	return(y)
-}
-
-parse_coordinate=function(coordinate){
-	coordinate=trimws(coordinate)
-	stopifnot(length(coordinate)==1)
-
-	if (str_detect(coordinate,'^rs|^ss')){ # SNP:window format
-		split_coordinate = str_split_fixed(coordinate,':',2)
-		reference_snp = split_coordinate[,1]
-		snp_window = convert_unit(split_coordinate[,2])
-
-		chr_pos=dbGetQuery(
-			conn = locuscompare_pool,
-			statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s" limit 1;',reference_snp)
-			)
-		shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',reference_snp)))
-		shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',reference_snp)))
-
-		res=list(
-			chr = chr_pos$chr,
-			start = chr_pos$pos - snp_window,
-			end = chr_pos$pos + snp_window
-			)
-	} else if (str_detect(coordinate,'^chr')){ # chr:start-end format
-		split_coordinate = str_split_fixed(coordinate,':',2)
-
-		chr=str_replace(split_coordinate[,1],'chr','')
-		pos=split_coordinate[,2]
-
-		split_pos=str_split_fixed(pos,'-',2)
-		start=as.integer(split_pos[,1])
-		end=as.integer(split_pos[,2])
-
-		res=list(
-			chr = chr,
-			start = start,
-			end = end
-			)
-	} else {# gene:window format
-		split_coordinate = str_split_fixed(coordinate,':',2)
-		reference_gene = split_coordinate[,1]
-		gene_window = convert_unit(split_coordinate[,2])
-
-		chr_start_end=dbGetQuery(
-			conn = locuscompare_pool,
-			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s" limit 1;',reference_gene) # TODO: add more elegant handling for duplicate gene names.
-			)
-
-		shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',reference_gene)))
-		shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',reference_gene)))
-
-		res=list(
-			chr = chr_start_end$chr,
-			start = chr_start_end$start - gene_window,
-			end = chr_start_end$start + gene_window
-			)
-	}
-	return(res)
-}
-
 get_trait=function(study, conn = locuscompare_pool){
 	if (study==''){
 		trait = ''
@@ -106,7 +34,7 @@ get_trait=function(study, conn = locuscompare_pool){
 				"select display_trait 
 				from %s_trait;",study)
 			)
-	} else if (str_detect(study,'^eQTL_')){
+	} else if (str_detect(study,'QTL')){
 		trait = dbGetQuery(
 			conn = conn,
 			statement = sprintf(
@@ -120,11 +48,11 @@ get_trait=function(study, conn = locuscompare_pool){
 	return(trait)
 }
 
-get_study = function(selected_published,study,trait,datapath,coordinate){
+get_study = function(selected_published,study,trait,datapath,coordinate,genome){
 	conn = do.call(dbConnect, args)
 	on.exit(dbDisconnect(conn))
 
-	if (str_detect(study,'^eQTL')){
+	if (str_detect(study,'^eQTL_')){
 		if (str_detect(trait,'ENSG')){
 			res = trait
 		} else {
@@ -139,20 +67,31 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 				)
 			trait = res$gene_id[1]
 		}
-	}
-	
-	if (str_detect(study,'^GWAS')){
-		res = dbGetQuery(
-			conn = conn,
-			statement = sprintf(
-				"select trait
-				from %s_trait
-				where display_trait = '%s'",
-				study,
-				trait
-			)
-		)
-		trait = res$trait[1]
+	}  else if (str_detect(study,'QTL'))
+        {
+                res = dbGetQuery(
+                        conn = conn,
+                        statement = sprintf(
+                                "select gene_id
+                                from %s_trait
+                                where gene_name = '%s'",
+                                study,
+                                trait
+                                )
+                        )
+                trait = res$gene_id[1]
+        } else if (str_detect(study,'^GWAS')){
+                res = dbGetQuery(
+                        conn = conn,
+                        statement = sprintf(
+                                "select trait
+                                from %s_trait
+                                where display_trait = '%s'",
+                                study,
+                                trait
+                        )
+                )
+                trait = res$trait[1]
 	}
 	
 	if (selected_published){
@@ -161,13 +100,14 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 			statement = sprintf(
 				"select t1.rsid, t1.pval 
 				from %s as t1 
-				join tkg_p3v5a as t2 
+				join %s as t2
 				on t1.rsid = t2.rsid 
 				where t1.trait = '%s' 
 				and t2.chr = '%s' 
 				and t2.pos >= %s 
 				and t2.pos <= %s;",
 				study,
+				genome,
 				trait,
 				coordinate$chr,
 				coordinate$start,
@@ -182,10 +122,11 @@ get_study = function(selected_published,study,trait,datapath,coordinate){
 			conn = conn,
 			statement = sprintf(
 				"select rsid 
-				from tkg_p3v5a 
+				from %s 
 				where chr = '%s' 
 				and pos >= %s 
 				and pos <= %s;",
+				genome,
 				coordinate$chr,
 				coordinate$start,
 				coordinate$end
@@ -242,47 +183,6 @@ get_eCAVIAR = function(gwas, trait, eqtl, conn = locuscompare_pool){
 	return(eCAVIAR)
 }
 
-get_batch_study = function(valid_study,study,datapath,coordinate){
-	if (valid_study){
-		res=dbGetQuery(
-			conn = locuscompare_pool,
-			statement = sprintf(
-				"select t1.trait, t1.rsid, t1.pval 
-				from %s as t1 
-				join tkg_p3v5a as t2 
-				on t1.rsid = t2.rsid  
-				and t2.chr = '%s' 
-				and t2.pos >= %s 
-				and t2.pos <= %s;",
-				study,
-				coordinate$chr,
-				coordinate$start,
-				coordinate$end
-				)
-			)
-	} else {
-		res=fread(datapath,header=TRUE,colClasses=c(trait='character',rsid='character',pval='numeric'))
-		shiny::validate(need(all(c('trait','rsid','pval')%in%colnames(res)),'Input file must have columns trait, rsid, pval!'))
-
-		rsid_list=dbGetQuery(
-			conn = locuscompare_pool,
-			statement = sprintf(
-				"select rsid 
-				from tkg_p3v5a 
-				where chr = '%s' 
-				and pos >= %s 
-				and pos <= %s;",
-				coordinate$chr,
-				coordinate$start,
-				coordinate$end
-				)
-			)
-		res=res[rsid%in%rsid_list$rsid,]
-	}
-	setDT(res)
-	return(res)
-}
-
 epochTime = function() {
 	as.integer(Sys.time())
 }
@@ -298,134 +198,6 @@ saveData = function(data,dir,name) {
 
 	write.csv(x = data, file = file.path(dir, fileName),
 		row.names = FALSE, quote = FALSE)
-}
-
-batch_query = function(tmp_dir,coordinate_list,valid_batch_study1,valid_batch_study2,input,token){
-	for (coordinate in coordinate_list){
-		if (!dir.exists(paste0(tmp_dir,'/',coordinate))){
-			dir.create(paste0(tmp_dir,'/',coordinate),recursive=TRUE)
-		}
-		
-		parsed_coordinate=parse_coordinate(coordinate)
-
-
-		d1 = get_batch_study(
-			valid_study = valid_batch_study1,
-			study = input$batch_study1,
-			datapath = input$batch_file1$datapath,
-			coordinate = parsed_coordinate
-			)
-
-		d2 = get_batch_study(
-			valid_study = valid_batch_study2,
-			study = input$batch_study2,
-			datapath = input$batch_file2$datapath,
-			coordinate = parsed_coordinate
-			)
-
-		trait1_list=unique(d1$trait)
-		trait2_list=unique(d2$trait)
-		n1_trait=length(trait1_list)
-		n2_trait=length(trait2_list)
-
-		for (trait1 in trait1_list){
-			for (trait2 in trait2_list){
-				d1_trait = d1[trait==trait1,list(rsid,pval)]
-				d2_trait = d2[trait==trait2,list(rsid,pval)]
-
-
-				merged=merge(d1_trait,d2_trait,by='rsid',suffixes=c('1','2'),all=FALSE)
-				merged=get_position(merged)
-
-				if (nrow(merged)==0) {
-					warning(sprintf('%s and %s do not overlap!',trait1, trait2))
-					next
-				}
-				setDT(merged)
-				merged[,c('logp1','logp2'):=list(-log10(pval1),-log10(pval2))]
-				
-				snp=merged[which.min(pval1*pval2),rsid]
-				chr=unique(parsed_coordinate$chr)
-				if (length(chr)!=1){
-					warning(sprintf('%s is not a legal chromosome!',chr))
-				}
-
-				ld=retrieve_LD(chr,snp,input$batch_population)
-
-				color=assign_color(merged$rsid,snp,ld)
-				shape=assign_shape(merged,snp)
-				size=assign_size(merged,snp)
-				
-				plot_data=copy(merged)
-				plot_data[,label:=ifelse(rsid==snp,rsid,'')]
-				
-				p1=make_locuscatter(
-					merged = plot_data,
-					title1 = trait1,
-					title2 = trait2,
-					ld = ld,
-					color = color,
-					shape = shape,
-					size = size,
-					legend=FALSE)
-				
-				p2=make_locuszoom(
-					metal = plot_data[,list(rsid,chr,pos,logp1,label)],
-					title = trait1,
-					ld = ld,
-					color = color,
-					shape = shape,
-					size = size,
-					y_string='logp1')
-				
-				
-				p3=make_locuszoom(
-					metal = plot_data[,list(rsid,chr,pos,logp2,label)],
-					title = trait2,
-					ld = ld,
-					color = color,
-					shape = shape,
-					size = size,
-					y_string='logp2')
-				
-				cowplot::save_plot(
-					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuscompare.pdf'),
-					plot = p1,
-					base_height = 8,
-					base_width = 8)
-				
-				cowplot::save_plot(
-					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuszoom1.pdf'),
-					plot = p2,
-					base_height = 4,
-					base_width = 8)
-				
-				cowplot::save_plot(
-					filename = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-locuszoom2.pdf'),
-					plot = p3,
-					base_height = 4,
-					base_width = 8)
-				
-				data.table::fwrite(
-					x = merged,
-					file = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-data.tsv'),
-					sep = '\t')
-				
-				data.table::fwrite(
-					x = ld,
-					file = paste0(tmp_dir,'/',coordinate,'/',trait1,'-',trait2,'-ld.tsv'),
-					sep ='\t')
-			}
-		}
-	}
-	
-	tar_fn = paste0(tmp_dir,'/',input$batch_job_name,'-',token,'-',format(Sys.time(), "%Y_%b_%d_%X"),'.tar.gz')
-
-	owd = setwd(tmp_dir)
-	suppressWarnings(tar(tar_fn,coordinate_list,compression='gzip'))
-	setwd(owd)
-	
-	return(tar_fn)
 }
 
 fwrite_return = function(x,file,sep){
@@ -461,7 +233,7 @@ get_coloc_eqtl = function(gwas, trait, conn = locuscompare_pool){
 	)
 
 	return(result$eqtl)
-
+	
 }
 
 shinyServer(function(input, output, session) {
@@ -497,18 +269,36 @@ shinyServer(function(input, output, session) {
 	tmp_dir = paste0(tempdir(),'/',session$token,'/')
 	dir.create(tmp_dir,recursive = TRUE)
 	Sys.chmod(tmp_dir, mode="0777")
-	hide(id = "loading-content", anim = TRUE, animType = "fade")    
-	show(id = "app-content")
 
-	#---------------------#
-	#   Interactive mode  #
-	#---------------------#
+	observeEvent(input$go_to_website,{
+		hide(id = "select-genome", anim = TRUE, animType = "fade")    
+		show(id = "app-content")
+	})
+
+	genome = reactive({
+		if (input$genome_assembly == 'GRCh37/hg19') {
+			return('tkg_p3v5a_hg19')
+		} else {
+			return('tkg_p3v5a_hg38')
+		}
+	})
+
+	transcriptome = reactive({
+		if (input$genome_assembly == 'GRCh37/hg19') {
+			return('gencode_v19_gtex_v6p')
+		} else {
+			return('gencode_v19_gtex_v6p_hg38')
+		}
+	})
+	#--------------------#
+	#  Interactive mode  #
+	#--------------------#
 
 	observeEvent(input$study1,{
 		trait1=get_trait(input$study1)
 		updateSelectizeInput(session, "trait1", choices = trait1, server = TRUE)
 	})
-	
+
 	observeEvent(input$study2,{
 		trait2=get_trait(input$study2)
 		updateSelectizeInput(session, "trait2", choices = trait2, server = TRUE)
@@ -644,38 +434,49 @@ shinyServer(function(input, output, session) {
 
 				chr_pos=dbGetQuery(
 					conn = locuscompare_pool,
-					statement = sprintf('select chr,pos from tkg_p3v5a where rsid = "%s" limit 1;',input$reference_snp)
+					statement = sprintf('select chr,pos from %s where rsid = "%s" limit 1;',genome(),input$reference_snp)
 					)
 				shiny::validate(need(nrow(chr_pos)!=0,sprintf('SNP %s not found!',input$reference_snp)))
 				shiny::validate(need(nrow(chr_pos)==1,sprintf('SNP %s is not unique!',input$reference_snp)))
 
+				snp_window = min(input$snp_window, 1000) # max window size = 1000kb
+				snp_window = max(snp_window, 1) # min window size = 1kb
+
 				res=list(
 					chr = chr_pos$chr,
-					start = chr_pos$pos - input$snp_window*1e3,
-					end = chr_pos$pos + input$snp_window*1e3
+					start = chr_pos$pos - snp_window*500,
+					end = chr_pos$pos + snp_window*500
 					)
 
 			} else if (selected_gene_region()){
 
 				chr_start_end=dbGetQuery(
 					conn = locuscompare_pool,
-					statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_name = "%s" limit 1;',input$reference_gene)
+					statement = sprintf('select chr,start,end from %s where gene_name = "%s" limit 1;', transcriptome(), input$reference_gene)
 					)
 				shiny::validate(need(nrow(chr_start_end)!=0,sprintf('Gene %s not found!',input$reference_gene)))
 				shiny::validate(need(nrow(chr_start_end)==1,sprintf('Gene %s is not unique!',input$reference_gene)))
 
+				gene_window = min(input$gene_window, 1000) # max window size = 1000kb
+				gene_window = max(gene_window, 1) # min window size = 1kb
+
 				res=list(
 					chr = chr_start_end$chr,
-					start = chr_start_end$start - input$gene_window*1e3,
-					end = chr_start_end$start + input$gene_window*1e3
+					start = chr_start_end$start - gene_window*500,
+					end = chr_start_end$start + gene_window*500
 					)
 
 			} else if (selected_coordinate()){
 
+				start_ = max(1, input$start) # min start position is 1
+
+				end_ = min(input$end, start_ + 1e6) # max end position is start + 2e6
+				end_ = max(start_, end_) # min end position is start
+
 				res=list(
 					chr = input$chr,
-					start = input$start,
-					end = input$end
+					start = start_,
+					end = end_
 					)
 
 			} else {
@@ -688,7 +489,7 @@ shinyServer(function(input, output, session) {
 			message('Colocalization -> Retrieving coordinates')
 			shiny::validate(need(coloc_gene_id(), label = 'coloc_gene_id'))
 
-			statement = sprintf('select chr,start,end from gencode_v19_gtex_v6p where gene_id = "%s";',coloc_gene_id())
+			statement = sprintf('select chr,start,end from %s where gene_id = "%s";',transcriptome(), coloc_gene_id())
 
 			chr_start_end = dbGetQuery(
 				conn = locuscompare_pool,
@@ -722,7 +523,6 @@ shinyServer(function(input, output, session) {
 			input_study1_ = input$study1
 			input_trait1_ = input$trait1
 			input_file1_datapath_ = input$file1$datapath
-			coordinate_ = coordinate()
 
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
 			shiny::req(coloc_gene_id())
@@ -731,7 +531,6 @@ shinyServer(function(input, output, session) {
 			input_study1_ = input$coloc_gwas
 			input_trait1_ = input$coloc_trait
 			input_file1_datapath_ = ''
-			coordinate_ = coordinate()
 
 		} else {
 
@@ -739,7 +538,7 @@ shinyServer(function(input, output, session) {
 
 		}
 
-		get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate_)
+		get_study(selected_published_1_,input_study1_,input_trait1_,input_file1_datapath_,coordinate(),genome())
 
 	})
 
@@ -754,7 +553,6 @@ shinyServer(function(input, output, session) {
 			input_study2_ = input$study2
 			input_trait2_ = input$trait2
 			input_file2_datapath_ = input$file2$datapath
-			coordinate_ = coordinate()
 
 		} else if (counter()[['from']] == 'coloc_to_locuscompare'){
 
@@ -763,7 +561,6 @@ shinyServer(function(input, output, session) {
 			input_study2_ = input$coloc_eqtl
 			input_trait2_ = coloc_gene_id()
 			input_file2_datapath_ = ''
-			coordinate_ = coordinate()
 
 		} else {
 
@@ -771,7 +568,7 @@ shinyServer(function(input, output, session) {
 
 		}
 
-		get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate_)
+		get_study(selected_published_2_,input_study2_,input_trait2_,input_file2_datapath_,coordinate(),genome())
 
 	})
 
@@ -781,11 +578,11 @@ shinyServer(function(input, output, session) {
 
 		d1_non_empty = d1() %>% nrow() %>% `>`(0)
 		d2_non_empty = d2() %>% nrow() %>% `>`(0)
-		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you input the correct region?'))
-		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you input the correct region?'))
+		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 1. Did you specify a correct region?'))
+		shiny::validate(need(d1_non_empty,'No SNP was found in specified region for study 2. Did you specify a correct region?'))
 
 		merged = merge(d1(),d2(),by='rsid',suffixes=c('1','2'),all=FALSE)
-		merged = merged %>% get_position()
+		merged = merged %>% get_position(.,genome())
 
 		check_overlap = merged %>% nrow() %>% `>`(0)
 		shiny::validate(need(check_overlap,'No overlapping SNPs between two studies'))
@@ -793,6 +590,8 @@ shinyServer(function(input, output, session) {
 		merged = merged %>% setDT()
 		merged = merged %>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval2))
 		message('Finished merging')
+		merged$r = merged$pval1*merged$pval2
+		merged = merged[order(merged$r, decreasing = FALSE),]
 		return(merged)
 	})
 
@@ -955,6 +754,7 @@ shinyServer(function(input, output, session) {
 			coordinate()$end
 	   )
 	})
+
 	output$locuscompare = renderPlot({
 		nonempty = plot_data() %>% nrow() %>% `>`(0)
 		shiny::validate(need(nonempty,msg()))
@@ -1012,7 +812,7 @@ shinyServer(function(input, output, session) {
 	output$snp_info = renderText({
 		res = dbGetQuery(
 			conn = locuscompare_pool,
-			statement = sprintf('select * from tkg_p3v5a where rsid = "%s";',snp()))
+			statement = sprintf('select * from %s where rsid = "%s";',genome(),snp()))
 
 		sprintf(
 			'Chromosome: %s\nPosition: %s\nrs ID: %s\nReference SNP: %s\nAlternate SNP: %s\nAllele Frequency: %s\nAFR Frequency: %s\nAMR Frequency: %s\nEAS Frequency: %s\nEUR Frequency: %s\nSAS Frequency: %s',
@@ -1147,12 +947,15 @@ shinyServer(function(input, output, session) {
 
 
 	output$coloc_text = renderText({
-		sprintf('%s loci passed the threshold (GWAS lead SNP p-value < 5e-8 and eQTL lead SNP p-value < 1e-6).',nrow(eCAVIAR()))
+		sprintf('[SUMMARY] %s loci passed the threshold (GWAS lead SNP p-value < 5e-8 and eQTL lead SNP p-value < 1e-6).',nrow(eCAVIAR()))
 	})
 	
 	output$coloc_helper_text = renderText({
 	    eCAVIAR()
-	    'Click on a point to see more (drag and double-click to zoom in and double-click again to zoom out).'
+	    '[INSTRUCTIONS]
+	    1. Click on a point to see more;
+	    2. Drag and double-click to zoom in;
+	    3. Double-click again to zoom out.'
 	})
 
 	build = 'hg19'
@@ -1257,11 +1060,11 @@ shinyServer(function(input, output, session) {
 	# Download page #
 	#---------------#
 
-	sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE, verbose = FALSE)
-	list_of_studies = googlesheets::gs_read(sheet_key, verbose = FALSE, col_types = readr::cols())
-	output$study_info = renderDataTable({
-		DT::datatable(list_of_studies)
-	})
+	#sheet_key = googlesheets::gs_key(x='1gq46xlOk674Li50cpv9riZYG7bsfSeZB5qSefa82bR8',lookup=FALSE, verbose = FALSE)
+	#list_of_studies = googlesheets::gs_read(sheet_key, verbose = FALSE, col_types = readr::cols())
+	#output$study_info = renderDataTable({
+	#	DT::datatable(list_of_studies)
+	#})
 
 	#-------#
 	# Share #
@@ -1303,4 +1106,5 @@ shinyServer(function(input, output, session) {
 				  authenticate = TRUE, 
 				  send = TRUE)
 	})
+
 })

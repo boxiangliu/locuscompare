@@ -10,9 +10,9 @@ hcasmc_eqtl_cfg = list(
 	table_name = 'eQTL_HCASMC_Liu_2018',
 	rsid_type = 'rsid',
 	pval_type = 'pval',
-	trait_type = 'name',
+	trait_type = 'id',
 	trait_col = 1, 
-	rsid_col = 2,
+	rsid_col = 28,
 	pval_col = 26)
 
 hcasmc_sqtl_cfg = list(
@@ -65,37 +65,37 @@ rpe_sqtl_galactose_cfg = list(
 	rsid_col = 2,
 	pval_col = 4)
 
-geuvadis_eqtl_cfg = list(
-	fn = '/srv/persistent/bliu2/locuscompare/data/qtl/eQTL_Blood_Geuvadis_sumstats.txt.gz',
-	table_name = 'eQTL_Blood_Geuvadis_2013',
-	rsid_type = 'chr+pos',
-	pval_type = 'pval',
-	trait_type = 'id',
-	trait_col = 1,
-	rsid_col = c(2,3),
-	pval_col = 4
-	)
+# geuvadis_eqtl_cfg = list(
+# 	fn = '/srv/persistent/bliu2/locuscompare/data/qtl/eQTL_Blood_Geuvadis_sumstats.txt.gz',
+# 	table_name = 'eQTL_Blood_Geuvadis_2013',
+# 	rsid_type = 'chr+pos',
+# 	pval_type = 'pval',
+# 	trait_type = 'id',
+# 	trait_col = 1,
+# 	rsid_col = c(2,3),
+# 	pval_col = 4
+# 	)
 
-eQTLgen_eqtl_cfg = list(
-	fn = '/srv/persistent/bliu2/locuscompare/data/qtl/eQTL_Blood_eQTLGen_sumstats.txt.gz',
-	table_name = 'eQTL_Blood_eQTLGen_2018',
-	rsid_type = 'rsid',
-	pval_type = 'pval',
-	trait_type = 'name', # the file also has an ENSEMBL ID column
-	trait_col = 9,
-	rsid_col = 5,
-	pval_col = 4
-	)
+# eQTLgen_eqtl_cfg = list(
+# 	fn = '/srv/persistent/bliu2/locuscompare/data/qtl/eQTL_Blood_eQTLGen_sumstats.txt.gz',
+# 	table_name = 'eQTL_Blood_eQTLGen_2018',
+# 	rsid_type = 'rsid',
+# 	pval_type = 'pval',
+# 	trait_type = 'id', # the file also has an gene symbol column; The ENSEMBL ID does not have '.'
+# 	trait_col = 1,
+# 	rsid_col = 5,
+# 	pval_col = 4
+# 	)
 
-BrainMeta_eqtl_cfg = list(
-	fn = '/srv/persistent/bliu2/locuscompare/data/qtl/eQTL_BrainMeta_Qi2018_sumstats.txt.gz',
-	table_name = 'eQTL_Brain_Qi_2018',
-	rsid_type = 'chr+pos',
-	pval_type = 'pval',
-	trait_type = 'id',
-	trait_col = 1,
-	rsid_col = c(2,3),
-	pval_col = 4)
+# BrainMeta_eqtl_cfg = list(
+# 	fn = '/srv/persistent/bliu2/locuscompare/data/qtl/eQTL_BrainMeta_Qi2018_sumstats.txt.gz',
+# 	table_name = 'eQTL_Brain_Qi_2018',
+# 	rsid_type = 'chr+pos',
+# 	pval_type = 'pval',
+# 	trait_type = 'id', # The ENSEMBL ID does not have '.'
+# 	trait_col = 1,
+# 	rsid_col = c(2,3),
+# 	pval_col = 4)
 
 BrainMeta_mqtl_cfg = list(
 	fn = '/srv/persistent/bliu2/locuscompare/data/qtl/mQTL_BrainMeta_Qi2018_sumstats.txt.gz',
@@ -117,6 +117,15 @@ FetalBrain_mqtl_cfg = list(
 	rsid_col = c(2,3),
 	pval_col = 4)
 
+Blood_mqtl_McRae_cfg = list(
+	fn = '/srv/persistent/bliu2/locuscompare/data/qtl/mQTL_Blood_McRae2017_sumstats.txt.gz',
+	table_name = 'mQTL_Blood_McRae_2018',
+	rsid_type = 'chr+pos',
+	pval_type = 'pval',
+	trait_type = 'name',
+	trait_col = 1,
+	rsid_col = c(2,3),
+	pval_col = 4)
 
 # Functions:
 add_rsid=function(x,tkg){
@@ -131,23 +140,15 @@ add_gene_name=function(x,anno){
 
 
 # Main:
-# locuscompare_pool = dbPool(
-# 	drv = RMySQL::MySQL(), 
-# 	dbname = 'locuscompare',
-# 	host = aws_host,
-# 	username = aws_username,
-# 	password = aws_password
-# 	)
-
 conn = DBI::dbConnect(RMariaDB::MariaDB(),group = 'locuscompare')
 
 tkg = read_1kg()
 tkg = tkg[rsid!='.'&!str_detect(rsid,';')]
 
-for (cfg in list(FetalBrain_mqtl_cfg))
-	# ,hcasmc_sqtl_cfg,
-	# rpe_eqtl_glucose_cfg,rpe_eqtl_galactose_cfg,
-	# rpe_sqtl_glucose_cfg,rpe_sqtl_galactose_cfg))
+for (cfg in list(rpe_sqtl_glucose_cfg,rpe_sqtl_galactose_cfg,BrainMeta_mqtl_cfg))
+	# FetalBrain_mqtl_cfg, Blood_mqtl_McRae_cfg,
+	# hcasmc_eqtl_cfg, hcasmc_sqtl_cfg, rpe_eqtl_glucose_cfg, 
+	# rpe_eqtl_galactose_cfg,
 {
 
 
@@ -161,6 +162,8 @@ for (cfg in list(FetalBrain_mqtl_cfg))
 	message('Reading ', cfg$fn)
 	x = fread(cfg$fn, select = select_, col.names = colnames_)
 
+
+
 	if (cfg$rsid_type == 'chr_pos') {
 		message('rsID type is chr_pos.')
 		chr_pos = str_split_fixed(x$rsid,'_',3)[,c(1,2)]
@@ -169,9 +172,11 @@ for (cfg in list(FetalBrain_mqtl_cfg))
 		x$rsid = NULL
 	}
 
-	if (cfg['rsid_type'] %in% c('chr+pos','chr_pos')) {
+	if (cfg$rsid_type %in% c('chr+pos','chr_pos')) {
 		message('rsID type is chr+pos')
 		if (!is.character(x$chr)) mode(x$chr) = 'character'
+		if (!is.integer(x$pos)) mode(x$pos) = 'integer'
+		if (str_detect(x$chr[1],'chr')) x$chr = str_replace(x$chr,'chr','')
 		x=add_rsid(x,tkg)
 		x$chr = NULL
 		x$pos = NULL
@@ -179,8 +184,11 @@ for (cfg in list(FetalBrain_mqtl_cfg))
 
 	if (cfg$trait_type == 'id_name'){
 		message('trait type is id_name.')
-		name = str_split_fixed(x$trait, '_', 2)[,2]
-		x$trait = name
+		temp = str_split_fixed(x$trait, '_', 2)
+		id = temp[,1]
+		name = temp[,2]
+		x$trait = id
+		x$name = name
 	}
 
 	if (cfg$pval_type == 'chisq'){
@@ -190,6 +198,7 @@ for (cfg in list(FetalBrain_mqtl_cfg))
 	}
 
 	table_name = cfg$table_name
+	table_name = str_replace(table_name,'-','_')
 
 	if (dbExistsTable(conn,table_name)) {
 		dbRemoveTable(conn,table_name)
@@ -207,14 +216,14 @@ for (cfg in list(FetalBrain_mqtl_cfg))
 
 
 	step = 1e6
-	# total_row = nrow(x)
-	total_row = 2e6
+	total_row = nrow(x)
+
 
 	for (i in seq(1,total_row,step)) {
 		start = i
 		print(start)
 		end = ifelse(i+step-1<=total_row,i+step-1,total_row)
-		fwrite(x[start:end,list(trait = gene_id, rsid, pval)],'x_tmp.csv')
+		fwrite(x[start:end,list(trait, rsid, pval)],'x_tmp.csv')
 
 		dbExecute(
 			conn = conn,
@@ -236,6 +245,31 @@ for (cfg in list(FetalBrain_mqtl_cfg))
 			add index trait (trait),
 			add index rsid (rsid)',table_name)
 		)
+
+	message('Creating trait table...')
+	if (cfg$trait_type %in% c('id','id_name')) {
+		message('trait_type is id or id_name.')
+		cmd = sprintf("create table %s_trait as 
+				(select distinct t2.gene_id,t2.gene_name 
+				from %s as t1 
+				join gencode_v19_gtex_v6p as t2 
+				on t1.trait = t2.gene_id 
+				order by t2.gene_name);",table_name,table_name)
+
+	} else if (cfg$trait_type == 'name') {
+		message('trait_type is name.')
+		cmd = sprintf("create table %s_trait as
+			(select distinct trait as gene_id, trait as gene_name
+			from %s 
+			order by trait);", table_name, table_name)
+
+	} else {
+
+		NULL
+
+	}
+
+	dbExecute(conn = conn, statement = cmd)
 
 	rm(x)
 }

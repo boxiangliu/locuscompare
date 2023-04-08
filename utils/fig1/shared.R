@@ -4,7 +4,7 @@ get_gwas = function(coordinate,mysql_table='GWAS_Type_2_Diabetes_Zhao_2017',mysq
 		statement = sprintf(
 			"select t1.rsid, t1.pval 
 			from %s as t1 
-			join tkg_p3v5a as t2 
+			join tkg_p3v5a_hg19 as t2 
 			on t1.rsid = t2.rsid 
 			where t1.trait = '%s' 
 			and t2.chr = '%s' 
@@ -39,7 +39,7 @@ get_eqtl = function(tissue,gene_id,coordinate){
 		statement = sprintf(
 			"select t1.rsid, t1.pval 
 			from eQTL_%s_GTEx_v6p as t1 
-			join tkg_p3v5a as t2 
+			join tkg_p3v5a_hg19 as t2 
 			on t1.rsid = t2.rsid 
 			where t1.trait = '%s' 
 			and t2.chr = '%s' 

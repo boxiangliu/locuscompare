@@ -8,8 +8,24 @@ read_1kg=function(select=1:3,col.names=c('chr','pos','rsid')){
   return(vcf)
 }
 
-read_gene_anno=function(select=5:7,col.names=c('gene_id','gene_name','type')){
-  anno=fread('/mnt/data/shared/datasets/gtex/GTEx_Analysis_2015-01-12/extra/gencode.v19.genes.v6p.hg19.bed',
+read_1kg_hg38_chunked=function(select=1:3,col.names=c('chr','pos','rsid'))
+{
+  kg_list = list()
+  for (chrom in c(as.character(1:22), "X", "Y"))
+  {
+	  print(chrom)
+	  # tkg_hg38_dir should be specified in config/config.R
+	  kg_list[[chrom]]=fread(sprintf('%s/ALL.chr%s_GRCh38.genotypes.20170504.vcf.gz',tkg_hg38_dir, chrom),
+		    select=select,
+		    col.names=col.names,
+		    skip = 131)
+  }
+  vcf = do.call(rbind, kg_list)
+  return(vcf)
+}
+
+read_gene_anno=function(select=5:7,col.names=c('gene_id','gene_name','type'), fn = 'data/gencode/gencode.v19.genes.v6p.hg19.bed'){
+  anno=fread(fn,
              select = select,
              col.names = col.names)
   return(anno)
@@ -24,3 +40,4 @@ connect_database=function(dbname,host='localhost',username='root',password='admi
     password = password
   )
 }
+

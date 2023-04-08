@@ -32,34 +32,20 @@ plot_locuscompare = function(coordinate, gwas, gene_id, tissues){
 
 		eqtl = get_eqtl(tissue_mysql,gene_id,coordinate)
 
-		vcf_tmp_fn = sprintf('%s_tmp.vcf',format(Sys.time(), "%Y-%b-%d-%H:%M:%S"))
-		vcf_fn = sprintf('%s/ALL.chr%s.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir,coordinate$chr)
-
-		command = sprintf('bcftools view %s %s:%s-%s > %s', 
-			vcf_fn, 
-			coordinate$chr, 
-			coordinate$start, 
-			coordinate$end,
-			vcf_tmp_fn)
-
-		system(command)
-
 		p = locuscomparer::main(
 			in_fn1 = gwas,
 			in_fn2 = eqtl,
 			title1 = 'T2D GWAS',
 			title2 = paste(tissue_plot,'eQTL'),
-			vcf_fn = vcf_tmp_fn,
 			snp = 'rs2421016',
 			combine = FALSE,
-			legend_position = ifelse(tissue_mysql=='Testis','topright','bottomright')
+			legend_position = ifelse(tissue_mysql %in% c('Testis','Colon_Sigmoid') ,'topright','bottomright')
 		)
 
 		p$locuszoom1 = p$locuszoom1 + ylab(bquote(atop('T2D GWAS',-log[10]*'(P)')))
 		p$locuszoom2 = p$locuszoom2 + ylab(bquote(atop(paste(.(tissue_plot),' eQTL'),-log[10]*'(P)')))
 		plots[[tissue_mysql]] = p
 
-		file.remove(vcf_tmp_fn)
 	}
 
 	return(plots)
@@ -79,7 +65,8 @@ ARMS2_coloc_tissues = c(
 	Esophagus_Muscularis='Esophagus (Musc.)', 
 	Skin_Sun_Exposed_Lower_leg = 'Lower leg skin', 
 	Artery_Tibial = 'Tibial artery', 
-	Esophagus_Gastroesophageal_Junction = 'Esophagus (GEJ)'
+	Esophagus_Gastroesophageal_Junction = 'Esophagus (GEJ)',
+	Colon_Sigmoid = 'Sigmoid colon'
 	)
 
 ARMS2_plots = plot_locuscompare(ARMS2_coordinate,ARMS2_gwas,ARMS2_ensg,ARMS2_coloc_tissues)
@@ -115,13 +102,13 @@ save_plot(fig_fn,entire,base_width=8,base_height=8)
 # Figure S1:
 plot_ls = list()
 i=0
-for (tissue in names(ARMS2_coloc_tissues)[c(4,5,2,3)]){
+for (tissue in names(ARMS2_coloc_tissues)[c(5,2,3,6,4)]){
 	i = i + 1
 	plot_ls[[i]] = ARMS2_plots[[tissue]]$locuscompare
 }
 
-entire = plot_grid(plotlist = plot_ls,nrow=2,labels=letters[1:4])
-save_plot(sprintf('%s/fig_s1.pdf',fig_dir),entire,base_width=8,base_height=8)
+entire = plot_grid(plotlist = plot_ls,nrow=3,labels=letters[1:5])
+save_plot(sprintf('%s/fig_s1.pdf',fig_dir),entire,base_width=7,base_height=10.5)
 
 # Figure S2:
 plot_ls = list()

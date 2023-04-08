@@ -2,10 +2,8 @@
 # Boxiang Liu
 # 01/25/2018
 
-library(data.table)
 library(RMySQL)
 library(pool)
-library(foreach)
 source('utils/shared_functions.R')
 source('config/config.R')
 
@@ -20,7 +18,7 @@ locuscompare_pool = dbPool(
 
 dbExecute(
 	conn = locuscompare_pool, 
-	statement = "create table tkg_p3v5a
+	statement = "create table tkg_p3v5a_hg38
 	(tkg_p3v5a_id int auto_increment primary key,
 	chr varchar(4),
 	pos int,
@@ -35,10 +33,11 @@ dbExecute(
 	SAS_AF double);")
 
 for (i in c(1:22,'X','Y')){
+	message('Chromosome ', i)
 	dbExecute(
 		conn = locuscompare_pool,
-		statement = sprintf("load data local infile '%s/1KG/chr%s.txt' 
-		into table tkg_p3v5a
+		statement = sprintf("load data local infile '%s/1KG/GRCh38/chr%s.txt' 
+		into table tkg_p3v5a_hg38
 		fields terminated by '\t'
 		lines terminated by '\n'
 		ignore 1 lines
@@ -49,7 +48,7 @@ for (i in c(1:22,'X','Y')){
 
 dbExecute(
 	conn = locuscompare_pool,
-	statement = 'alter table locuscompare.tkg_p3v5a 
+	statement = 'alter table locuscompare.tkg_p3v5a_hg38
 		add index rsid (rsid), 
 		add index chr (chr), 
 		add index chr_pos (chr,pos);'

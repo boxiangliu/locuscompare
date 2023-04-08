@@ -3,7 +3,7 @@
 # 2018-01-01
 
 
-get_study_list = function(locuscompare_pool,pattern = 'eQTL|GWAS') {
+get_study_list = function(locuscompare_pool,pattern = 'QTL|GWAS') {
 	table_names = dbListTables(locuscompare_pool)
 	idx = which(str_detect(table_names, pattern) & !str_detect(table_names,'_trait'))
 	table_names = table_names[idx]
@@ -13,10 +13,17 @@ get_study_list = function(locuscompare_pool,pattern = 'eQTL|GWAS') {
 		names(tmp) = i
 		return(tmp)
 	}
+
+	study_list[["other QTL"]] = c(study_list[["apaQTL"]], study_list[["eQTLtr"]], study_list[["eQTLex"]])
+
+	study_list[["apaQTL"]] = NULL
+	study_list[["eQTLtr"]] = NULL
+	study_list[["eQTLex"]] = NULL
+
 	return(study_list)
 }
 
-study_list = get_study_list(locuscompare_pool, pattern = 'eQTL|GWAS')
+study_list = get_study_list(locuscompare_pool, pattern = 'QTL|GWAS')
 
 get_coloc_gwas_list = function(locuscompare_pool){
 
@@ -40,8 +47,29 @@ shinyUI(fluidPage(
 	###################
 
 	div(
-		id = "loading-content",
-		h2("Loading...")
+		id = "select-genome",
+		h2("Select genome"),
+		fluidRow(
+			column(
+				width = 12,
+				selectInput(
+					inputId = 'genome_assembly',
+					label = 'Genomes',
+					choices = c('GRCh37/hg19','GRCh38/hg38'),
+					selected = 'GRCh37/hg19'
+				)
+			)
+		),
+		fluidRow(
+			column(
+				width = 12,
+				actionButton(
+					inputId = 'go_to_website',
+					label = 'Go to website',
+					class = "btn-primary"
+				)
+			)
+		)
 	),
 	hidden(
 		div(
@@ -250,7 +278,7 @@ shinyUI(fluidPage(
 								selectizeInput(
 									inputId = 'trait1',
 									label = 'Trait (e.g. phenotype or gene)',
-									choices = c('Choose' = ''),
+									choices = c('Choose or type' = ''),
 									width = "100%"
 								)
 						)
@@ -263,6 +291,7 @@ shinyUI(fluidPage(
 								fileInput(
 									inputId = 'file1', 
 									label = downloadLink(outputId = 'file1_example', label = 'Example file'),
+									placeholder = 'Upload your file (5MB max)',
 									width = "100%"
 								)
 						),
@@ -297,7 +326,7 @@ shinyUI(fluidPage(
 								selectizeInput(
 									inputId = 'trait2',
 									label = 'Trait (e.g. phenotype or gene)',
-									choices = c('Choose' = ''),
+									choices = c('Choose or type' = ''),
 									width = "100%"
 								)
 						)
@@ -310,6 +339,7 @@ shinyUI(fluidPage(
 								fileInput(
 									inputId = 'file2', 
 									label = downloadLink(outputId = 'file2_example', label = 'Example file'),
+									placeholder = 'Upload your file (5MB max)',
 									width = "100%"
 								)
 						),
@@ -328,19 +358,19 @@ shinyUI(fluidPage(
 					),
 
 					fluidRow(
-						h3('Select a region (maximum 2Mb flanking window)')
+						h3('Select a region (maximum window = 1Mb)')
 					),
 
 					fluidRow(
 						column(3,tags$i(h3('SNP'))),
 						column(3, textInput(inputId = 'reference_snp', label = 'Reference SNP', placeholder = 'e.g. rs1698683')),
-						column(3, numericInput(inputId = 'snp_window', label = 'Flanking Window (Kb)', value = 100))
+						column(3, numericInput(inputId = 'snp_window', label = 'Flanking Window (Kb)', value = 100, min = 1, max = 1000))
 					),
 
 					fluidRow(
 						column(3,tags$i(h3(tags$b('Or'),'Gene'))),
 						column(3, textInput(inputId = 'reference_gene', label = 'Reference Gene', placeholder = 'e.g. PHACTR1')),
-						column(3, numericInput(inputId = 'gene_window', label = 'Flanking Window (Kb)', value = 100))
+						column(3, numericInput(inputId = 'gene_window', label = 'Flanking Window (Kb)', value = 100, min =1, max = 1000))
 					),
 
 					fluidRow(
@@ -435,7 +465,7 @@ shinyUI(fluidPage(
 
 					fluidRow(
 						column(
-							6,
+							width = 4,
 							selectizeInput(
 								inputId = 'snp',
 								label = 'SNP',
@@ -444,14 +474,24 @@ shinyUI(fluidPage(
 							)
 						),
 						column(
-							6,
+							width = 4,
 							selectInput(
 								inputId = 'population',
-								label = 'Population:',
+								label = 'Population',
 								choices = c('AFR', 'AMR', 'EAS', 'EUR', 'SAS'),
 								selected = 'EUR',
 								width = '100%'
 							)
+						)
+					),
+
+					fluidRow(
+						column(
+							width = 12,
+							helpText('[INSTRUCTIONS]
+	    								1. Click on a point to select the corresponding SNP;
+	    								2. Drag and double-click on plots on the right-hand side to zoom in;
+	    								3. Double-click again to zoom out.')
 						)
 					),
 
@@ -571,8 +611,8 @@ shinyUI(fluidPage(
 							  their data publically available. Below is a list of studies 
 							  we included in LocusCompare. If we missed a reference to your 
 							  study, please email Boxiang Liu <bliu2@stanford.edu> or 
-							  Mike Gloudemans <mgloud@stanford.edu>.'),
-							dataTableOutput(outputId = 'study_info')
+							  Mike Gloudemans <mgloud@stanford.edu>.')
+							#,dataTableOutput(outputId = 'study_info')
 							)
 						)
 				),

@@ -1,4 +1,6 @@
 library(data.table)
+# detach('package:locuscomparer', unload = TRUE)
+# devtools::install_github('boxiangliu/locuscomparer')
 library(locuscomparer)
 source('global.R')
 source('utils/fig1/shared.R')
@@ -29,7 +31,6 @@ for (i in seq_along(PLEKHA1_coloc_tissues)){
 		in_fn2 = eqtl,
 		title1 = 'T2D GWAS',
 		title2 = paste(tissue_plot,'eQTL'),
-		vcf_fn = sprintf('%s/ALL.chr10.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir),
 		snp = 'rs2421016',
 		combine = FALSE
 	)
@@ -53,7 +54,8 @@ ARMS2_coloc_tissues = c(
 	Esophagus_Muscularis='Esophagus - Muscularis', 
 	Skin_Sun_Exposed_Lower_leg = 'Skin - Lower Leg', 
 	Artery_Tibial = 'Artery - Tibial', 
-	Esophagus_Gastroesophageal_Junction = 'Esophagus - GEJ'
+	Esophagus_Gastroesophageal_Junction = 'Esophagus - GEJ',
+	Colon_Sigmoid = 'Colon - Sigmoid'
 	)
 
 ARMS2_plots = list()
@@ -67,7 +69,6 @@ for (i in seq_along(ARMS2_coloc_tissues)){
 		in_fn2 = eqtl,
 		title1 = 'T2D GWAS',
 		title2 = paste(tissue_plot,'eQTL'),
-		vcf_fn = sprintf('%s/ALL.chr10.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir),
 		snp = 'rs2421016',
 		combine = FALSE
 	)
@@ -105,7 +106,6 @@ for (i in seq_along(ITFG3_coloc_tissues)){
 		in_fn2 = eqtl,
 		title1 = 'T2D GWAS',
 		title2 = paste(tissue_plot,'eQTL'),
-		vcf_fn = sprintf('%s/ALL.chr16.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz',tkg_dir),
 		snp = 'rs9940149',
 		combine = FALSE
 	)

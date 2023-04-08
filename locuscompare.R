@@ -30,14 +30,16 @@ get_chr=function(eqtl_fn){
 	as.integer(str_replace(unique(fread(eqtl_fn)$chr),'chr',''))
 }
 
-get_position=function(x){
+get_position=function(x,genome){
     stopifnot('rsid' %in% colnames(x))
     res = dbGetQuery(
-        conn = locuscompare_pool,
-        statement = sprintf(
-        "select rsid, chr, pos 
-		from tkg_p3v5a 
-		where rsid in ('%s')",paste0(x$rsid,collapse="','")
+		conn = locuscompare_pool,
+		statement = sprintf(
+			"select rsid, chr, pos 
+			from %s 
+			where rsid in ('%s')",
+			genome,
+			paste0(x$rsid,collapse="','")
         )
     )
     y=merge(x,res,by='rsid')
@@ -187,28 +189,31 @@ assign_size=function(merged,snp){
 }
 
 make_combined_plot=function(merged,title1,title2,ld,snp=NULL){
-	if (is.null(snp)){
-		snp=merged[which.min(pval1+pval2),rsid]
-	} else {
-		if(!snp%in%merged$rsid){
-			stop(sprintf('%s not found in %s',snp,in_fn1))
-		}
-	}
-	print(sprintf('INFO - %s',snp))
-	
-	color=assign_color(merged$rsid,snp,ld)
-	shape=assign_shape(merged)
-	size=assign_size(merged)
-	merged[,label:=ifelse(rsid==snp,rsid,'')]
-	
-	p1=make_locuscatter(merged,title1,title2,ld,color,shape,size)
-	p2=make_locuszoom(merged[,list(rsid,logp=logp1,label)],title1,ld,color,shape,size)
-	p2=p2+theme(axis.text.x=element_blank(),axis.title.x=element_blank())
-	p3=make_locuszoom(merged[,list(rsid,logp=logp2,label)],title2,ld,color,shape,size)
-	p4=plot_grid(p2,p3,align='v',nrow=2)
-	p5=plot_grid(p1,p4)
-	return(p5)
+  if (is.null(snp)){
+    snp=merged[which.min(pval1+pval2),rsid]
+  } else {
+    if(!snp%in%merged$rsid){
+      stop(sprintf('%s not found in %s',snp,in_fn1))
+    }
+  }
+  print(sprintf('INFO - %s',snp))
+  
+  color=assign_color(merged$rsid,snp,ld)
+  shape=assign_shape(merged)
+  size=assign_size(merged)
+  merged[,label:=ifelse(rsid==snp,rsid,'')]
+  
+  theme_set(theme_light(base_size=14))
+  p1=make_locuscatter(merged,title1,title2,ld,color,shape,size)
+  p2=make_locuszoom(merged[,list(rsid,logp=logp1,label)],title1,ld,color,shape,size)
+  p2=p2+theme(axis.text.x=element_blank(),axis.title.x=element_blank())
+  p3=make_locuszoom(merged[,list(rsid,logp=logp2,label)],title2,ld,color,shape,size)
+  p4=plot_grid(p2,p3,align='v',nrow=2)
+  p5=plot_grid(p1,p4)
+  return(p5)
 }
+
+
 
 
 make_locuscatter=function(merged,title1,title2,ld,color,shape,size,legend=TRUE){
@@ -218,8 +223,10 @@ make_locuscatter=function(merged,title1,title2,ld,color,shape,size,legend=TRUE){
 		scale_fill_manual(values=color,guide='none')+
 		scale_shape_manual(values=shape,guide='none')+
 		scale_size_manual(values=size,guide='none')+
-		geom_text(aes(label=label),hjust = 1.1)
-	
+		geom_text(aes(label=label),hjust = 1.1)+
+	  theme(panel.background = element_rect(fill = "white"),axis.line = element_line(color = "black", size = 0.5), 
+	        axis.line.x = element_line(color = "black", size = 0.5),
+	        axis.line.y = element_line(color = "black", size = 0.5))
 	if (legend){
 		legend_box=data.frame(x=0.8,y=seq(0.4,0.2,-0.05))
 		p1=ggdraw(p)+geom_rect(data=legend_box,aes(xmin=x,xmax=x+0.05,ymin=y,ymax=y+0.05),color='black',fill=rev(c('blue4','skyblue','darkgreen','orange','red')))+
@@ -247,7 +254,8 @@ make_locuszoom=function(metal,title,ld,color,shape,size,y_string='logp'){
 		geom_text(aes(label=label),hjust = 1.1)+
 		xlab(paste0('chr',chr,' (Mb)'))+
 		ylab(paste(title,'\n-log10(P)'))+
-		theme(plot.margin=unit(c(0.5, 1, 0.5, 0.5), "lines"))
+		theme(panel.background = element_rect(fill = "white"),plot.margin=unit(c(0.5, 1, 0.5, 0.5), "lines"), axis.line = element_line(color = "black", size = 0.5),
+		      axis.line.x = element_line(color = "black", size = 0.5), axis.line.y = element_line(color = "black", size = 0.5))
 	return(p)
 }
 
