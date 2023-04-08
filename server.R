@@ -1,7 +1,7 @@
 # Server file for LocusCompare
 # Boxiang Liu
 # 2018-01-01
-
+library(ggplot2)
 options(shiny.maxRequestSize=5*1024^2) 
 logs = reactiveValues(user_count = 0, conn_count = 0)
 pool_info = dbGetInfo(locuscompare_pool)
@@ -590,6 +590,8 @@ shinyServer(function(input, output, session) {
 		merged = merged %>% setDT()
 		merged = merged %>% mutate(logp1 = -log10(pval1),logp2 = -log10(pval2))
 		message('Finished merging')
+		merged$r = merged$pval1*merged$pval2
+		merged = merged[order(merged$r, decreasing = FALSE),]
 		return(merged)
 	})
 
