@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LocusCompare</title>
+<meta name="description" content="A suite of tools for visualizing and interpreting the colocalization of genetic association summary statistics.">
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2733; --muted: #5b6675;
+    --card: #ffffff; --border: #e5e8ee; --shadow: rgba(20,30,50,.08);
+    --accent: #1677ff; --accent-fg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1520; --fg: #e6ebf2; --muted: #9aa6b6;
+      --card: #161e2b; --border: #263248; --shadow: rgba(0,0,0,.35);
+      --accent: #4d94ff; --accent-fg: #08111f;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 3.5rem 1.25rem 3rem; }
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header img { max-width: 460px; width: 78%; height: auto; }
+  h1 { font-size: 2rem; margin: 1.2rem 0 .4rem; letter-spacing: -.01em; }
+  .tagline { color: var(--muted); font-size: 1.08rem; max-width: 620px; margin: 0 auto; }
+  .grid {
+    display: grid; gap: 1.1rem; margin: 2.5rem 0;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .card {
+    display: flex; flex-direction: column; text-decoration: none; color: inherit;
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.4rem 1.5rem; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px var(--shadow); border-color: var(--accent); }
+  .card .kicker { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+  .card h2 { font-size: 1.22rem; margin: .35rem 0 .5rem; }
+  .card p { margin: 0 0 1rem; color: var(--muted); font-size: .95rem; flex: 1; }
+  .card .go { font-weight: 600; color: var(--accent); font-size: .93rem; }
+  footer { text-align: center; color: var(--muted); font-size: .86rem; border-top: 1px solid var(--border); padding-top: 1.6rem; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer p { margin: .35rem 0; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="logo.png" alt="LocusCompare">
+      <h1>LocusCompare</h1>
+      <p class="tagline">A suite of tools for visualizing and interpreting the colocalization
+        of genetic association summary statistics.</p>
+    </header>
+
+    <main class="grid">
+      <a class="card" href="https://app.locuscompare.com">
+        <span class="kicker">Web app</span>
+        <h2>Interactive web app</h2>
+        <p>Point-and-click browser. Upload a GWAS and an eQTL locus and instantly explore their
+           colocalization with LocusCompare and LocusZoom plots — no code required.</p>
+        <span class="go">Open the app →</span>
+      </a>
+
+      <a class="card" href="https://locuscompare2.com">
+        <span class="kicker">Platform</span>
+        <h2>LocusCompare2</h2>
+        <p>The next-generation platform. Run an ensemble of six GWAS-to-gene methods
+           (coloc, eCAVIAR, fastENLOC, FUSION, PrediXcan, SMR) across 280+ pre-loaded eQTL datasets.</p>
+        <span class="go">Go to LocusCompare2 →</span>
+      </a>
+
+      <a class="card" href="https://github.com/boxiangliu/locuscomparer">
+        <span class="kicker">R package</span>
+        <h2>locuscomparer</h2>
+        <p>The original LocusCompare in R. Generate publication-ready LocusCompare and LocusZoom
+           plots directly from your own summary statistics.</p>
+        <span class="go">View on GitHub →</span>
+      </a>
+
+      <a class="card" href="https://github.com/boxiangliu/locuscomparepy">
+        <span class="kicker">Python package</span>
+        <h2>locuscomparepy</h2>
+        <p>The Python port of locuscomparer. Build the same colocalization figures inside your
+           Python and Jupyter workflows.</p>
+        <span class="go">View on GitHub →</span>
+      </a>
+    </main>
+
+    <footer>
+      <p>If you use LocusCompare v1, please cite
+        <a href="https://www.nature.com/articles/s41588-019-0404-0">Liu et al., Nature Genetics (2019)</a>.
+        For LocusCompare2, cite
+        <a href="https://www.nature.com/articles/s41588-025-02331-x">Liu et al., Nature Genetics (2025)</a>.</p>
+      <p>Boxiang Liu Lab · <a href="https://github.com/boxiangliu/locuscompare">GitHub</a> · GPL-3.0</p>
+    </footer>
+  </div>
+</body>
+</html>

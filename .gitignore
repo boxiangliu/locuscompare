@@ -3,10 +3,13 @@ contrib/
 *.ai
 *.xlsx
 *.html
+!landing/index.html
 processed_data/
 *test*
 *tmp*
-config/
+config/*.json
+config/*.pem
+config/*.rda
 figure/
 data/1KG
 data/gencode
@@ -24,3 +27,7 @@ tmp/
 README.html
 .httr-oauth
 maintenance/
+# Secrets / local environment (never commit real credentials)
+.env
+.env.*
+!.env.example

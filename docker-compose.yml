@@ -1,0 +1,30 @@
+# LocusCompare deployment: the Shiny app + Caddy (auto-HTTPS reverse proxy that
+# also serves the static landing page). The database is external (colotool), so
+# there is no DB container.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env            # DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD
+    environment:
+      APP_HOME: /srv/shiny-server/locuscompare
+    expose:
+      - "3838"                # internal only; Caddy fronts it
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./landing:/srv/www:ro         # static landing page for locuscompare.com
+      - caddy_data:/data              # persists Let's Encrypt certificates
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

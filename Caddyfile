@@ -1,0 +1,19 @@
+# Auto-HTTPS via Let's Encrypt. Requires the domains' A records to point at this
+# host and ports 80/443 to be reachable.
+{
+	# Email for Let's Encrypt expiry notices (optional; change or remove).
+	email boxiangliu@nus.edu.sg
+}
+
+# Landing page.
+locuscompare.com, www.locuscompare.com {
+	root * /srv/www
+	file_server
+	encode gzip
+}
+
+# The interactive Shiny app.
+app.locuscompare.com {
+	reverse_proxy app:3838
+	encode gzip
+}

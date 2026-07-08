@@ -1,45 +1,42 @@
+# Global setup for the LocusCompare single-locus Shiny app.
+#
+# Plotting, LD retrieval, and SNP-position lookup are provided by the `locuscomparer`
+# package (v1.1.0), which reads the shared 1000 Genomes reference tables from the
+# `colotool` database. The app keeps its own connection pool for the reference
+# queries it makes directly (region variants, SNP info, gene coordinates).
+# Boxiang Liu
+
 library(shiny)
+library(shinyjs)
+library(shinythemes)
+library(shinycssloaders)
 library(DT)
-library(stringr)
 library(dplyr)
+library(stringr)
+library(data.table)
+library(DBI)
 library(RMySQL)
 library(pool)
-library(DBI)
-library(foreach)
-library(zip)
-library(shinyjs)
-source('locuscompare.R')
-source('config/config.R')
-library(digest)
-library(utils)
-library(googlesheets)
-library(promises)
-library(future)
-plan(multiprocess)
-library(mailR)
-library(shinycssloaders)
-library(googledrive)
-library(manhattan)
-library(shinythemes)
+library(ggplot2)
+library(cowplot)
+library(ggrepel)
+library(locuscomparer)
 
-# Variables:
-locuscompare_pool = dbPool(
-    RMySQL::MySQL(), 
-    dbname = "locuscompare",
-    host = aws_host,
-    username = aws_username,
-    password = aws_password,
-    minSize = 4
+source('config/config.R')
+
+# Connection pool to colotool for the app's own reference queries.
+locuscompare_pool <- dbPool(
+    drv = RMySQL::MySQL(),
+    dbname = db_name,
+    host = db_host,
+    port = db_port,
+    username = db_user,
+    password = db_pass,
+    minSize = 1,
+    maxSize = 8,
+    idleTimeout = 60000
 )
 
 onStop(function() {
-  poolClose(locuscompare_pool)
+    poolClose(locuscompare_pool)
 })
-
-args = list(
-    drv = RMySQL::MySQL(),
-    dbname = "locuscompare",
-    host = aws_host,
-    username = aws_username,
-    password = aws_password
-)

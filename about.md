@@ -1,38 +1,32 @@
-# LocusCompare: Visualizing the colocalization of association summary statistics 
+# LocusCompare
 
 ---
 ## Introduction
 <img src="logo.png" width="600"/>
 
-LocusCompare is a suite of tools and datasets to visualize the colocalization of summary statistics from pairs of association datasets (e.g. GWAS and eQTL). These tools and datasets include: 
+LocusCompare is an interactive tool for visualizing the colocalization of two genetic
+association datasets (for example, a GWAS and an eQTL) at a single locus. Upload two sets of
+summary statistics, choose a region by SNP, gene, or coordinate, and explore the shared
+association signal with a LocusCompare scatter plot and two LocusZoom panels, colored by
+linkage disequilibrium (1000 Genomes Phase 3).
 
-- Colocalization statistics between more than 200 GWAS and 48 GTEx (version 7) tissues
-- Interactive LocusCompare plot to visualize a single locus
-- Bash script to download summary statistics of more than 200 GWAS
+Plots are produced by the [locuscomparer](https://github.com/boxiangliu/locuscomparer) R package.
 
-## Documentations
-For instructions please follow these links: 
+## Looking for genome-wide colocalization?
+For an ensemble of colocalization, TWAS, and Mendelian randomization methods across hundreds of
+pre-loaded eQTL datasets, see **[LocusCompare2](https://locuscompare2.com)**.
 
+## The LocusCompare family
+- [locuscomparer](https://github.com/boxiangliu/locuscomparer) — R package
+- [locuscomparepy](https://github.com/boxiangliu/locuscomparepy) — Python package
+- [LocusCompare2](https://locuscompare2.com) — online ensemble GWAS-to-gene platform
 
-- <a href="https://www.github.com/boxiangliu/locuscompare/wiki" target="_blank">Documentation</a>
-- <a href="https://www.github.com/boxiangliu/locuscompare/wiki/FAQ" target="_blank">Frequently Asked Questions</a>
-- <a href="https://www.github.com/boxiangliu/locuscompare/issues" target="_blank">Bug reports</a>
-
-To download stand-alone version:
-
-- <a href="https://www.github.com/boxiangliu/locuscomparer" target="_blank">LocusCompareR</a>
-
+## Citation
+Liu B, Gloudemans MJ, Rao AS, Ingelsson E, Montgomery SB. *Abundant associations with gene
+expression complicate GWAS follow-up.* Nature Genetics (2019).
 
 ## License
 GPL v3 or later
 
 ## Developers
-- Boxiang Liu (author, maintainer)
-- Mike Gloudemans (author, maintainer)
-- Abhiram Rao (author)
-- Stephen Montgomery (author)
-
-## Citation
-If you use locuscompare, please cite the following paper: https://www.nature.com/articles/s41588-019-0404-0
-
-Boxiang Liu, Michael J. Gloudemans, Abhiram S. Rao, Erik Ingelsson & Stephen B. Montgomery (2019) Abundant associations with gene expression complicate GWAS follow-up, Nature Genetics
+Boxiang Liu, Mike Gloudemans, Abhiram Rao, Stephen Montgomery
