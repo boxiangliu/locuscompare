@@ -3,9 +3,12 @@
 # snapshot for reproducible installs).
 FROM rocker/shiny:4.4.1
 
-# System libraries: RMySQL needs the MariaDB/MySQL client dev headers; the rest
-# are for the usual curl/xml/ssl-dependent R packages.
+# System libraries. The prebuilt RMySQL binary links against MySQL's client
+# library, so we need libmysqlclient21 (provides libmysqlclient.so.21) at runtime;
+# libmariadb-dev covers any source builds. The rest are for the usual
+# curl/xml/ssl-dependent R packages.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        libmysqlclient21 \
         libmariadb-dev \
         libssl-dev \
         libxml2-dev \
